@@ -38,7 +38,7 @@ public class DdlImpl implements Ddl {
       close(ps);
       metric.done("close");
       if (log.isDebugEnabled()) {
-        log.debug("Update: " + metric.getMessage() + " " + new DebugSql(sql, null));
+        log.debug("DDL: " + metric.getMessage() + " " + sql);
       }
     }
   }
@@ -58,7 +58,7 @@ public class DdlImpl implements Ddl {
   }
 
   private String toMessage(String sql) {
-    return "Error executing SQL: " + new DebugSql(sql, null);
+    return "Error executing SQL: " + sql;
   }
 
   private void close(Statement s) {

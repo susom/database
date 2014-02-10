@@ -190,7 +190,7 @@ public class SqlInsertImpl implements SqlInsert {
       adaptor.closeQuietly(ps, log);
       metric.done("close");
       if (log.isDebugEnabled()) {
-        log.debug("Update: " + metric.getMessage() + " " + new DebugSql(executeSql, parameters));
+        log.debug("Insert: " + metric.getMessage() + " " + new DebugSql(executeSql, parameters));
       }
     }
   }

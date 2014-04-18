@@ -24,11 +24,20 @@ The various `argX()` calls know the type of the object you intend to pass, and c
 therefore handle null values correctly. No more errors because you pass a null and the JDBC
 driver can't figure out what type it should be.
 
+```java
+  db.insert("insert into foo (bar) values (?)").argLong(maybeNull).insert(1);
+```
+
 #### Indexed or named parameters
 
 You can use traditional positional parameters in the SQL (the '?' character),
 or you can use named parameters (like ":data" above). This can help reduce errors due to counting
 incorrectly. Note you cannot use both positional and named within the same SQL.
+
+```java
+  db.update("update foo set bar=?").argLong(23L).update();
+  db.update("update foo set bar=:baz").argLong("baz", 23L).update();
+```
 
 #### Correct handling of java.util.Date
 
@@ -62,8 +71,7 @@ Built to make life easier in modern IDEs.
 ### A Quick Example
 
 Usually the server container will manage creation of the Database or Provider<Database>,
-and business logic will declare a dependency on this (e.g. via a constructor parameter).
-For example:
+and business logic will declare a dependency on this (e.g. via a constructor parameter):
 
 ```java
 public class MyBusiness {
@@ -74,9 +82,11 @@ public class MyBusiness {
   }
 
   public Long doStuff(String data) {
-    return db.get().select("select count(*) from a where b=:data").argString(data).queryLong();
+    return db.get().select("select count(*) from a where b=:data")
+             .argString("data", data).queryLong();
   }
 
+  // Note this are all java.util.Date
   public List<Date> doMoreStuff(Date after) {
     return db.get().select("select my_date from a where b > ?").argDate(after)
            .query(new RowsHandler<List<Date>>() {
@@ -91,4 +101,22 @@ public class MyBusiness {
            }
   }
 }
+```
+
+Or you can directly access it, of course:
+
+```java
+  String url = "jdbc:derby:testdb;create=true";
+  DatabaseProvider dbProvider = new DatabaseProvider(new DriverManagerConnectionProvider(url));
+
+  try {
+    Database db = dbProvider.get();
+    db.ddl("drop table dbtest").executeQuietly();
+    db.ddl("create table dbtest (a numeric)").execute();
+    db.insert("insert into dbtest (a) values (23)").insert(1);
+
+    System.out.println("Rows: " + db.select("select count(1) from dbtest").queryLong());
+  } finally {
+    dbProvider.commitAndClose();
+  }
 ```

@@ -22,7 +22,7 @@ import java.util.Date;
 
 /**
  * Convenience class to substitute real values into a database query for debugging, logging, etc.
- *
+ * <p/>
  * WARNING!!! Never execute this SQL without manual inspection because this class does NOTHING
  * to prevent SQL injection or any other bad things.
  *

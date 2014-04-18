@@ -152,7 +152,8 @@ public abstract class CommonTest {
     assertEquals(1, db.insert("insert into dbtest values (?,?,?,?,?,?,?,?,?)").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
         .argBigDecimal(bigDecimal).argString("Hello").argClobString("World").argBlobBytes("More".getBytes())
         .argDate(currentDate).insert());
-    db.update("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, nbr_big_decimal=?, "        + "str_varchar=?, str_lob=?, bin_blob=?, date_millis=?").argInteger(null).argLong(null).argFloat(null)
+    db.update("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, nbr_big_decimal=?, "
+        + "str_varchar=?, str_lob=?, bin_blob=?, date_millis=?").argInteger(null).argLong(null).argFloat(null)
         .argDouble(null).argBigDecimal(null).argString(null).argClobString(null).argBlobBytes(null)
         .argDate(null).update(1);
     db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_lob, "
@@ -181,11 +182,10 @@ public abstract class CommonTest {
         return null;
       }
     });
-    assertEquals(1, db.update(
-        "update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, nbr_big_decimal=?, "
-            + "str_varchar=?, str_lob=?, bin_blob=?, date_millis=?").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
-        .argBigDecimal(bigDecimal).argString("Hello").argClobString("World").argBlobBytes("More".getBytes())
-        .argDate(currentDate).update());
+    assertEquals(1, db.update("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, "
+        + "nbr_big_decimal=?, str_varchar=?, str_lob=?, bin_blob=?, date_millis=?").argInteger(1).argLong(2L)
+        .argFloat(3.2f).argDouble(4.2).argBigDecimal(bigDecimal).argString("Hello").argClobString("World")
+        .argBlobBytes("More".getBytes()).argDate(currentDate).update());
     db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_lob, "
         + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override

@@ -53,112 +53,134 @@ public class SqlUpdateImpl implements SqlUpdate {
   }
 
   @Override
-  public @NotNull SqlUpdate argInteger(@Nullable Integer arg) {
+  @NotNull
+  public SqlUpdate argInteger(@Nullable Integer arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argInteger(@NotNull String argName, @Nullable Integer arg) {
+  @NotNull
+  public SqlUpdate argInteger(@NotNull String argName, @Nullable Integer arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argLong(@Nullable Long arg) {
+  @NotNull
+  public SqlUpdate argLong(@Nullable Long arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argLong(@NotNull String argName, @Nullable Long arg) {
+  @NotNull
+  public SqlUpdate argLong(@NotNull String argName, @Nullable Long arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argFloat(@Nullable Float arg) {
+  @NotNull
+  public SqlUpdate argFloat(@Nullable Float arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argFloat(@NotNull String argName, @Nullable Float arg) {
+  @NotNull
+  public SqlUpdate argFloat(@NotNull String argName, @Nullable Float arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argDouble(@Nullable Double arg) {
+  @NotNull
+  public SqlUpdate argDouble(@Nullable Double arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argDouble(@NotNull String argName, @Nullable Double arg) {
+  @NotNull
+  public SqlUpdate argDouble(@NotNull String argName, @Nullable Double arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argBigDecimal(@Nullable BigDecimal arg) {
+  @NotNull
+  public SqlUpdate argBigDecimal(@Nullable BigDecimal arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argBigDecimal(@NotNull String argName, @Nullable BigDecimal arg) {
+  @NotNull
+  public SqlUpdate argBigDecimal(@NotNull String argName, @Nullable BigDecimal arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argString(@Nullable String arg) {
+  @NotNull
+  public SqlUpdate argString(@Nullable String arg) {
     return positionalArg(adaptor.nullString(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argString(@NotNull String argName, @Nullable String arg) {
+  @NotNull
+  public SqlUpdate argString(@NotNull String argName, @Nullable String arg) {
     return namedArg(argName, adaptor.nullString(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argDate(@Nullable Date arg) {
+  @NotNull
+  public SqlUpdate argDate(@Nullable Date arg) {
     return positionalArg(adaptor.nullDate(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argDate(@NotNull String argName, @Nullable Date arg) {
+  @NotNull
+  public SqlUpdate argDate(@NotNull String argName, @Nullable Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argBlobBytes(@Nullable byte[] arg) {
+  @NotNull
+  public SqlUpdate argBlobBytes(@Nullable byte[] arg) {
     return positionalArg(adaptor.nullBytes(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argBlobBytes(@NotNull String argName, @Nullable byte[] arg) {
+  @NotNull
+  public SqlUpdate argBlobBytes(@NotNull String argName, @Nullable byte[] arg) {
     return namedArg(argName, adaptor.nullBytes(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argBlobInputStream(@Nullable InputStream arg) {
+  @NotNull
+  public SqlUpdate argBlobInputStream(@Nullable InputStream arg) {
     return positionalArg(adaptor.nullInputStream(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argBlobInputStream(@NotNull String argName, @Nullable InputStream arg) {
+  @NotNull
+  public SqlUpdate argBlobInputStream(@NotNull String argName, @Nullable InputStream arg) {
     return namedArg(argName, adaptor.nullInputStream(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argClobString(@Nullable String arg) {
+  @NotNull
+  public SqlUpdate argClobString(@Nullable String arg) {
     return positionalArg(adaptor.nullString(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argClobString(@NotNull String argName, @Nullable String arg) {
+  @NotNull
+  public SqlUpdate argClobString(@NotNull String argName, @Nullable String arg) {
     return namedArg(argName, adaptor.nullString(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argClobReader(@Nullable Reader arg) {
+  @NotNull
+  public SqlUpdate argClobReader(@Nullable Reader arg) {
     return positionalArg(adaptor.nullClobReader(arg));
   }
 
   @Override
-  public @NotNull SqlUpdate argClobReader(@NotNull String argName, @Nullable Reader arg) {
+  @NotNull
+  public SqlUpdate argClobReader(@NotNull String argName, @Nullable Reader arg) {
     return namedArg(argName, adaptor.nullClobReader(arg));
   }
 
@@ -212,7 +234,8 @@ public class SqlUpdateImpl implements SqlUpdate {
     }
   }
 
-  private @NotNull SqlUpdate positionalArg(@Nullable Object arg) {
+  @NotNull
+  private SqlUpdate positionalArg(@Nullable Object arg) {
     if (parameterMap != null) {
       throw new DatabaseException("Use either positional or named query parameters, not both");
     }
@@ -223,7 +246,8 @@ public class SqlUpdateImpl implements SqlUpdate {
     return this;
   }
 
-  private @NotNull SqlUpdate namedArg(@NotNull String argName, @Nullable Object arg) {
+  @NotNull
+  private SqlUpdate namedArg(@NotNull String argName, @Nullable Object arg) {
     if (parameterList != null) {
       throw new DatabaseException("Use either positional or named query parameters, not both");
     }

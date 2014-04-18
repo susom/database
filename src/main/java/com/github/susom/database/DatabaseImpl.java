@@ -39,32 +39,38 @@ public class DatabaseImpl implements Database {
   }
 
   @Override
-  public @NotNull DatabaseImpl get() {
+  @NotNull
+  public DatabaseImpl get() {
     return this;
   }
 
   @Override
-  public @NotNull SqlInsert insert(@NotNull String sql) {
+  @NotNull
+  public SqlInsert insert(@NotNull String sql) {
     return new SqlInsertImpl(connection, sql);
   }
 
   @Override
-  public @NotNull SqlSelect select(@NotNull String sql) {
+  @NotNull
+  public SqlSelect select(@NotNull String sql) {
     return new SqlSelectImpl(connection, sql);
   }
 
   @Override
-  public @NotNull SqlUpdate update(@NotNull String sql) {
+  @NotNull
+  public SqlUpdate update(@NotNull String sql) {
     return new SqlUpdateImpl(connection, sql);
   }
 
   @Override
-  public @NotNull SqlUpdate delete(@NotNull String sql) {
+  @NotNull
+  public SqlUpdate delete(@NotNull String sql) {
     return new SqlUpdateImpl(connection, sql);
   }
 
   @Override
-  public @NotNull Ddl ddl(@NotNull String sql) {
+  @NotNull
+  public Ddl ddl(@NotNull String sql) {
     return new DdlImpl(connection, sql);
   }
 

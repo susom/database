@@ -32,12 +32,10 @@ import java.util.Set;
  * @author garricko
  */
 public class NamedParameterSql {
-//  private final String originalSql;
   private final String sqlToExecute;
   private final String[] argNames;
 
   public NamedParameterSql(String sql) {
-//    this.originalSql = sql;
     StringBuilder newSql = new StringBuilder(sql.length());
     List<String> argNames = new ArrayList<>();
     int searchIndex = 0;
@@ -76,17 +74,9 @@ public class NamedParameterSql {
     this.argNames = argNames.toArray(new String[argNames.size()]);
   }
 
-//  public String getOriginalSql() {
-//    return originalSql;
-//  }
-
   public String getSqlToExecute() {
     return sqlToExecute;
   }
-
-//  public String[] getArgNames() {
-//    return argNames;
-//  }
 
   public Object[] toArgs(Map<String, Object> nameToArg) {
     Object[] args = new Object[argNames.length];

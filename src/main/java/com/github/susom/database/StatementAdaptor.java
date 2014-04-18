@@ -69,23 +69,23 @@ public class StatementAdaptor {
   }
 
   /**
-   * Converts the java.util.Date into a java.sql.Timestamp, following the nanos/millis canonicalization required by the spec.
-   * If a java.sql.Timestamp is passed in (since it extends java.util.Date), it will be checked and canonicalized only if not already correct.
+   * Converts the java.util.Date into a java.sql.Timestamp, following the nanos/millis canonicalization
+   * required by the spec. If a java.sql.Timestamp is passed in (since it extends java.util.Date),
+   * it will be checked and canonicalized only if not already correct.
    */
-  private static Timestamp toSqlTimestamp(Date date)
-  {
+  private static Timestamp toSqlTimestamp(Date date) {
     long millis = date.getTime();
-    int  fractionalSecondMillis = (int)(millis % 1000); // guaranteed < 1000
+    int fractionalSecondMillis = (int) (millis % 1000); // guaranteed < 1000
 
     if (fractionalSecondMillis == 0) { // this means it's already correct by the spec
       if (date instanceof Timestamp) {
-        return (Timestamp)date;
+        return (Timestamp) date;
       } else {
         return new Timestamp(millis);
       }
     } else { // the millis are invalid and need to be corrected
-      int  tsNanos    = fractionalSecondMillis * 1000;
-      long tsMillis   = millis - fractionalSecondMillis;
+      int tsNanos = fractionalSecondMillis * 1000;
+      long tsMillis = millis - fractionalSecondMillis;
       Timestamp timestamp = new Timestamp(tsMillis);
       timestamp.setNanos(tsNanos);
       return timestamp;

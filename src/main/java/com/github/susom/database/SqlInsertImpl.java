@@ -42,12 +42,14 @@ public class SqlInsertImpl implements SqlInsert {
   private final Connection connection;
   private final StatementAdaptor adaptor;
   private final String sql;
+  private final LogOptions logOptions;
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
 
-  public SqlInsertImpl(Connection connection, String sql) {
+  public SqlInsertImpl(Connection connection, String sql, LogOptions logOptions) {
     this.connection = connection;
     this.sql = sql;
+    this.logOptions = logOptions;
     adaptor = new StatementAdaptor();
   }
 
@@ -188,6 +190,8 @@ public class SqlInsertImpl implements SqlInsert {
       }
     }
 
+    boolean isSuccess = false;
+    String errorCode = null;
     try {
       ps = connection.prepareStatement(executeSql);
 
@@ -196,17 +200,22 @@ public class SqlInsertImpl implements SqlInsert {
       int numAffectedRows = ps.executeUpdate();
       metric.checkpoint("exec");
       if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
+        errorCode = logOptions.generateErrorCode();
         throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
-            + expectedNumAffectedRows + " were expected." + "\n" + toMessage(executeSql, parameters));
+            + expectedNumAffectedRows + " were expected." + "\n"
+            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions));
       }
+      isSuccess = true;
       return numAffectedRows;
     } catch (Exception e) {
-      throw new DatabaseException(toMessage(executeSql, parameters), e);
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions), e);
     } finally {
       adaptor.closeQuietly(ps, log);
       metric.done("close");
-      if (log.isDebugEnabled()) {
-        log.debug("Insert: " + metric.getMessage() + " " + new DebugSql(executeSql, parameters));
+      if (isSuccess) {
+        DebugSql.logSuccess("Insert", log, metric, executeSql, parameters, logOptions);
+      } else {
+        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, logOptions);
       }
     }
   }
@@ -234,9 +243,5 @@ public class SqlInsertImpl implements SqlInsert {
     }
     parameterMap.put(argName, arg);
     return this;
-  }
-
-  private String toMessage(String sql, Object[] parameters) {
-    return "Error executing SQL: " + new DebugSql(sql, parameters);
   }
 }

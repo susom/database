@@ -39,14 +39,20 @@ public final class DatabaseProvider implements Provider<Database> {
   private Connection connection = null;
   private Database database = null;
   private boolean allowTxManage;
+  private final LogOptions logOptions;
 
   public DatabaseProvider(Provider<Connection> connectionProvider) {
     this(connectionProvider, false);
   }
 
   public DatabaseProvider(Provider<Connection> connectionProvider, boolean allowTxManage) {
+    this(connectionProvider, allowTxManage, new LogOptions());
+  }
+
+  public DatabaseProvider(Provider<Connection> connectionProvider, boolean allowTxManage, LogOptions logOptions) {
     this.connectionProvider = connectionProvider;
     this.allowTxManage = allowTxManage;
+    this.logOptions = logOptions;
   }
 
   public Database get() {
@@ -69,7 +75,7 @@ public final class DatabaseProvider implements Provider<Database> {
       } catch (SQLException e) {
         throw new DatabaseException("Unable to check/set autoCommit for the connection", e);
       }
-      database = new DatabaseImpl(connection, allowTxManage);
+      database = new DatabaseImpl(connection, allowTxManage, logOptions);
       metric.checkpoint("dbInit");
     } catch (RuntimeException e) {
       metric.checkpoint("fail");
@@ -77,7 +83,9 @@ public final class DatabaseProvider implements Provider<Database> {
     } finally {
       metric.done();
       if (log.isDebugEnabled()) {
-        log.debug("Get database: " + metric.getMessage());
+        StringBuilder buf = new StringBuilder("Get database: ");
+        metric.printMessage(buf);
+        log.debug(buf.toString());
       }
     }
     return database;

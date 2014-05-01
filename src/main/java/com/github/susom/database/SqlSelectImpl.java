@@ -43,14 +43,16 @@ public class SqlSelectImpl implements SqlSelect {
   private PreparedStatement ps; // hold reference to support cancel from another thread
   private final Object cancelLock = new Object();
   private final String sql;
+  private final LogOptions logOptions;
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
   private int timeoutSeconds = -1; // -1 ==> no timeout
   private int maxRows = -1; // -1 ==> unlimited
 
-  public SqlSelectImpl(Connection connection, String sql) {
+  public SqlSelectImpl(Connection connection, String sql, LogOptions logOptions) {
     this.connection = connection;
     this.sql = sql;
+    this.logOptions = logOptions;
     adaptor = new StatementAdaptor();
   }
 
@@ -211,6 +213,9 @@ public class SqlSelectImpl implements SqlSelect {
       }
     }
 
+    boolean isWarn = false;
+    boolean isSuccess = false;
+    String errorCode = null;
     try {
       synchronized (cancelLock) {
         ps = connection.prepareStatement(executeSql);
@@ -231,15 +236,19 @@ public class SqlSelectImpl implements SqlSelect {
       final ResultSet finalRs = rs;
       T result = handler.process(new RowsAdaptor(finalRs));
       metric.checkpoint("read");
+      isSuccess = true;
       return result;
     } catch (SQLException e) {
       if (e.getErrorCode() == 1013) {
+        isWarn = true;
         // It's ambiguous based on the Oracle error code whether it was a timeout or cancel
         throw new QueryTimedOutException("Timeout of " + timeoutSeconds + " seconds exceeded or user cancelled", e);
       }
-      throw new DatabaseException(toMessage(executeSql, parameters), e);
+      errorCode = logOptions.generateErrorCode();
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions), e);
     } catch (Exception e) {
-      throw new DatabaseException(toMessage(executeSql, parameters), e);
+      errorCode = logOptions.generateErrorCode();
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions), e);
     } finally {
       adaptor.closeQuietly(rs, log);
       adaptor.closeQuietly(ps, log);
@@ -247,13 +256,13 @@ public class SqlSelectImpl implements SqlSelect {
         ps = null;
       }
       metric.done("close");
-      if (log.isDebugEnabled()) {
-        log.debug("Query: " + metric.getMessage() + " " + new DebugSql(executeSql, parameters));
+      if (isSuccess) {
+        DebugSql.logSuccess("Query", log, metric, executeSql, parameters, logOptions);
+      } else if (isWarn) {
+        DebugSql.logWarning("Query", log, metric, "QueryTimedOutException", executeSql, parameters, logOptions);
+      } else {
+        DebugSql.logError("Query", log, metric, errorCode, executeSql, parameters, logOptions);
       }
     }
-  }
-
-  private String toMessage(String sql, Object[] parameters) {
-    return "Error executing SQL: " + new DebugSql(sql, parameters);
   }
 }

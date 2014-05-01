@@ -32,29 +32,37 @@ public class DdlImpl implements Ddl {
   private static final Logger log = LoggerFactory.getLogger(DdlImpl.class);
   private final Connection connection;
   private final String sql;
+  private final LogOptions logOptions;
 
-  public DdlImpl(Connection connection, String sql) {
+  public DdlImpl(Connection connection, String sql, LogOptions logOptions) {
     this.connection = connection;
     this.sql = sql;
+    this.logOptions = logOptions;
   }
 
   private void updateInternal() {
     CallableStatement ps = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
+    boolean isSuccess = false;
+    String errorCode = null;
     try {
       ps = connection.prepareCall(sql);
 
       metric.checkpoint("prep");
       ps.execute();
       metric.checkpoint("exec");
+      isSuccess = true;
     } catch (Exception e) {
-      throw new DatabaseException(toMessage(sql), e);
+      errorCode = logOptions.generateErrorCode();
+      throw new DatabaseException(DebugSql.exceptionMessage(sql, null, errorCode, logOptions), e);
     } finally {
       close(ps);
       metric.done("close");
-      if (log.isDebugEnabled()) {
-        log.debug("DDL: " + metric.getMessage() + " " + sql);
+      if (isSuccess) {
+        DebugSql.logSuccess("DDL", log, metric, sql, null, logOptions);
+      } else {
+        DebugSql.logError("DDL", log, metric, errorCode, sql, null, logOptions);
       }
     }
   }
@@ -71,10 +79,6 @@ public class DdlImpl implements Ddl {
     } catch (DatabaseException e) {
       // Ignore, as requested
     }
-  }
-
-  private String toMessage(String sql) {
-    return "Error executing SQL: " + sql;
   }
 
   private void close(Statement s) {

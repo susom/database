@@ -20,6 +20,8 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
+import org.slf4j.Logger;
+
 /**
  * Convenience class to substitute real values into a database query for debugging, logging, etc.
  * <p/>
@@ -29,17 +31,8 @@ import java.util.Date;
  * @author garricko
  */
 public class DebugSql {
-  private final String sql;
-  private final Object[] args;
-
-  public DebugSql(String sql, Object[] args) {
-    this.sql = sql;
-    this.args = args;
-  }
-
-  @Override
-  public String toString() {
-    Object[] argsToPrint = this.args;
+  public static void printSql(StringBuilder buf, String sql, Object[] args, LogOptions logOptions) {
+    Object[] argsToPrint = args;
     if (argsToPrint == null) {
       argsToPrint = new Object[0];
     }
@@ -50,32 +43,37 @@ public class DebugSql {
       argsToPrint = (Object[]) argsToPrint[0];
     }
     String[] sqlParts = sql.split("\\?");
-    StringBuilder buf = new StringBuilder();
     if (sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
       buf.append("(wrong # args) query: ");
       buf.append(sql);
       buf.append(" args: ");
-      buf.append(Arrays.toString(argsToPrint));
-    } else {
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-      buf.append(sql);
-      buf.append('|');
-      for (int i = 0; i < argsToPrint.length; i++) {
-        buf.append(sqlParts[i]);
-        if (argsToPrint[i] instanceof String) {
-          buf.append("'");
-          buf.append(argsToPrint[i]);
-          buf.append("'");
-        } else if (argsToPrint[i] instanceof Date) {
-          buf.append("to_date('");
-          buf.append(sdf.format((Date) argsToPrint[i]));
-          buf.append("', 'YYYY-MM-DD')");
-        } else {
-          buf.append(argsToPrint[i]);
-        }
+      if (logOptions.isLogParameters()) {
+        buf.append(Arrays.toString(argsToPrint));
+      } else {
+        buf.append(argsToPrint.length);
       }
-      if (sqlParts.length > argsToPrint.length) {
-        buf.append(sqlParts[sqlParts.length - 1]);
+    } else {
+      buf.append(sql);
+      if (logOptions.isLogParameters()) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        buf.append('|');
+        for (int i = 0; i < argsToPrint.length; i++) {
+          buf.append(sqlParts[i]);
+          if (argsToPrint[i] instanceof String) {
+            buf.append("'");
+            buf.append(argsToPrint[i]);
+            buf.append("'");
+          } else if (argsToPrint[i] instanceof Date) {
+            buf.append("to_date('");
+            buf.append(sdf.format((Date) argsToPrint[i]));
+            buf.append("', 'YYYY-MM-DD')");
+          } else {
+            buf.append(argsToPrint[i]);
+          }
+        }
+        if (sqlParts.length > argsToPrint.length) {
+          buf.append(sqlParts[sqlParts.length - 1]);
+        }
       }
     }
     if (batchSize != -1) {
@@ -83,6 +81,58 @@ public class DebugSql {
       buf.append(batchSize);
       buf.append(')');
     }
+  }
+
+  public static String exceptionMessage(String sql, Object[] parameters, String errorCode, LogOptions logOptions) {
+    StringBuilder buf = new StringBuilder("Error executing SQL");
+    if (errorCode != null) {
+      buf.append(" (errorCode=").append(errorCode).append(")");
+    }
+    if (logOptions.isDetailedExceptions()) {
+      buf.append(": ");
+      DebugSql.printSql(buf, sql, parameters, logOptions);
+    }
     return buf.toString();
+  }
+
+  public static void logSuccess(String sqlType, Logger log, Metric metric, String sql, Object[] args, LogOptions logOptions) {
+    if (log.isDebugEnabled()) {
+      StringBuilder buf = new StringBuilder();
+      buf.append(sqlType).append(": ");
+      metric.printMessage(buf);
+      buf.append(" ");
+      printSql(buf, sql, args, logOptions);
+      log.debug(buf.toString());
+    }
+  }
+
+  public static void logWarning(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
+                          LogOptions logOptions) {
+    if (log.isWarnEnabled()) {
+      StringBuilder buf = new StringBuilder();
+      if (errorCode != null) {
+        buf.append("errorCode=").append(errorCode).append(" ");
+      }
+      buf.append(sqlType).append(": ");
+      metric.printMessage(buf);
+      buf.append(" ");
+      printSql(buf, sql, args, logOptions);
+      log.warn(buf.toString());
+    }
+  }
+
+  public static void logError(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
+                        LogOptions logOptions) {
+    if (log.isErrorEnabled()) {
+      StringBuilder buf = new StringBuilder();
+      if (errorCode != null) {
+        buf.append("errorCode=").append(errorCode).append(" ");
+      }
+      buf.append(sqlType).append(": ");
+      metric.printMessage(buf);
+      buf.append(" ");
+      printSql(buf, sql, args, logOptions);
+      log.error(buf.toString());
+    }
   }
 }

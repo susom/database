@@ -28,14 +28,20 @@ import org.jetbrains.annotations.NotNull;
 public class DatabaseImpl implements Database {
   private final Connection connection;
   private boolean allowTransactions;
+  private final LogOptions logOptions;
 
   public DatabaseImpl(@NotNull Connection connection) {
     this(connection, false);
   }
 
   public DatabaseImpl(@NotNull Connection connection, boolean allowTransactions) {
+    this(connection, allowTransactions, new LogOptions());
+  }
+
+  public DatabaseImpl(@NotNull Connection connection, boolean allowTransactions, LogOptions logOptions) {
     this.connection = connection;
     this.allowTransactions = allowTransactions;
+    this.logOptions = logOptions;
   }
 
   @Override
@@ -47,31 +53,31 @@ public class DatabaseImpl implements Database {
   @Override
   @NotNull
   public SqlInsert insert(@NotNull String sql) {
-    return new SqlInsertImpl(connection, sql);
+    return new SqlInsertImpl(connection, sql, logOptions);
   }
 
   @Override
   @NotNull
   public SqlSelect select(@NotNull String sql) {
-    return new SqlSelectImpl(connection, sql);
+    return new SqlSelectImpl(connection, sql, logOptions);
   }
 
   @Override
   @NotNull
   public SqlUpdate update(@NotNull String sql) {
-    return new SqlUpdateImpl(connection, sql);
+    return new SqlUpdateImpl(connection, sql, logOptions);
   }
 
   @Override
   @NotNull
   public SqlUpdate delete(@NotNull String sql) {
-    return new SqlUpdateImpl(connection, sql);
+    return new SqlUpdateImpl(connection, sql, logOptions);
   }
 
   @Override
   @NotNull
   public Ddl ddl(@NotNull String sql) {
-    return new DdlImpl(connection, sql);
+    return new DdlImpl(connection, sql, logOptions);
   }
 
   public void commitNow() {

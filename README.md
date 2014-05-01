@@ -64,6 +64,13 @@ Be ye not overly bewildering, keepers of standards.
 Tracks the important metrics and logs to SLF4J in a way that
 gives you more control than having database-related logging scattered throughout your code.
 
+```
+Get database: 393.282ms(getConn=389.948ms,checkAutoCommit=1.056ms,dbInit=2.273ms)
+DDL: 15.658ms(prep=8.017ms,exec=7.619ms,close=0.021ms) create table dbtest (a numeric)
+Insert: 71.295ms(prep=65.093ms,exec=6.153ms,close=0.048ms) insert into dbtest (a) values (?)|insert into dbtest (a) values (23)
+Query: 38.627ms(prep=27.642ms,exec=9.846ms,read=1.013ms,close=0.125ms) select count(1) from dbtest|select count(1) from dbtest
+```
+
 #### Fluent API that is auto-completion friendly
 
 Built to make life easier in modern IDEs.

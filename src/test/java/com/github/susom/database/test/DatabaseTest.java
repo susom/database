@@ -29,6 +29,7 @@ import org.junit.runners.JUnit4;
 
 import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
+import com.github.susom.database.LogOptions;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -219,10 +220,17 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b where c=?").queryLong();
+      new DatabaseImpl(c, false, new LogOptions(true, false) {
+        int errors = 0;
+        @Override
+        public String generateErrorCode() {
+          errors++;
+          return Integer.toString(errors);
+        }
+      }).select("select a from b where c=?").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL: (wrong # args) query: select a from b where c=? args: []", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1)", e.getMessage());
     }
 
     control.verify();
@@ -244,10 +252,17 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b where c=?").argString("hi").argInteger(1).queryLong();
+      new DatabaseImpl(c, false, new LogOptions(true, true) {
+        int errors = 0;
+        @Override
+        public String generateErrorCode() {
+          errors++;
+          return Integer.toString(errors);
+        }
+      }).select("select a from b where c=?").argString("hi").argInteger(1).queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL: (wrong # args) query: select a from b where c=? args: [hi, 1]", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): (wrong # args) query: select a from b where c=? args: [hi, 1]", e.getMessage());
     }
 
     control.verify();
@@ -267,10 +282,17 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b where c=:x").queryLong();
+      new DatabaseImpl(c, false, new LogOptions(true, true) {
+        int errors = 0;
+        @Override
+        public String generateErrorCode() {
+          errors++;
+          return Integer.toString(errors);
+        }
+      }).select("select a from b where c=:x").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL: select a from b where c=:x|select a from b where c=:x", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): select a from b where c=:x|select a from b where c=:x", e.getMessage());
     }
 
     control.verify();
@@ -375,10 +397,17 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b").queryLong();
+      new DatabaseImpl(c, false, new LogOptions(true, true) {
+        int errors = 0;
+        @Override
+        public String generateErrorCode() {
+          errors++;
+          return Integer.toString(errors);
+        }
+      }).select("select a from b").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL: select a from b|select a from b", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): select a from b|select a from b", e.getMessage());
     }
 
     control.verify();
@@ -403,10 +432,17 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b").queryLong();
+      new DatabaseImpl(c, false, new LogOptions(true, true) {
+        int errors = 0;
+        @Override
+        public String generateErrorCode() {
+          errors++;
+          return Integer.toString(errors);
+        }
+      }).select("select a from b").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL: select a from b|select a from b", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): select a from b|select a from b", e.getMessage());
     }
 
     control.verify();

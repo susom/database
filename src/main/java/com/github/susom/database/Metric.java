@@ -73,9 +73,17 @@ public class Metric {
   public String getMessage() {
     if (enabled) {
       StringBuilder buf = new StringBuilder();
+      printMessage(buf);
+      return buf.toString();
+    }
+    return "metricsDisabled";
+  }
+
+  public void printMessage(StringBuilder buf) {
+    if (enabled) {
       writeNanos(buf, lastCheckpointNanos - startNanos);
       if (!checkpoints.isEmpty()) {
-        buf.append(" (");
+        buf.append("(");
         boolean first = true;
         for (Checkpoint checkpoint : checkpoints) {
           if (first) {
@@ -89,9 +97,9 @@ public class Metric {
         }
         buf.append(')');
       }
-      return buf.toString();
+    } else {
+      buf.append("metricsDisabled");
     }
-    return "disabled";
   }
 
   private void writeNanos(StringBuilder buf, long nanos) {
@@ -103,10 +111,12 @@ public class Metric {
     if (nanosStr.length() > 6) {
       buf.append(nanosStr.substring(0, nanosStr.length() - 6));
       buf.append('.');
-      buf.append(nanosStr.substring(nanosStr.length() - 6));
+      buf.append(nanosStr.substring(nanosStr.length() - 6, nanosStr.length() - 3));
     } else {
-      buf.append("0.0000000".substring(0, 8 - nanosStr.length()));
-      buf.append(nanosStr);
+      buf.append("0.0000000".substring(0, 8 - Math.max(nanosStr.length(), 4)));
+      if (nanosStr.length() > 3) {
+        buf.append(nanosStr.substring(0, nanosStr.length() - 3));
+      }
     }
     buf.append("ms");
   }

@@ -61,6 +61,18 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <excludes>
+            <!-- Separate profile to test oracle: mvn -P oracle test -->
+            <exclude>**/*Oracle*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>2.2.1</version>
         <executions>
@@ -143,11 +155,34 @@
       <version>10.10.1.1</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.oracle.ojdbc</groupId>
-      <artifactId>ojdbc6</artifactId>
-      <version>11.2.0.3</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>oracle</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>NONE</exclude>
+              </excludes>
+              <includes>
+                <include>**/*Oracle*</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle.ojdbc</groupId>
+          <artifactId>ojdbc6</artifactId>
+          <version>11.2.0.3</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>

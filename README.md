@@ -1,5 +1,7 @@
 ## Easier, Safer JDBC
 
+[![Build Status](https://travis-ci.org/susom/database.svg?branch=master)](https://travis-ci.org/susom/database)
+
 The point of this project is to provide a simplified way of accessing databases. It is a
 wrapper around the JDBC driver, and tries to hide some of the more error-prone and unsafe
 parts of the standard API.

@@ -2,3 +2,11 @@ language: java
 jdk:
   - oraclejdk7
   - openjdk7
+addons:
+  postgresql: "9.3"
+before_script:
+  - psql -U postgres -c "create user test with password 'test';"
+  - psql -c 'create database test owner test;' -U postgres
+ script:
+  - mvn test
+  - mvn -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql test

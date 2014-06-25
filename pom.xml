@@ -68,7 +68,7 @@
           <excludes>
             <!-- Separate profile to test oracle: mvn -P oracle test -->
             <exclude>**/*Oracle*</exclude>
-            <!-- Separate profile to test postgres: mvn -P postgres test -->
+            <!-- Separate profile to test postgres: mvn -P postgresql test -->
             <exclude>**/*PostgreSql*</exclude>
           </excludes>
         </configuration>

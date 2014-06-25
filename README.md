@@ -115,17 +115,17 @@ public class MyBusiness {
 Or you can directly access it, of course:
 
 ```java
-  String url = "jdbc:derby:testdb;create=true";
-  DatabaseProvider dbProvider = new DatabaseProvider(new DriverManagerConnectionProvider(url));
+  String url = "jdbc:derby:build/testdb;create=true";
+  DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
+    @Override
+    public void run(Database db) {
+      db.ddl("drop table t").executeQuietly();
+      db.ddl("create table t (a numeric)").execute();
+      db.insert("insert into t (a) values (?)").argLong(32L).insert(1);
+      db.update("update t set a=:val").argLong("val", 23L).update();
 
-  try {
-    Database db = dbProvider.get();
-    db.ddl("drop table dbtest").executeQuietly();
-    db.ddl("create table dbtest (a numeric)").execute();
-    db.insert("insert into dbtest (a) values (23)").insert(1);
-
-    System.out.println("Rows: " + db.select("select count(1) from dbtest").queryLong());
-  } finally {
-    dbProvider.commitAndClose();
-  }
+      Long rows = db.select("select count(1) from t").queryLong();
+      System.out.println("Rows: " + rows);
+    }
+  });
 ```

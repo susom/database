@@ -7,6 +7,6 @@ addons:
 before_script:
   - psql -U postgres -c "create user test with password 'test';"
   - psql -c 'create database test owner test;' -U postgres
- script:
+script:
   - mvn test
   - mvn -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql test

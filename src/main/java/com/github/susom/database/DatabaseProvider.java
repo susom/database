@@ -17,9 +17,13 @@
 package com.github.susom.database;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import javax.inject.Provider;
+import javax.naming.Context;
+import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,21 +42,143 @@ public final class DatabaseProvider implements Provider<Database> {
   private boolean txStarted = false;
   private Connection connection = null;
   private Database database = null;
-  private boolean allowTxManage;
-  private final LogOptions logOptions;
+  private final Options options;
 
-  public DatabaseProvider(Provider<Connection> connectionProvider) {
-    this(connectionProvider, false);
-  }
-
-  public DatabaseProvider(Provider<Connection> connectionProvider, boolean allowTxManage) {
-    this(connectionProvider, allowTxManage, new LogOptions());
-  }
-
-  public DatabaseProvider(Provider<Connection> connectionProvider, boolean allowTxManage, LogOptions logOptions) {
+  public DatabaseProvider(Provider<Connection> connectionProvider, Options options) {
     this.connectionProvider = connectionProvider;
-    this.allowTxManage = allowTxManage;
-    this.logOptions = logOptions;
+    this.options = options;
+  }
+
+  /**
+   * Builder method to create and initialize an instance of this class using
+   * the JDBC standard DriverManager method. The url parameter will be inspected
+   * to determine the Flavor for this database.
+   */
+  public static Builder fromDriverManager(String url) {
+    return fromDriverManager(url, null, null, null);
+  }
+
+  /**
+   * Builder method to create and initialize an instance of this class using
+   * the JDBC standard DriverManager method. The url parameter will be inspected
+   * to determine the Flavor for this database.
+   */
+  public static Builder fromDriverManager(String url, Properties info) {
+    return fromDriverManager(url, info, null, null);
+  }
+
+  /**
+   * Builder method to create and initialize an instance of this class using
+   * the JDBC standard DriverManager method. The url parameter will be inspected
+   * to determine the Flavor for this database.
+   */
+  public static Builder fromDriverManager(String url, String user, String password) {
+    return fromDriverManager(url, null, user, password);
+  }
+
+  private static Builder fromDriverManager(final String url, final Properties info, final String user, final String password) {
+    Flavor flavor = Flavor.fromJdbcUrl(url);
+    Options options = new OptionsDefault(flavor);
+
+    if (flavor == Flavor.generic) {
+      log.info("Couldn't determine database flavor from JDBC URL, defaulting to generic");
+    }
+
+    return new Builder(new Provider<Connection>() {
+      @Override
+      public Connection get() {
+        try {
+          if (info != null) {
+            return DriverManager.getConnection(url, info);
+          } else if (user != null) {
+            return DriverManager.getConnection(url, user, password);
+          }
+          return DriverManager.getConnection(url);
+        } catch (Exception e) {
+          throw new DatabaseException("Unable to obtain a connection from DriverManager", e);
+        }
+      }
+    }, options);
+  }
+
+  /**
+   * Builder method to create and initialize an instance of this class using
+   * a JNDI resource. To use this method you must explicitly indicate what
+   * Flavor of database we are dealing with.
+   */
+  public static Builder fromJndi(final Context context, final String lookupKey, Flavor flavor) {
+    Options options = new OptionsDefault(flavor);
+
+    return new Builder(new Provider<Connection>() {
+      @Override
+      public Connection get() {
+        DataSource ds;
+        try {
+          ds = (DataSource) context.lookup(lookupKey);
+        } catch (Exception e) {
+          throw new DatabaseException("Unable to locate the DataSource in JNDI using key " + lookupKey, e);
+        }
+        try {
+          return ds.getConnection();
+        } catch (Exception e) {
+          throw new DatabaseException("Unable to obtain a connection from JNDI DataSource " + lookupKey, e);
+        }
+      }
+    }, options);
+  }
+
+  /**
+   * This is a convenience method to eliminate the need for explicitly
+   * managing the resources (and error handling) for this class.
+   *
+   * @param run the code you want to run as a transaction with a Database
+   */
+  public void transact(DbRun run) {
+    boolean complete = false;
+    try {
+      run.run(get());
+      complete = true;
+    } catch (Exception e) {
+      throw new DatabaseException("Checked exception during transaction", e);
+    } finally {
+      if (run.isRollbackOnly() || (run.isRollbackOnError() && !complete)) {
+        rollbackAndClose();
+      } else {
+        commitAndClose();
+      }
+    }
+  }
+
+  public static class Builder {
+    private final Provider<Connection> connectionProvider;
+    private Options options;
+
+    private Builder(Provider<Connection> connectionProvider, Options options) {
+      this.connectionProvider = connectionProvider;
+      this.options = options;
+    }
+
+    public Builder withOptions(OptionsOverride options) {
+      this.options = options.withParent(this.options);
+      return this;
+    }
+
+    /**
+     * Note that if you use this method you are responsible for managing
+     * the transaction and commit/rollback/close.
+     */
+    public DatabaseProvider create() {
+      return new DatabaseProvider(connectionProvider, options);
+    }
+
+    /**
+     * Use this method to have resource management handled for you.
+     *
+     * @param run the code you want to run as a transaction with a Database
+     */
+    public void transact(DbRun run) {
+      create().transact(run);
+    }
   }
 
   public Database get() {
@@ -75,7 +201,7 @@ public final class DatabaseProvider implements Provider<Database> {
       } catch (SQLException e) {
         throw new DatabaseException("Unable to check/set autoCommit for the connection", e);
       }
-      database = new DatabaseImpl(connection, allowTxManage, logOptions);
+      database = new DatabaseImpl(connection, options);
       metric.checkpoint("dbInit");
     } catch (RuntimeException e) {
       metric.checkpoint("fail");
@@ -119,5 +245,8 @@ public final class DatabaseProvider implements Provider<Database> {
     } catch (Exception e) {
       log.error("Unable to close the database connection", e);
     }
+    connection = null;
+    database = null;
+    txStarted = false;
   }
 }

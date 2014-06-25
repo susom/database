@@ -43,17 +43,17 @@ public class SqlSelectImpl implements SqlSelect {
   private PreparedStatement ps; // hold reference to support cancel from another thread
   private final Object cancelLock = new Object();
   private final String sql;
-  private final LogOptions logOptions;
+  private final Options options;
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
   private int timeoutSeconds = -1; // -1 ==> no timeout
   private int maxRows = -1; // -1 ==> unlimited
 
-  public SqlSelectImpl(Connection connection, String sql, LogOptions logOptions) {
+  public SqlSelectImpl(Connection connection, String sql, Options options) {
     this.connection = connection;
     this.sql = sql;
-    this.logOptions = logOptions;
-    adaptor = new StatementAdaptor();
+    this.options = options;
+    adaptor = new StatementAdaptor(options);
   }
 
   @Override
@@ -144,7 +144,7 @@ public class SqlSelectImpl implements SqlSelect {
       @Override
       public Long process(Rows rs) throws Exception {
         if (rs.next()) {
-          return rs.getLong(1);
+          return rs.getLongOrNull(1);
         }
         return null;
       }
@@ -158,7 +158,7 @@ public class SqlSelectImpl implements SqlSelect {
       public List<Long> process(Rows rs) throws Exception {
         List<Long> result = new ArrayList<>();
         if (rs.next()) {
-          result.add(rs.getLong(1));
+          result.add(rs.getLongOrNull(1));
         }
         return result;
       }
@@ -244,11 +244,11 @@ public class SqlSelectImpl implements SqlSelect {
         // It's ambiguous based on the Oracle error code whether it was a timeout or cancel
         throw new QueryTimedOutException("Timeout of " + timeoutSeconds + " seconds exceeded or user cancelled", e);
       }
-      errorCode = logOptions.generateErrorCode();
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions), e);
+      errorCode = options.generateErrorCode();
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } catch (Exception e) {
-      errorCode = logOptions.generateErrorCode();
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions), e);
+      errorCode = options.generateErrorCode();
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(rs, log);
       adaptor.closeQuietly(ps, log);
@@ -257,11 +257,11 @@ public class SqlSelectImpl implements SqlSelect {
       }
       metric.done("close");
       if (isSuccess) {
-        DebugSql.logSuccess("Query", log, metric, executeSql, parameters, logOptions);
+        DebugSql.logSuccess("Query", log, metric, executeSql, parameters, options);
       } else if (isWarn) {
-        DebugSql.logWarning("Query", log, metric, "QueryTimedOutException", executeSql, parameters, logOptions);
+        DebugSql.logWarning("Query", log, metric, "QueryTimedOutException", executeSql, parameters, options);
       } else {
-        DebugSql.logError("Query", log, metric, errorCode, executeSql, parameters, logOptions);
+        DebugSql.logError("Query", log, metric, errorCode, executeSql, parameters, options);
       }
     }
   }

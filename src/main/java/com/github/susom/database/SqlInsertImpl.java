@@ -42,15 +42,15 @@ public class SqlInsertImpl implements SqlInsert {
   private final Connection connection;
   private final StatementAdaptor adaptor;
   private final String sql;
-  private final LogOptions logOptions;
+  private final Options options;
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
 
-  public SqlInsertImpl(Connection connection, String sql, LogOptions logOptions) {
+  public SqlInsertImpl(Connection connection, String sql, Options options) {
     this.connection = connection;
     this.sql = sql;
-    this.logOptions = logOptions;
-    adaptor = new StatementAdaptor();
+    this.options = options;
+    adaptor = new StatementAdaptor(options);
   }
 
   @Override
@@ -200,22 +200,22 @@ public class SqlInsertImpl implements SqlInsert {
       int numAffectedRows = ps.executeUpdate();
       metric.checkpoint("exec");
       if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
-        errorCode = logOptions.generateErrorCode();
+        errorCode = options.generateErrorCode();
         throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
             + expectedNumAffectedRows + " were expected." + "\n"
-            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions));
+            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
       }
       isSuccess = true;
       return numAffectedRows;
     } catch (Exception e) {
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions), e);
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(ps, log);
       metric.done("close");
       if (isSuccess) {
-        DebugSql.logSuccess("Insert", log, metric, executeSql, parameters, logOptions);
+        DebugSql.logSuccess("Insert", log, metric, executeSql, parameters, options);
       } else {
-        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, logOptions);
+        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, options);
       }
     }
   }

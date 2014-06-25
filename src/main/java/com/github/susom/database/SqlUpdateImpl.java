@@ -43,15 +43,15 @@ public class SqlUpdateImpl implements SqlUpdate {
   private final Connection connection;
   private final StatementAdaptor adaptor;
   private final String sql;
-  private final LogOptions logOptions;
+  private final Options options;
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
 
-  public SqlUpdateImpl(@NotNull Connection connection, @NotNull String sql, LogOptions logOptions) {
+  public SqlUpdateImpl(@NotNull Connection connection, @NotNull String sql, Options options) {
     this.connection = connection;
     this.sql = sql;
-    this.logOptions = logOptions;
-    adaptor = new StatementAdaptor();
+    this.options = options;
+    adaptor = new StatementAdaptor(options);
   }
 
   @Override
@@ -223,23 +223,23 @@ public class SqlUpdateImpl implements SqlUpdate {
       int numAffectedRows = ps.executeUpdate();
       metric.checkpoint("exec");
       if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
-        errorCode = logOptions.generateErrorCode();
+        errorCode = options.generateErrorCode();
         throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
             + expectedNumAffectedRows + " were expected." + "\n"
-            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions));
+            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
       }
       isSuccess = true;
       return numAffectedRows;
     } catch (Exception e) {
-      errorCode = logOptions.generateErrorCode();
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, logOptions), e);
+      errorCode = options.generateErrorCode();
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(ps, log);
       metric.done("close");
       if (isSuccess) {
-        DebugSql.logSuccess("Update", log, metric, executeSql, parameters, logOptions);
+        DebugSql.logSuccess("Update", log, metric, executeSql, parameters, options);
       } else {
-        DebugSql.logError("Update", log, metric, errorCode, executeSql, parameters, logOptions);
+        DebugSql.logError("Update", log, metric, errorCode, executeSql, parameters, options);
       }
     }
   }

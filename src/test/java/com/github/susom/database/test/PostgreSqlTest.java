@@ -18,14 +18,17 @@ package com.github.susom.database.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,11 +47,11 @@ import com.github.susom.database.RowsHandler;
 import static org.junit.Assert.*;
 
 /**
- * Exercise Database functionality with a real databases.
+ * Exercise Database functionality with a real Oracle database.
  *
  * @author garricko
  */
-public abstract class CommonTest {
+public class PostgreSqlTest {
   static {
     // Turn on logging so we can inspect queries and errors
     Logger logger = Logger.getLogger("edu.stanford");
@@ -61,19 +64,27 @@ public abstract class CommonTest {
 
   protected Connection c;
   protected Database db;
-  protected Flavor f;
 
   @Before
   public void setupJdbc() throws Exception {
     c = createConnection();
-    f = getFlavor();
-    db = new DatabaseImpl(c, new OptionsDefault(f));
+    db = new DatabaseImpl(c, new OptionsDefault(Flavor.generic));
   }
 
-  protected abstract Connection createConnection() throws Exception;
+  protected Connection createConnection() throws Exception {
+    Properties properties = new Properties();
+    try {
+      properties.load(new FileReader(System.getProperty("build.properties", "../build.properties")));
+    } catch (Exception e) {
+      // Don't care, fallback to system properties
+    }
 
-  protected Flavor getFlavor() {
-    return Flavor.generic;
+    Class.forName("org.postgresql.Driver");
+
+    return DriverManager.getConnection(
+        System.getProperty("postgres.database.url", properties.getProperty("postgres.database.url")),
+        System.getProperty("postgres.database.user", properties.getProperty("postgres.database.user")),
+        System.getProperty("postgres.database.password", properties.getProperty("postgres.database.password")));
   }
 
   @After
@@ -87,8 +98,8 @@ public abstract class CommonTest {
   public void selectNewTable() {
     db.ddl("drop table dbtest").executeQuietly();
     db.ddl("create table dbtest (nbr_integer numeric(8), nbr_long numeric(10), nbr_float numeric(9,3), "
-        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob clob, "
-        + "bin_blob blob, date_millis timestamp)").execute();
+        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob text, "
+        + "bin_blob bytea, date_millis timestamp)").execute();
     final Date currentDate = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
     db.insert("insert into dbtest values (?,?,?,?,?,?,?,?,?)").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
@@ -101,36 +112,20 @@ public abstract class CommonTest {
         assertTrue(rs.next());
         assertEquals(new Integer(1), rs.getIntegerOrNull(1));
         assertEquals(new Integer(1), rs.getIntegerOrNull("nbr_integer"));
-        assertEquals(1, rs.getIntegerOrZero(1));
-        assertEquals(1, rs.getIntegerOrZero("nbr_integer"));
         assertEquals(new Long(2), rs.getLongOrNull(2));
         assertEquals(new Long(2), rs.getLongOrNull("nbr_long"));
-        assertEquals(2, rs.getLongOrZero(2));
-        assertEquals(2, rs.getLongOrZero("nbr_long"));
         assertEquals(new Float(3.2f), rs.getFloatOrNull(3));
         assertEquals(new Float(3.2f), rs.getFloatOrNull("nbr_float"));
-        assertEquals(3.2, rs.getFloatOrZero(3), 0.01);
-        assertEquals(3.2, rs.getFloatOrZero("nbr_float"), 0.01);
         assertEquals(new Double(4.2), rs.getDoubleOrNull(4));
         assertEquals(new Double(4.2), rs.getDoubleOrNull("nbr_double"));
-        assertEquals(4.2, rs.getDoubleOrZero(4), 0.01);
-        assertEquals(4.2, rs.getDoubleOrZero("nbr_double"), 0.01);
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull(5));
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull("nbr_big_decimal"));
-        assertEquals(BigDecimal.ZERO, rs.getBigDecimalOrZero(5));
-        assertEquals(BigDecimal.ZERO, rs.getBigDecimalOrZero("nbr_big_decimal"));
         assertEquals("Hello", rs.getStringOrNull(6));
         assertEquals("Hello", rs.getStringOrNull("str_varchar"));
-        assertEquals("Hello", rs.getStringOrEmpty(6));
-        assertEquals("Hello", rs.getStringOrEmpty("str_varchar"));
         assertEquals("World", rs.getClobStringOrNull(7));
         assertEquals("World", rs.getClobStringOrNull("str_lob"));
-        assertEquals("World", rs.getClobStringOrEmpty(7));
-        assertEquals("World", rs.getClobStringOrEmpty("str_lob"));
         assertArrayEquals("More".getBytes(), rs.getBlobBytesOrNull(8));
         assertArrayEquals("More".getBytes(), rs.getBlobBytesOrNull("bin_blob"));
-        assertArrayEquals("More".getBytes(), rs.getBlobBytesOrZeroLen(8));
-        assertArrayEquals("More".getBytes(), rs.getBlobBytesOrZeroLen("bin_blob"));
         assertEquals(currentDate.getTime(), rs.getDateOrNull(9).getTime());
         assertEquals(currentDate.getTime(), rs.getDateOrNull("date_millis").getTime());
         return null;
@@ -171,8 +166,8 @@ public abstract class CommonTest {
   public void updatePositionalArgs() {
     db.ddl("drop table dbtest").executeQuietly();
     db.ddl("create table dbtest (nbr_integer numeric(8), nbr_long numeric(10), nbr_float numeric(9,3), "
-        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob clob, "
-        + "bin_blob blob, date_millis timestamp)").execute();
+        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob text, "
+        + "bin_blob bytea, date_millis timestamp)").execute();
     final Date currentDate = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
     assertEquals(1, db.insert("insert into dbtest values (?,?,?,?,?,?,?,?,?)").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
@@ -270,8 +265,8 @@ public abstract class CommonTest {
   public void updateNamedArgs() {
     db.ddl("drop table dbtest").executeQuietly();
     db.ddl("create table dbtest (nbr_integer numeric(8), nbr_long numeric(10), nbr_float numeric(9,3), "
-        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob clob, "
-        + "bin_blob blob, date_millis timestamp)").execute();
+        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob text, "
+        + "bin_blob bytea, date_millis timestamp)").execute();
     final Date currentDate = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
     db.insert("insert into dbtest values (:a,:b,:c,:d,:e,:f,:g,:h,:i)").argInteger(":a", 1).argLong(":b", 2L)
@@ -369,8 +364,8 @@ public abstract class CommonTest {
   public void nullValues() {
     db.ddl("drop table dbtest").executeQuietly();
     db.ddl("create table dbtest (nbr_integer numeric(8), nbr_long numeric(10), nbr_float numeric(9,3), "
-        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob clob, "
-        + "bin_blob blob, date_millis timestamp)").execute();
+        + "nbr_double numeric(19,9), nbr_big_decimal numeric(25,15), str_varchar varchar(80), str_lob text, "
+        + "bin_blob bytea, date_millis timestamp)").execute();
     db.insert("insert into dbtest values (?,?,?,?,?,?,?,?,?)").argInteger(null).argLong(null).argFloat(null)
         .argDouble(null).argBigDecimal(null).argString(null).argClobString(null).argBlobBytes(null)
         .argDate(null).insert(1);
@@ -423,7 +418,7 @@ public abstract class CommonTest {
   @Test
   public void bigClob() {
     db.ddl("drop table dbtest").executeQuietly();
-    db.ddl("create table dbtest (str_lob clob)").execute();
+    db.ddl("create table dbtest (str_lob text)").execute();
 
     StringBuilder buf = new StringBuilder();
     for (int i = 0; i < 40000; i++) {
@@ -476,7 +471,7 @@ public abstract class CommonTest {
   @Test
   public void bigBlob() {
     db.ddl("drop table dbtest").executeQuietly();
-    db.ddl("create table dbtest (bin_blob blob)").execute();
+    db.ddl("create table dbtest (bin_blob bytea)").execute();
 
     StringBuilder buf = new StringBuilder();
     for (int i = 0; i < 40000; i++) {

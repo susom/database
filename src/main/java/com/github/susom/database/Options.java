@@ -16,27 +16,13 @@
 
 package com.github.susom.database;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Random;
-
 /**
- * Control certain aspects of SQL logging.
+ * Control various optional behavior for the database interactions.
  *
  * @author garricko
  */
-public class LogOptions {
-  private boolean logParameters;
-  private boolean detailedExceptions;
-
-  public LogOptions() {
-    this(false, false);
-  }
-
-  public LogOptions(boolean logParameters, boolean detailedExceptions) {
-    this.logParameters = logParameters;
-    this.detailedExceptions = detailedExceptions;
-  }
+public interface Options {
+  boolean allowTransactionControl();
 
   /**
    * If this is false, log messages will look something like:
@@ -53,9 +39,7 @@ public class LogOptions {
    *
    * @return true if parameter values should be logged along with SQL, false otherwise
    */
-  public boolean isLogParameters() {
-    return logParameters;
-  }
+  boolean isLogParameters();
 
   /**
    * If true, text of the SQL and possibly parameter values (depending on @{#isLogParameters()})
@@ -64,9 +48,7 @@ public class LogOptions {
    *
    * @return true to add possibly sensitive data in exception messages, false otherwise
    */
-  public boolean isDetailedExceptions() {
-    return detailedExceptions;
-  }
+  boolean isDetailedExceptions();
 
   /**
    * In cases where exceptions are thrown, use this method to provide a common
@@ -75,8 +57,36 @@ public class LogOptions {
    *
    * @return an arbitrary, fairly unique, speakable over the phone, without whitespace
    */
-  public String generateErrorCode() {
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:H:m:s");
-    return sdf.format(new Date()) + "-" + Math.abs(new Random().nextInt());
-  }
+  String generateErrorCode();
+
+  /**
+   * Indicate whether to use the Blob functionality of the underlying database driver,
+   * or whether to use setBytes() methods instead. Using Blobs is preferred, but is not
+   * supported by all drivers.
+   *
+   * <p>The default behavior of this method is to delegate to flavor().useBytesForBlob(),
+   * but it is provided on this interface so the behavior can be controlled.
+   *
+   * @return true to avoid using Blob functionality, false otherwise
+   */
+  boolean useBytesForBlob();
+
+  /**
+   * Indicate whether to use the Clob functionality of the underlying database driver,
+   * or whether to use setString() methods instead. Using Clobs is preferred, but is not
+   * supported by all drivers.
+   *
+   * <p>The default behavior of this method is to delegate to flavor().useStringForClob(),
+   * but it is provided on this interface so the behavior can be controlled.
+   *
+   * @return true to avoid using Clob functionality, false otherwise
+   */
+  boolean useStringForClob();
+
+  /**
+   * Access compatibility information for the underlying database. The
+   * Flavor class enumerates the known databases and tries to smooth over
+   * some of the variations in features and syntax.
+   */
+  Flavor flavor();
 }

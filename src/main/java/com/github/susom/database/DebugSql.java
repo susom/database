@@ -31,7 +31,7 @@ import org.slf4j.Logger;
  * @author garricko
  */
 public class DebugSql {
-  public static void printSql(StringBuilder buf, String sql, Object[] args, LogOptions logOptions) {
+  public static void printSql(StringBuilder buf, String sql, Object[] args, Options options) {
     Object[] argsToPrint = args;
     if (argsToPrint == null) {
       argsToPrint = new Object[0];
@@ -47,14 +47,14 @@ public class DebugSql {
       buf.append("(wrong # args) query: ");
       buf.append(sql);
       buf.append(" args: ");
-      if (logOptions.isLogParameters()) {
+      if (options.isLogParameters()) {
         buf.append(Arrays.toString(argsToPrint));
       } else {
         buf.append(argsToPrint.length);
       }
     } else {
       buf.append(sql);
-      if (logOptions.isLogParameters()) {
+      if (options.isLogParameters()) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         buf.append('|');
         for (int i = 0; i < argsToPrint.length; i++) {
@@ -83,31 +83,31 @@ public class DebugSql {
     }
   }
 
-  public static String exceptionMessage(String sql, Object[] parameters, String errorCode, LogOptions logOptions) {
+  public static String exceptionMessage(String sql, Object[] parameters, String errorCode, Options options) {
     StringBuilder buf = new StringBuilder("Error executing SQL");
     if (errorCode != null) {
       buf.append(" (errorCode=").append(errorCode).append(")");
     }
-    if (logOptions.isDetailedExceptions()) {
+    if (options.isDetailedExceptions()) {
       buf.append(": ");
-      DebugSql.printSql(buf, sql, parameters, logOptions);
+      DebugSql.printSql(buf, sql, parameters, options);
     }
     return buf.toString();
   }
 
-  public static void logSuccess(String sqlType, Logger log, Metric metric, String sql, Object[] args, LogOptions logOptions) {
+  public static void logSuccess(String sqlType, Logger log, Metric metric, String sql, Object[] args, Options options) {
     if (log.isDebugEnabled()) {
       StringBuilder buf = new StringBuilder();
       buf.append(sqlType).append(": ");
       metric.printMessage(buf);
       buf.append(" ");
-      printSql(buf, sql, args, logOptions);
+      printSql(buf, sql, args, options);
       log.debug(buf.toString());
     }
   }
 
   public static void logWarning(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
-                          LogOptions logOptions) {
+                          Options options) {
     if (log.isWarnEnabled()) {
       StringBuilder buf = new StringBuilder();
       if (errorCode != null) {
@@ -116,13 +116,13 @@ public class DebugSql {
       buf.append(sqlType).append(": ");
       metric.printMessage(buf);
       buf.append(" ");
-      printSql(buf, sql, args, logOptions);
+      printSql(buf, sql, args, options);
       log.warn(buf.toString());
     }
   }
 
   public static void logError(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
-                        LogOptions logOptions) {
+                        Options options) {
     if (log.isErrorEnabled()) {
       StringBuilder buf = new StringBuilder();
       if (errorCode != null) {
@@ -131,7 +131,7 @@ public class DebugSql {
       buf.append(sqlType).append(": ");
       metric.printMessage(buf);
       buf.append(" ");
-      printSql(buf, sql, args, logOptions);
+      printSql(buf, sql, args, options);
       log.error(buf.toString());
     }
   }

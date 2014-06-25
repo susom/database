@@ -27,21 +27,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DatabaseImpl implements Database {
   private final Connection connection;
-  private boolean allowTransactions;
-  private final LogOptions logOptions;
+  private final Options options;
 
-  public DatabaseImpl(@NotNull Connection connection) {
-    this(connection, false);
-  }
-
-  public DatabaseImpl(@NotNull Connection connection, boolean allowTransactions) {
-    this(connection, allowTransactions, new LogOptions());
-  }
-
-  public DatabaseImpl(@NotNull Connection connection, boolean allowTransactions, LogOptions logOptions) {
+  public DatabaseImpl(@NotNull Connection connection, @NotNull Options options) {
     this.connection = connection;
-    this.allowTransactions = allowTransactions;
-    this.logOptions = logOptions;
+    this.options = options;
   }
 
   @Override
@@ -53,35 +43,35 @@ public class DatabaseImpl implements Database {
   @Override
   @NotNull
   public SqlInsert insert(@NotNull String sql) {
-    return new SqlInsertImpl(connection, sql, logOptions);
+    return new SqlInsertImpl(connection, sql, options);
   }
 
   @Override
   @NotNull
   public SqlSelect select(@NotNull String sql) {
-    return new SqlSelectImpl(connection, sql, logOptions);
+    return new SqlSelectImpl(connection, sql, options);
   }
 
   @Override
   @NotNull
   public SqlUpdate update(@NotNull String sql) {
-    return new SqlUpdateImpl(connection, sql, logOptions);
+    return new SqlUpdateImpl(connection, sql, options);
   }
 
   @Override
   @NotNull
   public SqlUpdate delete(@NotNull String sql) {
-    return new SqlUpdateImpl(connection, sql, logOptions);
+    return new SqlUpdateImpl(connection, sql, options);
   }
 
   @Override
   @NotNull
   public Ddl ddl(@NotNull String sql) {
-    return new DdlImpl(connection, sql, logOptions);
+    return new DdlImpl(connection, sql, options);
   }
 
   public void commitNow() {
-    if (!allowTransactions) {
+    if (!options.allowTransactionControl()) {
       throw new DatabaseException("Calls to commitNow() are not allowed");
     }
 
@@ -93,7 +83,7 @@ public class DatabaseImpl implements Database {
   }
 
   public void rollbackNow() {
-    if (!allowTransactions) {
+    if (!options.allowTransactionControl()) {
       throw new DatabaseException("Calls to rollbackNow() are not allowed");
     }
 
@@ -102,5 +92,11 @@ public class DatabaseImpl implements Database {
     } catch (Exception e) {
       throw new DatabaseException("Unable to rollback transaction", e);
     }
+  }
+
+  @NotNull
+  @Override
+  public Flavor flavor() {
+    return options.flavor();
   }
 }

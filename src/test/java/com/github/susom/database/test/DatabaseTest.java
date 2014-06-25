@@ -29,7 +29,8 @@ import org.junit.runners.JUnit4;
 
 import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
-import com.github.susom.database.LogOptions;
+import com.github.susom.database.Flavor;
+import com.github.susom.database.OptionsDefault;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -41,6 +42,8 @@ import static org.junit.Assert.*;
  */
 @RunWith(JUnit4.class)
 public class DatabaseTest {
+  private OptionsDefault options = new OptionsDefault(Flavor.generic);
+
   @Test
   public void staticSqlToLong() throws Exception {
     Connection c = createNiceMock(Connection.class);
@@ -55,7 +58,7 @@ public class DatabaseTest {
 
     replay(c, ps, rs);
 
-    assertEquals(new Long(1), new DatabaseImpl(c).select("select 1 from dual").queryLong());
+    assertEquals(new Long(1), new DatabaseImpl(c, options).select("select 1 from dual").queryLong());
 
     verify(c, ps, rs);
   }
@@ -72,7 +75,7 @@ public class DatabaseTest {
 
     replay(c, ps, rs);
 
-    assertNull(new DatabaseImpl(c).select("select * from dual").queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select * from dual").queryLong());
 
     verify(c, ps, rs);
   }
@@ -91,7 +94,7 @@ public class DatabaseTest {
 
     replay(c, ps, rs);
 
-    assertNull(new DatabaseImpl(c).select("select null from dual").queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select null from dual").queryLong());
 
     verify(c, ps, rs);
   }
@@ -113,7 +116,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c).select("select a from b where c=?").argLong(1L).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b where c=?").argLong(1L).queryLong());
 
     control.verify();
   }
@@ -135,7 +138,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c).select("select a from b where c=?").argLong(null).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b where c=?").argLong(null).queryLong());
 
     control.verify();
   }
@@ -157,7 +160,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c).select("select a from b").withTimeoutSeconds(21).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b").withTimeoutSeconds(21).queryLong());
 
     control.verify();
   }
@@ -179,7 +182,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c).select("select a from b").withMaxRows(15).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b").withMaxRows(15).queryLong());
 
     control.verify();
   }
@@ -201,7 +204,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c).select("select '::a' from b where c=:c").argLong("c", 1L).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select '::a' from b where c=:c").argLong("c", 1L).queryLong());
 
     control.verify();
   }
@@ -220,8 +223,9 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, false, new LogOptions(true, false) {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
         int errors = 0;
+
         @Override
         public String generateErrorCode() {
           errors++;
@@ -252,8 +256,19 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, false, new LogOptions(true, true) {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
         int errors = 0;
+
+        @Override
+        public boolean isDetailedExceptions() {
+          return true;
+        }
+
+        @Override
+        public boolean isLogParameters() {
+          return true;
+        }
+
         @Override
         public String generateErrorCode() {
           errors++;
@@ -282,8 +297,19 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, false, new LogOptions(true, true) {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
         int errors = 0;
+
+        @Override
+        public boolean isDetailedExceptions() {
+          return true;
+        }
+
+        @Override
+        public boolean isLogParameters() {
+          return true;
+        }
+
         @Override
         public String generateErrorCode() {
           errors++;
@@ -307,7 +333,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b where c=:x and d=:y").argString("x", "hi").queryLong();
+      new DatabaseImpl(c, options).select("select a from b where c=:x and d=:y").argString("x", "hi").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("The SQL requires parameter 'y' but no value was provided", e.getMessage());
@@ -325,7 +351,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b where c=:x").argString("x", "hi").argString("y", "bye").queryLong();
+      new DatabaseImpl(c, options).select("select a from b where c=:x").argString("x", "hi").argString("y", "bye").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("These named parameters do not exist in the query: [y]", e.getMessage());
@@ -343,7 +369,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b where c=:x").argString("y", "bye").argDate(null).queryLong();
+      new DatabaseImpl(c, options).select("select a from b where c=:x").argString("y", "bye").argDate(null).queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Use either positional or named query parameters, not both", e.getMessage());
@@ -351,7 +377,7 @@ public class DatabaseTest {
 
     // Reverse order of args should be the same
     try {
-      new DatabaseImpl(c).select("select a from b where c=:x").argDate(null).argString("y", "bye").queryLong();
+      new DatabaseImpl(c, options).select("select a from b where c=:x").argDate(null).argString("y", "bye").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Use either positional or named query parameters, not both", e.getMessage());
@@ -374,7 +400,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).select("select a from b").queryLong();
+      new DatabaseImpl(c, options).select("select a from b").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Timeout of -1 seconds exceeded or user cancelled", e.getMessage());
@@ -397,8 +423,19 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, false, new LogOptions(true, true) {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
         int errors = 0;
+
+        @Override
+        public boolean isDetailedExceptions() {
+          return true;
+        }
+
+        @Override
+        public boolean isLogParameters() {
+          return true;
+        }
+
         @Override
         public String generateErrorCode() {
           errors++;
@@ -432,8 +469,19 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, false, new LogOptions(true, true) {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
         int errors = 0;
+
+        @Override
+        public boolean isDetailedExceptions() {
+          return true;
+        }
+
+        @Override
+        public boolean isLogParameters() {
+          return true;
+        }
+
         @Override
         public String generateErrorCode() {
           errors++;
@@ -457,14 +505,14 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c).commitNow();
+      new DatabaseImpl(c, options).commitNow();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Calls to commitNow() are not allowed", e.getMessage());
     }
 
     try {
-      new DatabaseImpl(c).rollbackNow();
+      new DatabaseImpl(c, options).rollbackNow();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Calls to rollbackNow() are not allowed", e.getMessage());
@@ -483,7 +531,12 @@ public class DatabaseTest {
 
     control.replay();
 
-    new DatabaseImpl(c, true).commitNow();
+    new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      @Override
+      public boolean allowTransactionControl() {
+        return true;
+      }
+    }).commitNow();
 
     control.verify();
   }
@@ -500,7 +553,12 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, true).commitNow();
+      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+        @Override
+        public boolean allowTransactionControl() {
+          return true;
+        }
+      }).commitNow();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Unable to commit transaction", e.getMessage());
@@ -519,7 +577,12 @@ public class DatabaseTest {
 
     control.replay();
 
-    new DatabaseImpl(c, true).rollbackNow();
+    new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      @Override
+      public boolean allowTransactionControl() {
+        return true;
+      }
+    }).rollbackNow();
 
     control.verify();
   }
@@ -536,7 +599,12 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, true).rollbackNow();
+      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+        @Override
+        public boolean allowTransactionControl() {
+          return true;
+        }
+      }).rollbackNow();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Unable to rollback transaction", e.getMessage());

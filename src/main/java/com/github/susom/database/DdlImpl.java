@@ -32,12 +32,12 @@ public class DdlImpl implements Ddl {
   private static final Logger log = LoggerFactory.getLogger(DdlImpl.class);
   private final Connection connection;
   private final String sql;
-  private final LogOptions logOptions;
+  private final Options options;
 
-  public DdlImpl(Connection connection, String sql, LogOptions logOptions) {
+  public DdlImpl(Connection connection, String sql, Options options) {
     this.connection = connection;
     this.sql = sql;
-    this.logOptions = logOptions;
+    this.options = options;
   }
 
   private void updateInternal() {
@@ -54,15 +54,15 @@ public class DdlImpl implements Ddl {
       metric.checkpoint("exec");
       isSuccess = true;
     } catch (Exception e) {
-      errorCode = logOptions.generateErrorCode();
-      throw new DatabaseException(DebugSql.exceptionMessage(sql, null, errorCode, logOptions), e);
+      errorCode = options.generateErrorCode();
+      throw new DatabaseException(DebugSql.exceptionMessage(sql, null, errorCode, options), e);
     } finally {
       close(ps);
       metric.done("close");
       if (isSuccess) {
-        DebugSql.logSuccess("DDL", log, metric, sql, null, logOptions);
+        DebugSql.logSuccess("DDL", log, metric, sql, null, options);
       } else {
-        DebugSql.logError("DDL", log, metric, errorCode, sql, null, logOptions);
+        DebugSql.logError("DDL", log, metric, errorCode, sql, null, options);
       }
     }
   }

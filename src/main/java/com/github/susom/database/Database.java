@@ -18,23 +18,34 @@ package com.github.susom.database;
 
 import javax.inject.Provider;
 
+import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Primary class for accessing a relational (SQL) database.
  *
  * @author garricko
  */
 public interface Database extends Provider<Database> {
-  SqlInsert insert(String sql);
+  @NotNull
+  SqlInsert insert(@Language("SQL") String sql);
 
-  SqlSelect select(String sql);
+  @NotNull
+  SqlSelect select(@Language("SQL") String sql);
 
-  SqlUpdate update(String sql);
+  @NotNull
+  SqlUpdate update(@Language("SQL") String sql);
 
-  SqlUpdate delete(String sql);
+  @NotNull
+  SqlUpdate delete(@Language("SQL") String sql);
 
-  Ddl ddl(String sql);
+  @NotNull
+  Ddl ddl(@Language("SQL") String sql);
 
   void commitNow();
 
   void rollbackNow();
+
+  @NotNull
+  Flavor flavor();
 }

@@ -16,13 +16,17 @@
 
 package com.github.susom.database;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Safely wrap a ResultSet and provide access to the data it contains.
@@ -46,7 +50,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Integer getInteger(int columnOneBased) {
+  public Integer getIntegerOrNull(int columnOneBased) {
     try {
       return toInteger(rs, columnOneBased);
     } catch (SQLException e) {
@@ -55,7 +59,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Integer getInteger(String columnName) {
+  public Integer getIntegerOrNull(String columnName) {
     try {
       return toInteger(rs, columnName);
     } catch (SQLException e) {
@@ -64,7 +68,25 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Long getLong(int column) {
+  public int getIntegerOrZero(int columnOneBased) {
+    Integer result = getIntegerOrNull(columnOneBased);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public int getIntegerOrZero(String columnName) {
+    Integer result = getIntegerOrNull(columnName);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public Long getLongOrNull(int column) {
     try {
       return toLong(rs, column);
     } catch (SQLException e) {
@@ -73,7 +95,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Long getLong(String columnName) {
+  public Long getLongOrNull(String columnName) {
     try {
       return toLong(rs, columnName);
     } catch (SQLException e) {
@@ -82,7 +104,25 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Float getFloat(int columnOneBased) {
+  public long getLongOrZero(int columnOneBased) {
+    Long result = getLongOrNull(columnOneBased);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public long getLongOrZero(String columnName) {
+    Long result = getLongOrNull(columnName);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public Float getFloatOrNull(int columnOneBased) {
     try {
       return toFloat(rs, columnOneBased);
     } catch (SQLException e) {
@@ -91,7 +131,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Float getFloat(String columnName) {
+  public Float getFloatOrNull(String columnName) {
     try {
       return toFloat(rs, columnName);
     } catch (SQLException e) {
@@ -100,7 +140,25 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Double getDouble(int columnOneBased) {
+  public float getFloatOrZero(int columnOneBased) {
+    Float result = getFloatOrNull(columnOneBased);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public float getFloatOrZero(String columnName) {
+    Float result = getFloatOrNull(columnName);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public Double getDoubleOrNull(int columnOneBased) {
     try {
       return toDouble(rs, columnOneBased);
     } catch (SQLException e) {
@@ -109,7 +167,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Double getDouble(String columnName) {
+  public Double getDoubleOrNull(String columnName) {
     try {
       return toDouble(rs, columnName);
     } catch (SQLException e) {
@@ -118,7 +176,25 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public BigDecimal getBigDecimal(int columnOneBased) {
+  public double getDoubleOrZero(int columnOneBased) {
+    Double result = getDoubleOrNull(columnOneBased);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public double getDoubleOrZero(String columnName) {
+    Double result = getDoubleOrNull(columnName);
+    if (result == null) {
+      return 0;
+    }
+    return result;
+  }
+
+  @Override
+  public BigDecimal getBigDecimalOrNull(int columnOneBased) {
     try {
       return toBigDecimal(rs, columnOneBased);
     } catch (SQLException e) {
@@ -127,7 +203,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public BigDecimal getBigDecimal(String columnName) {
+  public BigDecimal getBigDecimalOrNull(String columnName) {
     try {
       return toBigDecimal(rs, columnName);
     } catch (SQLException e) {
@@ -135,44 +211,120 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  @NotNull
   @Override
-  public String getString(int columnOneBased) {
+  public BigDecimal getBigDecimalOrZero(int columnOneBased) {
+    BigDecimal result = getBigDecimalOrNull(columnOneBased);
+    if (result == null) {
+      return BigDecimal.ZERO;
+    }
+    return result;
+  }
+
+  @NotNull
+  @Override
+  public BigDecimal getBigDecimalOrZero(String columnName) {
+    BigDecimal result = getBigDecimalOrNull(columnName);
+    if (result == null) {
+      return BigDecimal.ZERO;
+    }
+    return result;
+  }
+
+  @Override
+  public String getStringOrNull(int columnOneBased) {
     try {
-      return rs.getString(columnOneBased);
+      String result = rs.getString(columnOneBased);
+      if (result != null && result.length() == 0) {
+        result = null;
+      }
+      return result;
     } catch (SQLException e) {
       throw new DatabaseException(e);
     }
   }
 
   @Override
-  public String getString(String columnName) {
+  public String getStringOrNull(String columnName) {
     try {
-      return rs.getString(columnName);
+      String result = rs.getString(columnName);
+      if (result != null && result.length() == 0) {
+        result = null;
+      }
+      return result;
+    } catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
+
+  @NotNull
+  @Override
+  public String getStringOrEmpty(int columnOneBased) {
+    String result = getStringOrNull(columnOneBased);
+    if (result == null) {
+      return "";
+    }
+    return result;
+  }
+
+  @NotNull
+  @Override
+  public String getStringOrEmpty(String columnName) {
+    String result = getStringOrNull(columnName);
+    if (result == null) {
+      return "";
+    }
+    return result;
+  }
+
+  @Override
+  public String getClobStringOrNull(int columnOneBased) {
+    try {
+      String result = rs.getString(columnOneBased);
+      if (result != null && result.length() == 0) {
+        result = null;
+      }
+      return result;
     } catch (SQLException e) {
       throw new DatabaseException(e);
     }
   }
 
   @Override
-  public String getClobString(int columnOneBased) {
+  public String getClobStringOrNull(String columnName) {
     try {
-      return rs.getString(columnOneBased);
+      String result = rs.getString(columnName);
+      if (result != null && result.length() == 0) {
+        result = null;
+      }
+      return result;
     } catch (SQLException e) {
       throw new DatabaseException(e);
     }
   }
 
+  @NotNull
   @Override
-  public String getClobString(String columnName) {
-    try {
-      return rs.getString(columnName);
-    } catch (SQLException e) {
-      throw new DatabaseException(e);
+  public String getClobStringOrEmpty(int columnOneBased) {
+    String result = getClobStringOrNull(columnOneBased);
+    if (result == null) {
+      return "";
     }
+    return result;
+  }
+
+  @NotNull
+  @Override
+  public String getClobStringOrEmpty(String columnName) {
+    String result = getClobStringOrNull(columnName);
+    if (result == null) {
+      return "";
+    }
+    return result;
   }
 
   @Override
-  public Reader getClobReader(int columnOneBased) {
+  public Reader getClobReaderOrNull(int columnOneBased) {
     try {
       return rs.getCharacterStream(columnOneBased);
     } catch (SQLException e) {
@@ -181,7 +333,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Reader getClobReader(String columnName) {
+  public Reader getClobReaderOrNull(String columnName) {
     try {
       return rs.getCharacterStream(columnName);
     } catch (SQLException e) {
@@ -189,8 +341,28 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  @NotNull
   @Override
-  public byte[] getBlobBytes(int columnOneBased) {
+  public Reader getClobReaderOrEmpty(int columnOneBased) {
+    Reader result = getClobReaderOrNull(columnOneBased);
+    if (result == null) {
+      return new StringReader("");
+    }
+    return result;
+  }
+
+  @NotNull
+  @Override
+  public Reader getClobReaderOrEmpty(String columnName) {
+    Reader result = getClobReaderOrNull(columnName);
+    if (result == null) {
+      return new StringReader("");
+    }
+    return result;
+  }
+
+  @Override
+  public byte[] getBlobBytesOrNull(int columnOneBased) {
     try {
       return rs.getBytes(columnOneBased);
     } catch (SQLException e) {
@@ -199,7 +371,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public byte[] getBlobBytes(String columnName) {
+  public byte[] getBlobBytesOrNull(String columnName) {
     try {
       return rs.getBytes(columnName);
     } catch (SQLException e) {
@@ -207,8 +379,28 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  @NotNull
   @Override
-  public InputStream getBlobInputStream(int columnOneBased) {
+  public byte[] getBlobBytesOrZeroLen(int columnOneBased) {
+    byte[] result = getBlobBytesOrNull(columnOneBased);
+    if (result == null) {
+      return new byte[0];
+    }
+    return result;
+  }
+
+  @NotNull
+  @Override
+  public byte[] getBlobBytesOrZeroLen(String columnName) {
+    byte[] result = getBlobBytesOrNull(columnName);
+    if (result == null) {
+      return new byte[0];
+    }
+    return result;
+  }
+
+  @Override
+  public InputStream getBlobInputStreamOrNull(int columnOneBased) {
     try {
       return rs.getBinaryStream(columnOneBased);
     } catch (SQLException e) {
@@ -217,7 +409,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public InputStream getBlobInputStream(String columnName) {
+  public InputStream getBlobInputStreamOrNull(String columnName) {
     try {
       return rs.getBinaryStream(columnName);
     } catch (SQLException e) {
@@ -225,8 +417,28 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  @NotNull
   @Override
-  public Date getDate(int columnOneBased) {
+  public InputStream getBlobInputStreamOrEmpty(int columnOneBased) {
+    InputStream result = getBlobInputStreamOrNull(columnOneBased);
+    if (result == null) {
+      return new ByteArrayInputStream(new byte[0]);
+    }
+    return result;
+  }
+
+  @NotNull
+  @Override
+  public InputStream getBlobInputStreamOrEmpty(String columnName) {
+    InputStream result = getBlobInputStreamOrNull(columnName);
+    if (result == null) {
+      return new ByteArrayInputStream(new byte[0]);
+    }
+    return result;
+  }
+
+  @Override
+  public Date getDateOrNull(int columnOneBased) {
     try {
       return toDate(rs, columnOneBased);
     } catch (SQLException e) {
@@ -235,7 +447,7 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Date getDate(String columnName) {
+  public Date getDateOrNull(String columnName) {
     try {
       return toDate(rs, columnName);
     } catch (SQLException e) {
@@ -251,9 +463,6 @@ class RowsAdaptor implements Rows {
     long millis = ts.getTime();
     int nanos = ts.getNanos();
     return new Date(millis / 1000 * 1000 + nanos / 1000);
-//    ts.setNanos(0);
-//    ts.setTime(millis / 1000 * 1000 + nanos / 1000);
-//    return ts;
   }
 
   private Date toDate(ResultSet rs, int col) throws SQLException {

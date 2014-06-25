@@ -16,6 +16,8 @@
 
 package com.github.susom.database;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.ParameterMetaData;
@@ -26,6 +28,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Date;
+import java.util.Scanner;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -36,6 +39,12 @@ import org.slf4j.Logger;
  * @author garricko
  */
 public class StatementAdaptor {
+  private final Options options;
+
+  public StatementAdaptor(Options options) {
+    this.options = options;
+  }
+
   public void addParameters(PreparedStatement ps, Object[] parameters) throws SQLException {
     for (int i = 0; i < parameters.length; i++) {
       if (parameters[i] == null) {
@@ -53,19 +62,53 @@ public class StatementAdaptor {
         ps.setNull(i + 1, parameterType);
       } else if (parameters[i] instanceof SqlNull) {
         SqlNull sqlNull = (SqlNull) parameters[i];
-        ps.setNull(i + 1, sqlNull.getType());
+        if (options.useBytesForBlob() && sqlNull.getType() == Types.BLOB) {
+          // The setNull() seems more correct, but PostgreSQL chokes on it
+          ps.setBytes(i + 1, null);
+        } else {
+          ps.setNull(i + 1, sqlNull.getType());
+        }
       } else if (parameters[i] instanceof Date) {
         // this will correct the millis and nanos according to the JDBC spec
         // if a correct Timestamp is passed in, this will detect that and leave it alone
         ps.setTimestamp(i + 1, toSqlTimestamp((Date) parameters[i]));
       } else if (parameters[i] instanceof Reader) {
-        ps.setCharacterStream(i + 1, (Reader) parameters[i]);
+        if (options.useStringForClob()) {
+          ps.setString(i + 1, readerToString((Reader) parameters[i]));
+        } else {
+          ps.setCharacterStream(i + 1, (Reader) parameters[i]);
+        }
       } else if (parameters[i] instanceof InputStream) {
-        ps.setBinaryStream(i + 1, (InputStream) parameters[i]);
+        if (options.useBytesForBlob()) {
+          ps.setBytes(i + 1, streamToBytes((InputStream) parameters[i]));
+        } else {
+          ps.setBinaryStream(i + 1, (InputStream) parameters[i]);
+        }
       } else {
         ps.setObject(i + 1, parameters[i]);
       }
     }
+  }
+
+  private static String readerToString(Reader r) {
+    Scanner s = new Scanner(r).useDelimiter("\\A");
+    return s.hasNext() ? s.next() : "";
+  }
+
+  private static byte[] streamToBytes(InputStream is) throws SQLException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    byte[] buffer = new byte[1024];
+    int length;
+
+    try {
+      while ((length = is.read(buffer)) != -1) {
+        out.write(buffer, 0, length);
+      }
+    } catch (IOException e) {
+      throw new SQLException("Unable to convert InputStream parameter to bytes", e);
+    }
+
+    return out.toByteArray();
   }
 
   /**

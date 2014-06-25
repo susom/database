@@ -68,6 +68,8 @@
           <excludes>
             <!-- Separate profile to test oracle: mvn -P oracle test -->
             <exclude>**/*Oracle*</exclude>
+            <!-- Separate profile to test postgres: mvn -P postgres test -->
+            <exclude>**/*PostgreSql*</exclude>
           </excludes>
         </configuration>
       </plugin>
@@ -166,6 +168,33 @@
           <groupId>com.oracle.ojdbc</groupId>
           <artifactId>ojdbc6</artifactId>
           <version>11.2.0.3</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>postgresql</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>NONE</exclude>
+              </excludes>
+              <includes>
+                <include>**/*PostgreSql*</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>9.3-1101-jdbc41</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

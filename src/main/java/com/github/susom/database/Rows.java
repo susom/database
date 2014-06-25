@@ -21,6 +21,9 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Interface for reading results from a database query.
  *
@@ -29,56 +32,166 @@ import java.util.Date;
 public interface Rows {
   boolean next();
 
-  Integer getInteger(int columnOneBased);
+  @Nullable
+  Integer getIntegerOrNull(int columnOneBased);
 
-  Integer getInteger(String columnName);
+  @Nullable
+  Integer getIntegerOrNull(String columnName);
 
-  Long getLong(int columnOneBased);
+  int getIntegerOrZero(int columnOneBased);
 
-  Long getLong(String columnName);
+  int getIntegerOrZero(String columnName);
 
-  Float getFloat(int columnOneBased);
+  @Nullable
+  Long getLongOrNull(int columnOneBased);
 
-  Float getFloat(String columnName);
+  @Nullable
+  Long getLongOrNull(String columnName);
 
-  Double getDouble(int columnOneBased);
+  long getLongOrZero(int columnOneBased);
 
-  Double getDouble(String columnName);
+  long getLongOrZero(String columnName);
+
+  @Nullable
+  Float getFloatOrNull(int columnOneBased);
+
+  @Nullable
+  Float getFloatOrNull(String columnName);
+
+  float getFloatOrZero(int columnOneBased);
+
+  float getFloatOrZero(String columnName);
+
+  @Nullable
+  Double getDoubleOrNull(int columnOneBased);
+
+  @Nullable
+  Double getDoubleOrNull(String columnName);
+
+  double getDoubleOrZero(int columnOneBased);
+
+  double getDoubleOrZero(String columnName);
 
   /**
    * Note this method attempts to correct for "artifical" scale due to the database
    * representation. Some databases will pad the number out to "full precision". This
    * method tries to reduce scale if there is zero padding to the right of the decimal.
    */
-  BigDecimal getBigDecimal(int columnOneBased);
+  @Nullable
+  BigDecimal getBigDecimalOrNull(int columnOneBased);
 
-  BigDecimal getBigDecimal(String columnName);
+  @Nullable
+  BigDecimal getBigDecimalOrNull(String columnName);
 
-  String getString(int columnOneBased);
+  @NotNull
+  BigDecimal getBigDecimalOrZero(int columnOneBased);
 
-  String getString(String columnName);
+  @NotNull
+  BigDecimal getBigDecimalOrZero(String columnName);
 
-  String getClobString(int columnOneBased);
+  /**
+   * @return the value, or null if it is SQL null; never returns the empty string
+   */
+  @Nullable
+  String getStringOrNull(int columnOneBased);
 
-  String getClobString(String columnName);
+  /**
+   * @return the value, or null if it is SQL null; never returns the empty string
+   */
+  @Nullable
+  String getStringOrNull(String columnName);
 
-  Reader getClobReader(int columnOneBased);
+  /**
+   * @return the value, or the empty string if it is SQL null; never returns null
+   */
+  @NotNull
+  String getStringOrEmpty(int columnOneBased);
 
-  Reader getClobReader(String columnName);
+  /**
+   * @return the value, or the empty string if it is SQL null; never returns null
+   */
+  @NotNull
+  String getStringOrEmpty(String columnName);
 
-  byte[] getBlobBytes(int columnOneBased);
+  /**
+   * @return the value, or null if it is SQL null; never returns the empty string
+   */
+  @Nullable
+  String getClobStringOrNull(int columnOneBased);
 
-  byte[] getBlobBytes(String columnName);
+  /**
+   * @return the value, or null if it is SQL null; never returns the empty string
+   */
+  @Nullable
+  String getClobStringOrNull(String columnName);
 
-  InputStream getBlobInputStream(int columnOneBased);
+  /**
+   * @return the value, or the empty string if it is SQL null; never returns null
+   */
+  @NotNull
+  String getClobStringOrEmpty(int columnOneBased);
 
-  InputStream getBlobInputStream(String columnName);
+  /**
+   * @return the value, or the empty string if it is SQL null; never returns null
+   */
+  @NotNull
+  String getClobStringOrEmpty(String columnName);
+
+  /**
+   * @return the value, or null if it is SQL null
+   */
+  @Nullable
+  Reader getClobReaderOrNull(int columnOneBased);
+
+  /**
+   * @return the value, or null if it is SQL null
+   */
+  @Nullable
+  Reader getClobReaderOrNull(String columnName);
+
+  /**
+   * @return the value, or a StringReader containing the empty string if it is SQL null
+   */
+  @NotNull
+  Reader getClobReaderOrEmpty(int columnOneBased);
+
+  /**
+   * @return the value, or a StringReader containing the empty string if it is SQL null
+   */
+  @NotNull
+  Reader getClobReaderOrEmpty(String columnName);
+
+  @Nullable
+  byte[] getBlobBytesOrNull(int columnOneBased);
+
+  @Nullable
+  byte[] getBlobBytesOrNull(String columnName);
+
+  @NotNull
+  byte[] getBlobBytesOrZeroLen(int columnOneBased);
+
+  @NotNull
+  byte[] getBlobBytesOrZeroLen(String columnName);
+
+  @Nullable
+  InputStream getBlobInputStreamOrNull(int columnOneBased);
+
+  @Nullable
+  InputStream getBlobInputStreamOrNull(String columnName);
+
+  @NotNull
+  InputStream getBlobInputStreamOrEmpty(int columnOneBased);
+
+  @NotNull
+  InputStream getBlobInputStreamOrEmpty(String columnName);
 
   /**
    * Return the millisecond precision Date, which should be represented as a TIMESTAMP
    * in the database. The nanoseconds are truncated.
    */
-  Date getDate(int columnOneBased);
+  @Nullable
+  Date getDateOrNull(int columnOneBased);
 
-  Date getDate(String columnName);
+  @Nullable
+  Date getDateOrNull(String columnName);
 }

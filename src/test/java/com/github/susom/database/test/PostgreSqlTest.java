@@ -68,7 +68,7 @@ public class PostgreSqlTest {
   @Before
   public void setupJdbc() throws Exception {
     c = createConnection();
-    db = new DatabaseImpl(c, new OptionsDefault(Flavor.generic));
+    db = new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql));
   }
 
   protected Connection createConnection() throws Exception {

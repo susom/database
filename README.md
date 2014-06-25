@@ -95,7 +95,7 @@ public class MyBusiness {
              .argString("data", data).queryLong();
   }
 
-  // Note this are all java.util.Date
+  // Note these are all java.util.Date
   public List<Date> doMoreStuff(Date after) {
     return db.get().select("select my_date from a where b > ?").argDate(after)
            .query(new RowsHandler<List<Date>>() {
@@ -115,7 +115,7 @@ public class MyBusiness {
 Or you can directly access it, of course:
 
 ```java
-  String url = "jdbc:derby:build/testdb;create=true";
+  String url = "jdbc:derby:testdb;create=true";
   DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
     @Override
     public void run(Database db) {

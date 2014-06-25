@@ -117,8 +117,8 @@ public abstract class CommonTest {
         assertEquals(4.2, rs.getDoubleOrZero("nbr_double"), 0.01);
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull(5));
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull("nbr_big_decimal"));
-        assertEquals(BigDecimal.ZERO, rs.getBigDecimalOrZero(5));
-        assertEquals(BigDecimal.ZERO, rs.getBigDecimalOrZero("nbr_big_decimal"));
+        assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrZero(5));
+        assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrZero("nbr_big_decimal"));
         assertEquals("Hello", rs.getStringOrNull(6));
         assertEquals("Hello", rs.getStringOrNull("str_varchar"));
         assertEquals("Hello", rs.getStringOrEmpty(6));

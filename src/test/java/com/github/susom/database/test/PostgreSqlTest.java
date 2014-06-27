@@ -81,7 +81,7 @@ public class PostgreSqlTest {
         System.getProperty("postgres.database.url", properties.getProperty("postgres.database.url")),
         System.getProperty("postgres.database.user", properties.getProperty("postgres.database.user")),
         System.getProperty("postgres.database.password", properties.getProperty("postgres.database.password"))
-    ).create();
+    ).withDetailedLoggingAndExceptions().create();
     db = dbp.get();
   }
 

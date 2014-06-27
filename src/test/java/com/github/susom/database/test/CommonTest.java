@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -35,9 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.susom.database.Database;
-import com.github.susom.database.DatabaseImpl;
-import com.github.susom.database.Flavor;
-import com.github.susom.database.OptionsDefault;
+import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.Rows;
 import com.github.susom.database.RowsHandler;
 
@@ -51,7 +48,7 @@ import static org.junit.Assert.*;
 public abstract class CommonTest {
   static {
     // Turn on logging so we can inspect queries and errors
-    Logger logger = Logger.getLogger("edu.stanford");
+    Logger logger = Logger.getLogger("com.github.susom.database");
     logger.setLevel(Level.FINEST);
 
     ConsoleHandler handler = new ConsoleHandler();
@@ -59,27 +56,21 @@ public abstract class CommonTest {
     logger.addHandler(handler);
   }
 
-  protected Connection c;
+  protected DatabaseProvider dbp;
   protected Database db;
-  protected Flavor f;
 
   @Before
   public void setupJdbc() throws Exception {
-    c = createConnection();
-    f = getFlavor();
-    db = new DatabaseImpl(c, new OptionsDefault(f));
+    dbp = createDatabaseProvider();
+    db = dbp.get();
   }
 
-  protected abstract Connection createConnection() throws Exception;
-
-  protected Flavor getFlavor() {
-    return Flavor.generic;
-  }
+  protected abstract DatabaseProvider createDatabaseProvider() throws Exception;
 
   @After
   public void closeJdbc() throws Exception {
-    if (c != null) {
-      c.close();
+    if (dbp != null) {
+      dbp.commitAndClose();
     }
   }
 
@@ -523,6 +514,18 @@ public abstract class CommonTest {
         return null;
       }
     });
+  }
+
+  @Test
+  public void insertReturningPk() {
+    db.ddl("drop table dbtest").executeQuietly();
+    db.ddl("create table dbtest (pk numeric)").execute();
+    db.dropSequenceQuietly("dbtest_seq");
+    db.ddl("create sequence dbtest_seq start with 1").execute();
+    assertEquals(new Long(1L), db.insert("insert into dbtest (pk) values (:seq)")
+        .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
+    assertEquals(new Long(2L), db.insert("insert into dbtest (pk) values (:seq)")
+        .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
   }
 
   public String readerToString(Reader reader) throws IOException {

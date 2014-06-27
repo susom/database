@@ -17,8 +17,8 @@
 package com.github.susom.database.test;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
+
+import com.github.susom.database.DatabaseProvider;
 
 /**
  * Exercise Database functionality with a real database (Derby).
@@ -35,8 +35,8 @@ public class DerbyTest extends CommonTest {
   }
 
   @Override
-  protected Connection createConnection() throws Exception {
-    // For embedded Derby database
-    return DriverManager.getConnection("jdbc:derby:build/testdb;create=true");
+  protected DatabaseProvider createDatabaseProvider() throws Exception {
+    return DatabaseProvider.fromDriverManager("jdbc:derby:build/testdb;create=true")
+        .withDetailedLoggingAndExceptions().create();
   }
 }

@@ -24,10 +24,6 @@ package com.github.susom.database;
 public class OptionsOverride implements Options {
   private Options parent;
 
-  public OptionsOverride(Options parent) {
-    this.parent = parent;
-  }
-
   public void setParent(Options parent) {
     this.parent = parent;
   }

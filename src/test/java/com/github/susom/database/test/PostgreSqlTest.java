@@ -39,6 +39,7 @@ import org.junit.Test;
 
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseImpl;
+import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.Rows;
@@ -54,7 +55,7 @@ import static org.junit.Assert.*;
 public class PostgreSqlTest {
   static {
     // Turn on logging so we can inspect queries and errors
-    Logger logger = Logger.getLogger("edu.stanford");
+    Logger logger = Logger.getLogger("com.github.susom.database");
     logger.setLevel(Level.FINEST);
 
     ConsoleHandler handler = new ConsoleHandler();
@@ -62,16 +63,11 @@ public class PostgreSqlTest {
     logger.addHandler(handler);
   }
 
-  protected Connection c;
+  protected DatabaseProvider dbp;
   protected Database db;
 
   @Before
   public void setupJdbc() throws Exception {
-    c = createConnection();
-    db = new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql));
-  }
-
-  protected Connection createConnection() throws Exception {
     Properties properties = new Properties();
     try {
       properties.load(new FileReader(System.getProperty("build.properties", "../build.properties")));
@@ -81,16 +77,18 @@ public class PostgreSqlTest {
 
     Class.forName("org.postgresql.Driver");
 
-    return DriverManager.getConnection(
+    dbp = DatabaseProvider.fromDriverManager(
         System.getProperty("postgres.database.url", properties.getProperty("postgres.database.url")),
         System.getProperty("postgres.database.user", properties.getProperty("postgres.database.user")),
-        System.getProperty("postgres.database.password", properties.getProperty("postgres.database.password")));
+        System.getProperty("postgres.database.password", properties.getProperty("postgres.database.password"))
+    ).create();
+    db = dbp.get();
   }
 
   @After
   public void closeJdbc() throws Exception {
-    if (c != null) {
-      c.close();
+    if (dbp != null) {
+      dbp.commitAndClose();
     }
   }
 
@@ -518,6 +516,18 @@ public class PostgreSqlTest {
         return null;
       }
     });
+  }
+
+  @Test
+  public void insertReturningPk() {
+    db.ddl("drop table dbtest").executeQuietly();
+    db.ddl("create table dbtest (pk numeric)").execute();
+    db.dropSequenceQuietly("dbtest_seq");
+    db.ddl("create sequence dbtest_seq start with 1").execute();
+    assertEquals(new Long(1L), db.insert("insert into dbtest (pk) values (:seq)")
+        .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
+    assertEquals(new Long(2L), db.insert("insert into dbtest (pk) values (:seq)")
+        .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
   }
 
   public String readerToString(Reader reader) throws IOException {

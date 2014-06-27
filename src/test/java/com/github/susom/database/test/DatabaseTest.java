@@ -351,7 +351,8 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, options).select("select a from b where c=:x").argString("x", "hi").argString("y", "bye").queryLong();
+      new DatabaseImpl(c, options).select("select a from b where c=:x")
+          .argString("x", "hi").argString("y", "bye").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("These named parameters do not exist in the query: [y]", e.getMessage());

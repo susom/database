@@ -21,6 +21,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 
+import com.github.susom.database.DatabaseProvider;
+
 /**
  * Exercise Database functionality with a real Oracle database.
  *
@@ -28,7 +30,7 @@ import java.util.Properties;
  */
 public class OracleTest extends CommonTest {
   @Override
-  protected Connection createConnection() throws Exception {
+  protected DatabaseProvider createDatabaseProvider() throws Exception {
     Properties properties = new Properties();
     try {
       properties.load(new FileReader(System.getProperty("build.properties", "../build.properties")));
@@ -36,8 +38,10 @@ public class OracleTest extends CommonTest {
       // Don't care, fallback to system properties
     }
 
-    return DriverManager.getConnection(System.getProperty("database.url", properties.getProperty("database.url")),
+    return DatabaseProvider.fromDriverManager(
+        System.getProperty("database.url", properties.getProperty("database.url")),
         System.getProperty("database.user", properties.getProperty("database.user")),
-        System.getProperty("database.password", properties.getProperty("database.password")));
+        System.getProperty("database.password", properties.getProperty("database.password"))
+    ).create();
   }
 }

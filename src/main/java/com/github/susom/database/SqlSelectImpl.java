@@ -203,9 +203,9 @@ public class SqlSelectImpl implements SqlSelect {
     String executeSql;
     Object[] parameters = ZERO_LENGTH_OBJECT_ARRAY;
     if (parameterMap != null && parameterMap.size() > 0) {
-      NamedParameterSql paramSql = new NamedParameterSql(sql);
+      NamedParameterSql paramSql = new NamedParameterSql(sql, parameterMap);
       executeSql = paramSql.getSqlToExecute();
-      parameters = paramSql.toArgs(parameterMap);
+      parameters = paramSql.getArgs();
     } else {
       executeSql = sql;
       if (parameterList != null) {

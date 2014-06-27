@@ -80,4 +80,27 @@ public interface SqlInsert {
   int insert();
 
   void insert(int expectedRowsUpdated);
+
+  /**
+   * Use this method in conjunction with argPkSeq() to optimize inserts where the
+   * primary key is being populated from a database sequence at insert time. If the
+   * database can't support this feature it will be simulated with a select and then
+   * the insert.
+   *
+   * <p>This version of insert expects exactly one row to be inserted, and will throw
+   * a DatabaseException if that isn't the case.</p>
+   */
+  Long insertReturningPkSeq(String primaryKeyColumnName);
+
+//  SqlInsert argPkSeq(String sequenceName);
+
+  /**
+   * Use this method to populate the primary key value (assumed to be type Long)
+   * from a sequence in the database. This can be used standalone, but is intended
+   * to be used in conjunction with insertReturningPkSeq() to both insert and obtain
+   * the inserted value in an optimized way (if possible). For databases that are
+   * unable to return the value from the insert (such as Derby) this will be simulated
+   * first issuing a select to read the sequence, then an insert.
+   */
+  SqlInsert argPkSeq(String argName, String sequenceName);
 }

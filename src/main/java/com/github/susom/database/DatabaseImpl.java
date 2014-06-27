@@ -99,4 +99,9 @@ public class DatabaseImpl implements Database {
   public Flavor flavor() {
     return options.flavor();
   }
+
+  @Override
+  public void dropSequenceQuietly(@NotNull String sequenceName) {
+    ddl(flavor().sequenceDrop(sequenceName)).executeQuietly();
+  }
 }

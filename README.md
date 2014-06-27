@@ -33,8 +33,8 @@ driver can't figure out what type it should be.
 #### Indexed or named parameters
 
 You can use traditional positional parameters in the SQL (the '?' character),
-or you can use named parameters (like ":data" above). This can help reduce errors due to counting
-incorrectly. Note you cannot use both positional and named within the same SQL.
+or you can use named parameters. This can help reduce errors due to counting
+incorrectly. Note you cannot use both positional and named within the same SQL statement.
 
 ```java
   db.update("update foo set bar=?").argLong(23L).update();
@@ -57,14 +57,12 @@ Similarly BigDecimal tries to maintain scale in a more intuitive manner
 Deal with them explicitly as either String/byte[] or streams.
 No downcasting or driver-specific APIs, and treat them the same as other parameters.
 
-#### Fewer methods, fewer ways of doing the same thing
-
-Be ye not overly bewildering, keepers of standards.
-
 #### Central control of instrumentation and logging
 
-Tracks the important metrics and logs to SLF4J in a way that
+Tracks important metrics and logs to SLF4J in a way that is cleaner and
 gives you more control than having database-related logging scattered throughout your code.
+The logging is customizable so you can choose to see substituted parameters as
+well.
 
 ```
 Get database: 393.282ms(getConn=389.948ms,checkAutoCommit=1.056ms,dbInit=2.273ms)
@@ -75,12 +73,36 @@ Query: 38.627ms(prep=27.642ms,exec=9.846ms,read=1.013ms,close=0.125ms) select co
 
 #### Fluent API that is auto-completion friendly
 
-Built to make life easier in modern IDEs.
+Built to make life easier in modern IDEs. Everything you need is accessed from a
+single interface (Database).
 
 ### A Quick Example
 
-Usually the server container will manage creation of the Database or Provider<Database>,
-and business logic will declare a dependency on this (e.g. via a constructor parameter):
+For the impatient:
+
+```java
+  String url = "jdbc:derby:testdb;create=true";
+  DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
+    @Override
+    public void run(Database db) {
+      db.ddl("drop table t").executeQuietly();
+      db.ddl("create table t (a numeric)").execute();
+      db.insert("insert into t (a) values (?)").argInteger(32).insert(1);
+      db.update("update t set a=:val").argInteger("val", 23).update();
+
+      Long rows = db.select("select count(1) from t").queryLong();
+      System.out.println("Rows: " + rows);
+    }
+  });
+```
+
+Note the lack of error handling, resource management, and transaction calls. This
+is not because it is left as an exercise for the reader, but because it is handled
+automatically.
+
+For a more realistic server-side example, a container will usually manage creation
+of the Database or Provider<Database>, and business layer code will declare a 
+dependency on this:
 
 ```java
 public class MyBusiness {
@@ -91,11 +113,16 @@ public class MyBusiness {
   }
 
   public Long doStuff(String data) {
+    if (isCached(data)) {
+      // Note how this might never allocate a database connection
+      return cached(data);
+    }
+    
     return db.get().select("select count(*) from a where b=:data")
              .argString("data", data).queryLong();
   }
 
-  // Note these are all java.util.Date
+  // Note we use only java.util.Date, not java.sql.*
   public List<Date> doMoreStuff(Date after) {
     return db.get().select("select my_date from a where b > ?").argDate(after)
            .query(new RowsHandler<List<Date>>() {
@@ -112,20 +139,24 @@ public class MyBusiness {
 }
 ```
 
-Or you can directly access it, of course:
+### Getting Started
 
-```java
-  String url = "jdbc:derby:testdb;create=true";
-  DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
-    @Override
-    public void run(Database db) {
-      db.ddl("drop table t").executeQuietly();
-      db.ddl("create table t (a numeric)").execute();
-      db.insert("insert into t (a) values (?)").argLong(32L).insert(1);
-      db.update("update t set a=:val").argLong("val", 23L).update();
+The library is available in the public Maven repository:
 
-      Long rows = db.select("select count(1) from t").queryLong();
-      System.out.println("Rows: " + rows);
-    }
-  });
 ```
+<dependency>
+  <groupId>com.github.susom</groupId>
+  <artifactId>database</artifactId>
+  <version>1.0</version>
+</dependency>
+```
+
+Just add that to your pom.xml, use one of the static builder methods on 
+`com.github.susom.database.DatabaseProvider` (see example above), and enjoy!
+
+### Limitations
+
+The functionality is currently tested with Oracle, Derby, and PostgreSQL. It
+probably won't work out of the box with other databases right now.
+
+The library is compiled and tested with Java 7, so it won't work with Java 6.

@@ -23,7 +23,22 @@ package com.github.susom.database;
  */
 public enum Flavor {
   generic,
-  derby,
+  derby {
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      return "next value for " + sequenceName;
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      return "values next value for " + sequenceName;
+    }
+
+    @Override
+    public String sequenceDrop(String dbtestSeq) {
+      return "drop sequence " + dbtestSeq + " restrict";
+    }
+  },
   oracle {
     @Override
     public String typeLong() {
@@ -33,6 +48,11 @@ public enum Flavor {
     @Override
     public String typeStringVar(int bytes) {
       return "varchar2(" + bytes + ")";
+    }
+
+    @Override
+    public boolean supportsInsertReturning() {
+      return true;
     }
   },
   postgresql {
@@ -53,6 +73,21 @@ public enum Flavor {
 
     @Override
     public boolean useBytesForBlob() {
+      return true;
+    }
+
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      return "nextval('" + sequenceName + "')";
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      return "select nextval('" + sequenceName + "')";
+    }
+
+    @Override
+    public boolean supportsInsertReturning() {
       return true;
     }
   };
@@ -102,6 +137,22 @@ public enum Flavor {
   }
 
   public boolean useBytesForBlob() {
+    return false;
+  }
+
+  public String sequenceNextVal(String sequenceName) {
+    return sequenceName + ".nextval";
+  }
+
+  public String sequenceSelectNextVal(String sequenceName) {
+    return "select " + sequenceName + ".nextval from dual";
+  }
+
+  public String sequenceDrop(String dbtestSeq) {
+    return "drop sequence " + dbtestSeq;
+  }
+
+  public boolean supportsInsertReturning() {
     return false;
   }
 

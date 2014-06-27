@@ -163,6 +163,21 @@ public final class DatabaseProvider implements Provider<Database> {
       return this;
     }
 
+    public Builder withDetailedLoggingAndExceptions() {
+      this.options = new OptionsOverride() {
+        @Override
+        public boolean isLogParameters() {
+          return true;
+        }
+
+        @Override
+        public boolean isDetailedExceptions() {
+          return true;
+        }
+      }.withParent(this.options);
+      return this;
+    }
+
     /**
      * Note that if you use this method you are responsible for managing
      * the transaction and commit/rollback/close.
@@ -192,7 +207,11 @@ public final class DatabaseProvider implements Provider<Database> {
       txStarted = true;
       metric.checkpoint("getConn");
       try {
-        if (!connection.getAutoCommit()) {
+        // Generally check autocommit before setting because databases like
+        // Oracle can get grumpy if you change it (depending on how your connection
+        // has been initialized by say JNDI), but PostgresSQL seems to
+        // require calling setAutoCommit() every time
+        if (options.flavor() == Flavor.postgresql || !connection.getAutoCommit()) {
           connection.setAutoCommit(false);
           metric.checkpoint("setAutoCommit");
         } else {

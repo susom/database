@@ -33,11 +33,12 @@ import java.util.Set;
  */
 public class NamedParameterSql {
   private final String sqlToExecute;
-  private final String[] argNames;
+  private final Object[] args;
 
-  public NamedParameterSql(String sql) {
+  public NamedParameterSql(String sql, Map<String, Object> nameToArg) {
     StringBuilder newSql = new StringBuilder(sql.length());
-    List<String> argNames = new ArrayList<>();
+    List<String> argNamesList = new ArrayList<>();
+    List<String> rewrittenArgs = new ArrayList<>();
     int searchIndex = 0;
     while (searchIndex < sql.length()) {
       int nextColonIndex = sql.indexOf(':', searchIndex);
@@ -64,22 +65,21 @@ public class NamedParameterSql {
         endOfNameIndex++;
       }
       newSql.append(sql.substring(searchIndex, nextColonIndex));
-      newSql.append('?');
       String paramName = sql.substring(nextColonIndex + 1, endOfNameIndex);
-      argNames.add(paramName);
+      if (nameToArg.get(paramName) instanceof RewriteArg) {
+        newSql.append(((RewriteArg) nameToArg.get(paramName)).sql);
+        rewrittenArgs.add(paramName);
+      } else {
+        newSql.append('?');
+        argNamesList.add(paramName);
+      }
       searchIndex = endOfNameIndex;
     }
 
     this.sqlToExecute = newSql.toString();
-    this.argNames = argNames.toArray(new String[argNames.size()]);
-  }
+    String[] argNames = argNamesList.toArray(new String[argNamesList.size()]);
 
-  public String getSqlToExecute() {
-    return sqlToExecute;
-  }
-
-  public Object[] toArgs(Map<String, Object> nameToArg) {
-    Object[] args = new Object[argNames.length];
+    args = new Object[argNames.length];
     for (int i = 0; i < argNames.length; i++) {
       if (nameToArg.containsKey(argNames[i])) {
         args[i] = nameToArg.get(argNames[i]);
@@ -88,11 +88,27 @@ public class NamedParameterSql {
       }
     }
     // Sanity check number of arguments to provide a better error message
-    if (nameToArg.size() > args.length) {
+    if (nameToArg.size() > args.length + rewrittenArgs.size()) {
       Set<String> unusedNames = new HashSet<>(nameToArg.keySet());
       unusedNames.removeAll(Arrays.asList(argNames));
+      unusedNames.removeAll(rewrittenArgs);
       throw new DatabaseException("These named parameters do not exist in the query: " + unusedNames);
     }
+  }
+
+  public String getSqlToExecute() {
+    return sqlToExecute;
+  }
+
+  public Object[] getArgs() {
     return args;
+  }
+
+  public static class RewriteArg {
+    private final String sql;
+
+    public RewriteArg(String sql) {
+      this.sql = sql;
+    }
   }
 }

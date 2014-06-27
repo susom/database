@@ -48,4 +48,12 @@ public interface Database extends Provider<Database> {
 
   @NotNull
   Flavor flavor();
+
+  /**
+   * Convenience method to deal with mutually incompatible syntax for this. For example:
+   *
+   * <p>Oracle: 'drop sequence x'</p>
+   * <p>Derby: 'drop sequence x restrict'</p>"
+   */
+  void dropSequenceQuietly(String sequenceName);
 }

@@ -216,6 +216,7 @@ public class SqlSelectImpl implements SqlSelect {
     boolean isWarn = false;
     boolean isSuccess = false;
     String errorCode = null;
+    Exception logEx = null;
     try {
       synchronized (cancelLock) {
         ps = connection.prepareStatement(executeSql);
@@ -245,9 +246,11 @@ public class SqlSelectImpl implements SqlSelect {
         throw new QueryTimedOutException("Timeout of " + timeoutSeconds + " seconds exceeded or user cancelled", e);
       }
       errorCode = options.generateErrorCode();
+      logEx = e;
       throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
+      logEx = e;
       throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(rs, log);
@@ -259,9 +262,9 @@ public class SqlSelectImpl implements SqlSelect {
       if (isSuccess) {
         DebugSql.logSuccess("Query", log, metric, executeSql, parameters, options);
       } else if (isWarn) {
-        DebugSql.logWarning("Query", log, metric, "QueryTimedOutException", executeSql, parameters, options);
+        DebugSql.logWarning("Query", log, metric, "QueryTimedOutException", executeSql, parameters, options, logEx);
       } else {
-        DebugSql.logError("Query", log, metric, errorCode, executeSql, parameters, options);
+        DebugSql.logError("Query", log, metric, errorCode, executeSql, parameters, options, logEx);
       }
     }
   }

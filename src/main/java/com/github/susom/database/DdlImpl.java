@@ -40,12 +40,13 @@ public class DdlImpl implements Ddl {
     this.options = options;
   }
 
-  private void updateInternal() {
+  private void updateInternal(boolean quiet) {
     CallableStatement ps = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
     boolean isSuccess = false;
     String errorCode = null;
+    Exception logEx = null;
     try {
       ps = connection.prepareCall(sql);
 
@@ -55,6 +56,7 @@ public class DdlImpl implements Ddl {
       isSuccess = true;
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
+      logEx = e;
       throw new DatabaseException(DebugSql.exceptionMessage(sql, null, errorCode, options), e);
     } finally {
       close(ps);
@@ -62,20 +64,24 @@ public class DdlImpl implements Ddl {
       if (isSuccess) {
         DebugSql.logSuccess("DDL", log, metric, sql, null, options);
       } else {
-        DebugSql.logError("DDL", log, metric, errorCode, sql, null, options);
+        if (quiet) {
+          DebugSql.logWarning("Quiet DDL", log, metric, errorCode, sql, null, options, logEx);
+        } else {
+          DebugSql.logError("DDL", log, metric, errorCode, sql, null, options, logEx);
+        }
       }
     }
   }
 
   @Override
   public void execute() {
-    updateInternal();
+    updateInternal(false);
   }
 
   @Override
   public void executeQuietly() {
     try {
-      updateInternal();
+      updateInternal(true);
     } catch (DatabaseException e) {
       // Ignore, as requested
     }

@@ -225,13 +225,14 @@ public class SqlInsertImpl implements SqlInsert {
 
     boolean isSuccess = false;
     String errorCode = null;
+    Exception logEx = null;
     try {
       ps = connection.prepareStatement(executeSql);
 
       adaptor.addParameters(ps, parameters);
       metric.checkpoint("prep");
       int numAffectedRows = ps.executeUpdate();
-      metric.checkpoint("exec");
+      metric.checkpoint("exec[" + numAffectedRows + "]");
       if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
         errorCode = options.generateErrorCode();
         throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
@@ -240,7 +241,11 @@ public class SqlInsertImpl implements SqlInsert {
       }
       isSuccess = true;
       return numAffectedRows;
+    } catch (WrongNumberOfRowsException e) {
+      throw e;
     } catch (Exception e) {
+      errorCode = options.generateErrorCode();
+      logEx = e;
       throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(ps, log);
@@ -248,7 +253,7 @@ public class SqlInsertImpl implements SqlInsert {
       if (isSuccess) {
         DebugSql.logSuccess("Insert", log, metric, executeSql, parameters, options);
       } else {
-        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, options);
+        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, options, logEx);
       }
     }
   }
@@ -273,13 +278,14 @@ public class SqlInsertImpl implements SqlInsert {
 
     boolean isSuccess = false;
     String errorCode = null;
+    Exception logEx = null;
     try {
       ps = connection.prepareStatement(executeSql, new String[] { pkToReturn });
 
       adaptor.addParameters(ps, parameters);
       metric.checkpoint("prep");
       int numAffectedRows = ps.executeUpdate();
-      metric.checkpoint("exec");
+      metric.checkpoint("exec[" + numAffectedRows + "]");
       if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
         errorCode = options.generateErrorCode();
         throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
@@ -293,7 +299,11 @@ public class SqlInsertImpl implements SqlInsert {
       }
       isSuccess = true;
       return pk;
+    } catch (WrongNumberOfRowsException e) {
+      throw e;
     } catch (Exception e) {
+      errorCode = options.generateErrorCode();
+      logEx = e;
       throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(ps, log);
@@ -301,7 +311,7 @@ public class SqlInsertImpl implements SqlInsert {
       if (isSuccess) {
         DebugSql.logSuccess("Insert", log, metric, executeSql, parameters, options);
       } else {
-        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, options);
+        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, options, logEx);
       }
     }
   }

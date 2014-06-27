@@ -107,7 +107,7 @@ public class DebugSql {
   }
 
   public static void logWarning(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
-                          Options options) {
+                          Options options, Throwable t) {
     if (log.isWarnEnabled()) {
       StringBuilder buf = new StringBuilder();
       if (errorCode != null) {
@@ -117,12 +117,12 @@ public class DebugSql {
       metric.printMessage(buf);
       buf.append(" ");
       printSql(buf, sql, args, options);
-      log.warn(buf.toString());
+      log.warn(buf.toString(), t);
     }
   }
 
   public static void logError(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
-                        Options options) {
+                        Options options, Throwable t) {
     if (log.isErrorEnabled()) {
       StringBuilder buf = new StringBuilder();
       if (errorCode != null) {
@@ -132,7 +132,7 @@ public class DebugSql {
       metric.printMessage(buf);
       buf.append(" ");
       printSql(buf, sql, args, options);
-      log.error(buf.toString());
+      log.error(buf.toString(), t);
     }
   }
 }

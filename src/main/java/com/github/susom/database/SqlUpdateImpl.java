@@ -215,13 +215,14 @@ public class SqlUpdateImpl implements SqlUpdate {
 
     boolean isSuccess = false;
     String errorCode = null;
+    Exception logEx = null;
     try {
       ps = connection.prepareStatement(executeSql);
 
       adaptor.addParameters(ps, parameters);
       metric.checkpoint("prep");
       int numAffectedRows = ps.executeUpdate();
-      metric.checkpoint("exec");
+      metric.checkpoint("exec[" + numAffectedRows + "]");
       if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
         errorCode = options.generateErrorCode();
         throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
@@ -230,8 +231,11 @@ public class SqlUpdateImpl implements SqlUpdate {
       }
       isSuccess = true;
       return numAffectedRows;
+    } catch (WrongNumberOfRowsException e) {
+      throw e;
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
+      logEx = e;
       throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(ps, log);
@@ -239,7 +243,7 @@ public class SqlUpdateImpl implements SqlUpdate {
       if (isSuccess) {
         DebugSql.logSuccess("Update", log, metric, executeSql, parameters, options);
       } else {
-        DebugSql.logError("Update", log, metric, errorCode, executeSql, parameters, options);
+        DebugSql.logError("Update", log, metric, errorCode, executeSql, parameters, options, logEx);
       }
     }
   }

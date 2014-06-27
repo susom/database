@@ -24,8 +24,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -38,17 +36,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.susom.database.Database;
-import com.github.susom.database.DatabaseImpl;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.Flavor;
-import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.Rows;
 import com.github.susom.database.RowsHandler;
 
 import static org.junit.Assert.*;
 
 /**
- * Exercise Database functionality with a real Oracle database.
+ * Exercise Database functionality with a real PostgreSQL database.
  *
  * @author garricko
  */

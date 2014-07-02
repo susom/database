@@ -18,6 +18,7 @@ package com.github.susom.database.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +32,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,13 +51,11 @@ import static org.junit.Assert.*;
  */
 public class PostgreSqlTest {
   static {
-    // Turn on logging so we can inspect queries and errors
-    Logger logger = Logger.getLogger("com.github.susom.database");
-    logger.setLevel(Level.FINEST);
-
-    ConsoleHandler handler = new ConsoleHandler();
-    handler.setLevel(Level.FINEST);
-    logger.addHandler(handler);
+    // Initialize logging
+    String log4jConfig = new File("log4j.xml").getAbsolutePath();
+    DOMConfigurator.configure(log4jConfig);
+    org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CommonTest.class);
+    log.info("Initialized log4j using file: " + log4jConfig);
   }
 
   protected DatabaseProvider dbp;
@@ -515,6 +515,8 @@ public class PostgreSqlTest {
 
   @Test
   public void insertReturningPk() {
+    db.ddl("drop table dbtest").executeQuietly();
+    // Verify the quietly part really kicks in, since the table might have existed above
     db.ddl("drop table dbtest").executeQuietly();
     db.ddl("create table dbtest (pk numeric)").execute();
     db.dropSequenceQuietly("dbtest_seq");

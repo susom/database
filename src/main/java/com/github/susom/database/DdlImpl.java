@@ -29,7 +29,8 @@ import org.slf4j.LoggerFactory;
  * @author garricko
  */
 public class DdlImpl implements Ddl {
-  private static final Logger log = LoggerFactory.getLogger(DdlImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(Database.class);
+  private static final Logger logQuiet = LoggerFactory.getLogger(Database.class.getName() + ".Quiet");
   private final Connection connection;
   private final String sql;
   private final Options options;
@@ -60,15 +61,16 @@ public class DdlImpl implements Ddl {
       throw new DatabaseException(DebugSql.exceptionMessage(sql, null, errorCode, options), e);
     } finally {
       close(ps);
-      metric.done("close");
+      metric.checkpoint("close");
+      // PostgreSQL requires explicit commit since we are running with setAutoCommit(false)
+      commit(connection);
+      metric.done("commit");
       if (isSuccess) {
         DebugSql.logSuccess("DDL", log, metric, sql, null, options);
+      } else if (quiet) {
+        DebugSql.logWarning("DDL", logQuiet, metric, errorCode, sql, null, options, logEx);
       } else {
-        if (quiet) {
-          DebugSql.logWarning("Quiet DDL", log, metric, errorCode, sql, null, options, logEx);
-        } else {
-          DebugSql.logError("DDL", log, metric, errorCode, sql, null, options, logEx);
-        }
+        DebugSql.logError("DDL", log, metric, errorCode, sql, null, options, logEx);
       }
     }
   }
@@ -93,6 +95,16 @@ public class DdlImpl implements Ddl {
         s.close();
       } catch (Exception e) {
         log.warn("Caught exception closing the Statement", e);
+      }
+    }
+  }
+
+  private void commit(Connection c) {
+    if (c != null) {
+      try {
+        c.commit();
+      } catch (Exception e) {
+        log.warn("Caught exception on commit", e);
       }
     }
   }

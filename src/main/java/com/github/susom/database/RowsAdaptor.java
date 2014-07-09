@@ -462,7 +462,7 @@ class RowsAdaptor implements Rows {
   private Date timestampToDate(Timestamp ts) {
     long millis = ts.getTime();
     int nanos = ts.getNanos();
-    return new Date(millis / 1000 * 1000 + nanos / 1000);
+    return new Date(millis / 1000 * 1000 + nanos / 1000000);
   }
 
   private Date toDate(ResultSet rs, int col) throws SQLException {

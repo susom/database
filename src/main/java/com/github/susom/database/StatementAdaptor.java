@@ -127,7 +127,7 @@ public class StatementAdaptor {
         return new Timestamp(millis);
       }
     } else { // the millis are invalid and need to be corrected
-      int tsNanos = fractionalSecondMillis * 1000;
+      int tsNanos = fractionalSecondMillis * 1000000;
       long tsMillis = millis - fractionalSecondMillis;
       Timestamp timestamp = new Timestamp(tsMillis);
       timestamp.setNanos(tsNanos);
@@ -135,7 +135,7 @@ public class StatementAdaptor {
     }
   }
 
-  private class SqlNull {
+  class SqlNull {
     int type;
 
     SqlNull(int type) {

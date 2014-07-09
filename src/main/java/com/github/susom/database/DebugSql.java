@@ -54,7 +54,7 @@ public class DebugSql {
       }
     } else {
       buf.append(sql);
-      if (options.isLogParameters()) {
+      if (options.isLogParameters() && argsToPrint.length > 0) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         buf.append('|');
         for (int i = 0; i < argsToPrint.length; i++) {

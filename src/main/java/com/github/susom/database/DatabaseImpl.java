@@ -104,4 +104,9 @@ public class DatabaseImpl implements Database {
   public void dropSequenceQuietly(@NotNull String sequenceName) {
     ddl(flavor().sequenceDrop(sequenceName)).executeQuietly();
   }
+
+  @Override
+  public void dropTableQuietly(@NotNull String tableName) {
+    ddl("drop table " + tableName).executeQuietly();
+  }
 }

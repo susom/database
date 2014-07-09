@@ -56,4 +56,6 @@ public interface Database extends Provider<Database> {
    * <p>Derby: 'drop sequence x restrict'</p>"
    */
   void dropSequenceQuietly(String sequenceName);
+
+  void dropTableQuietly(String tableName);
 }

@@ -63,6 +63,8 @@ public class DebugSql {
             buf.append("'");
             buf.append(argsToPrint[i]);
             buf.append("'");
+          } else if (argsToPrint[i] instanceof StatementAdaptor.SqlNull) {
+            buf.append("null");
           } else if (argsToPrint[i] instanceof Date) {
             buf.append("to_date('");
             buf.append(sdf.format((Date) argsToPrint[i]));

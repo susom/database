@@ -329,7 +329,7 @@ public class DatabaseTest {
       }).select("select a from b where c=:x").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL (errorCode=1): select a from b where c=:x|select a from b where c=:x", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): select a from b where c=:x", e.getMessage());
     }
 
     control.verify();
@@ -479,7 +479,7 @@ public class DatabaseTest {
       }).select("select a from b").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL (errorCode=1): select a from b|select a from b", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): select a from b", e.getMessage());
     }
 
     control.verify();
@@ -525,7 +525,7 @@ public class DatabaseTest {
       }).select("select a from b").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL (errorCode=1): select a from b|select a from b", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): select a from b", e.getMessage());
     }
 
     control.verify();

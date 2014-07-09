@@ -96,4 +96,9 @@ public class OptionsDefault implements Options {
   public Flavor flavor() {
     return flavor;
   }
+
+  @Override
+  public Date currentDate() {
+    return new Date();
+  }
 }

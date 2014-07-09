@@ -38,6 +38,21 @@ public enum Flavor {
     public String sequenceDrop(String dbtestSeq) {
       return "drop sequence " + dbtestSeq + " restrict";
     }
+
+    @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      return "";
+    }
+
+    @Override
+    public String sequenceOrderClause(boolean order) {
+      return "";
+    }
+
+    @Override
+    public String sysdate() {
+      return "current_timestamp";
+    }
   },
   oracle {
     @Override
@@ -51,11 +66,31 @@ public enum Flavor {
     }
 
     @Override
+    public String sequenceOrderClause(boolean order) {
+      return order ? " order" : " noorder";
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      return cycle ? " cycle" : " nocycle";
+    }
+
+    @Override
     public boolean supportsInsertReturning() {
       return true;
     }
+
+    @Override
+    public String sysdate() {
+      return "sysdate";
+    }
   },
   postgresql {
+    @Override
+    public String typeDouble() {
+      return "numeric(19,9)";
+    }
+
     @Override
     public String typeClob() {
       return "text";
@@ -87,8 +122,18 @@ public enum Flavor {
     }
 
     @Override
+    public String sequenceOrderClause(boolean order) {
+      return "";
+    }
+
+    @Override
     public boolean supportsInsertReturning() {
       return true;
+    }
+
+    @Override
+    public String sysdate() {
+      return "date_trunc('milliseconds',localtimestamp)";
     }
   };
 
@@ -156,6 +201,10 @@ public enum Flavor {
     return false;
   }
 
+  public String sysdate() {
+    return "current_time";
+  }
+
   public static Flavor fromJdbcUrl(String url) {
     if (url.startsWith("jdbc:postgresql:")) {
       return postgresql;
@@ -166,5 +215,17 @@ public enum Flavor {
     } else {
       return generic;
     }
+  }
+
+  public String sequenceCacheClause(int nbrValuesToCache) {
+    return " cache " + nbrValuesToCache;
+  }
+
+  public String sequenceOrderClause(boolean order) {
+    return order ? " order" : " no order";
+  }
+
+  public String sequenceCycleClause(boolean cycle) {
+    return cycle ? " cycle" : " no cycle";
   }
 }

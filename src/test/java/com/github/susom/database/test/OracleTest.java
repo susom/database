@@ -17,11 +17,10 @@
 package com.github.susom.database.test;
 
 import java.io.FileReader;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.Properties;
 
 import com.github.susom.database.DatabaseProvider;
+import com.github.susom.database.OptionsOverride;
 
 /**
  * Exercise Database functionality with a real Oracle database.
@@ -30,7 +29,7 @@ import com.github.susom.database.DatabaseProvider;
  */
 public class OracleTest extends CommonTest {
   @Override
-  protected DatabaseProvider createDatabaseProvider() throws Exception {
+  protected DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception {
     Properties properties = new Properties();
     try {
       properties.load(new FileReader(System.getProperty("build.properties", "../build.properties")));
@@ -42,6 +41,6 @@ public class OracleTest extends CommonTest {
         System.getProperty("database.url", properties.getProperty("database.url")),
         System.getProperty("database.user", properties.getProperty("database.user")),
         System.getProperty("database.password", properties.getProperty("database.password"))
-    ).create();
+    ).withDetailedLoggingAndExceptions().withOptions(options).create();
   }
 }

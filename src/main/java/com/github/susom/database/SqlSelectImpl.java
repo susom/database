@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * @author garricko
  */
 public class SqlSelectImpl implements SqlSelect {
-  private static final Logger log = LoggerFactory.getLogger(SqlSelectImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(Database.class);
   private static final Object[] ZERO_LENGTH_OBJECT_ARRAY = new Object[0];
   private final Connection connection;
   private final StatementAdaptor adaptor;
@@ -159,6 +159,33 @@ public class SqlSelectImpl implements SqlSelect {
         List<Long> result = new ArrayList<>();
         if (rs.next()) {
           result.add(rs.getLongOrNull(1));
+        }
+        return result;
+      }
+    });
+  }
+
+  @Override
+  public String queryString() {
+    return queryWithTimeout(new RowsHandler<String>() {
+      @Override
+      public String process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getStringOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public List<String> queryStrings() {
+    return query(new RowsHandler<List<String>>() {
+      @Override
+      public List<String> process(Rows rs) throws Exception {
+        List<String> result = new ArrayList<>();
+        if (rs.next()) {
+          result.add(rs.getStringOrNull(1));
         }
         return result;
       }

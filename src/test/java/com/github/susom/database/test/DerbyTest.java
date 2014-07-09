@@ -19,6 +19,7 @@ package com.github.susom.database.test;
 import java.io.File;
 
 import com.github.susom.database.DatabaseProvider;
+import com.github.susom.database.OptionsOverride;
 
 /**
  * Exercise Database functionality with a real database (Derby).
@@ -35,8 +36,8 @@ public class DerbyTest extends CommonTest {
   }
 
   @Override
-  protected DatabaseProvider createDatabaseProvider() throws Exception {
+  protected DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception {
     return DatabaseProvider.fromDriverManager("jdbc:derby:build/testdb;create=true")
-        .withDetailedLoggingAndExceptions().create();
+        .withDetailedLoggingAndExceptions().withOptions(options).create();
   }
 }

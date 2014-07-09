@@ -16,6 +16,8 @@
 
 package com.github.susom.database;
 
+import java.util.Date;
+
 /**
  * Control various optional behavior for the database interactions.
  *
@@ -89,4 +91,6 @@ public interface Options {
    * some of the variations in features and syntax.
    */
   Flavor flavor();
+
+  Date currentDate();
 }

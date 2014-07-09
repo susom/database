@@ -62,5 +62,9 @@ public interface SqlSelect {
 
   List<Long> queryLongs();
 
+  String queryString();
+
+  List<String> queryStrings();
+
   <T> T query(RowsHandler<T> rowsHandler);
 }

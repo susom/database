@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * @author garricko
  */
 public class SqlUpdateImpl implements SqlUpdate {
-  private static final Logger log = LoggerFactory.getLogger(SqlUpdateImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(Database.class);
   private static final Object[] ZERO_LENGTH_OBJECT_ARRAY = new Object[0];
   private final Connection connection;
   private final StatementAdaptor adaptor;

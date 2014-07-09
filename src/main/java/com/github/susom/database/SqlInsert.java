@@ -55,6 +55,10 @@ public interface SqlInsert {
 
   SqlInsert argDate(String argName, Date arg);
 
+  SqlInsert argDateNowPerApp(String argName);
+
+  SqlInsert argDateNowPerDb(String argName);
+
   SqlInsert argBlobBytes(byte[] arg);
 
   SqlInsert argBlobBytes(String argName, byte[] arg);
@@ -92,6 +96,9 @@ public interface SqlInsert {
    */
   Long insertReturningPkSeq(String primaryKeyColumnName);
 
+  <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> rowsHandler,
+                        String...otherColumnNames);
+
 //  SqlInsert argPkSeq(String sequenceName);
 
   /**
@@ -103,4 +110,6 @@ public interface SqlInsert {
    * first issuing a select to read the sequence, then an insert.
    */
   SqlInsert argPkSeq(String argName, String sequenceName);
+  SqlInsert argPkLong(Long pkValue);
+  SqlInsert argPkLong(String argName, Long pkValue);
 }

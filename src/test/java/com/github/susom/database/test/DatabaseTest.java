@@ -16,12 +16,14 @@
 
 package com.github.susom.database.test;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.apache.log4j.xml.DOMConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +36,7 @@ import com.github.susom.database.OptionsDefault;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static org.junit.matchers.JUnitMatchers.containsString;
 
 /**
  * Unit tests for the Database and Sql implementation classes.
@@ -42,6 +45,14 @@ import static org.junit.Assert.*;
  */
 @RunWith(JUnit4.class)
 public class DatabaseTest {
+  static {
+    // Initialize logging
+    String log4jConfig = new File("log4j.xml").getAbsolutePath();
+    DOMConfigurator.configure(log4jConfig);
+    org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseTest.class);
+    log.info("Initialized log4j using file: " + log4jConfig);
+  }
+
   private OptionsDefault options = new OptionsDefault(Flavor.generic);
 
   @Test
@@ -382,6 +393,29 @@ public class DatabaseTest {
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Use either positional or named query parameters, not both", e.getMessage());
+    }
+
+    control.verify();
+  }
+
+  @Test
+  public void wrongNumberOfInserts() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+
+    expect(c.prepareStatement("insert into x (y) values (1)")).andReturn(ps);
+    expect(ps.executeUpdate()).andReturn(2);
+    ps.close();
+
+    control.replay();
+
+    try {
+      new DatabaseImpl(c, options).insert("insert into x (y) values (1)").insert(1);
+      fail("Should have thrown an exception");
+    } catch (DatabaseException e) {
+      assertThat(e.getMessage(), containsString("The number of affected rows was 2, but 1 were expected."));
     }
 
     control.verify();

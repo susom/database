@@ -41,7 +41,7 @@ import com.github.susom.database.NamedParameterSql.RewriteArg;
  * @author garricko
  */
 public class SqlInsertImpl implements SqlInsert {
-  private static final Logger log = LoggerFactory.getLogger(SqlInsertImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(Database.class);
   private static final Object[] ZERO_LENGTH_OBJECT_ARRAY = new Object[0];
   private final Connection connection;
   private final StatementAdaptor adaptor;
@@ -51,6 +51,7 @@ public class SqlInsertImpl implements SqlInsert {
   private Map<String, Object> parameterMap; // !null ==> named :abc args
   private String pkArgName;
   private String pkSeqName;
+  private Long pkLong;
 
   public SqlInsertImpl(Connection connection, String sql, Options options) {
     this.connection = connection;
@@ -130,6 +131,16 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  public SqlInsert argDateNowPerApp(String argName) {
+    return namedArg(argName, adaptor.nullDate(options.currentDate()));
+  }
+
+  @Override
+  public SqlInsert argDateNowPerDb(String argName) {
+    return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
+  }
+
+  @Override
   public SqlInsert argBlobBytes(byte[] arg) {
     return positionalArg(adaptor.nullBytes(arg));
   }
@@ -181,8 +192,8 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   public Long insertReturningPkSeq(String primaryKeyColumnName) {
-    if (pkArgName == null) {
-      throw new DatabaseException("Must call argPkSeq() before insertReturningPkSeq()");
+    if (!hasPk()) {
+      throw new DatabaseException("Call argPkSeq() before insertReturningPkSeq()");
     }
 
     if (options.flavor().supportsInsertReturning()) {
@@ -197,13 +208,72 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  public <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> handler,
+                               String... otherColumnNames) {
+    if (!hasPk()) {
+      throw new DatabaseException("Identify a primary key with argPk*() before insertReturning()");
+    }
+
+    if (options.flavor().supportsInsertReturning()) {
+      return updateInternal(1, primaryKeyColumnName, handler, otherColumnNames);
+    } else if (pkSeqName != null) {
+      // Simulate by issuing a select for the next sequence value, inserting, and returning it
+      Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLong();
+      namedArg(pkArgName, adaptor.nullNumeric(pk));
+      updateInternal(1);
+      StringBuilder sql = new StringBuilder();
+      sql.append("select ").append(primaryKeyColumnName);
+      for (String colName : otherColumnNames) {
+        sql.append(", ").append(colName);
+      }
+      sql.append(" from ").append(tableName).append(" where ").append(primaryKeyColumnName).append("=?");
+      return new SqlSelectImpl(connection, sql.toString(), options).argLong(pk).query(handler);
+    } else if (pkLong != null) {
+      // Insert the value, then do a select based on the primary key
+      updateInternal(1);
+      StringBuilder sql = new StringBuilder();
+      sql.append("select ").append(primaryKeyColumnName);
+      for (String colName : otherColumnNames) {
+        sql.append(", ").append(colName);
+      }
+      sql.append(" from ").append(tableName).append(" where ").append(primaryKeyColumnName).append("=?");
+      return new SqlSelectImpl(connection, sql.toString(), options).argLong(pkLong).query(handler);
+    } else {
+      // Should never happen if our safety checks worked
+      throw new DatabaseException("Internal error");
+    }
+  }
+
+  @Override
   public SqlInsert argPkSeq(String argName, String sequenceName) {
-    if (pkArgName != null) {
-      throw new DatabaseException("Called argPkSeq() twice");
+    if (hasPk()) {
+      throw new DatabaseException("Only call one argPk*() method");
     }
     pkArgName = argName;
     pkSeqName = sequenceName;
     return namedArg(argName, new RewriteArg(options.flavor().sequenceNextVal(sequenceName)));
+  }
+
+  @Override
+  public SqlInsert argPkLong(String argName, Long arg) {
+    if (hasPk()) {
+      throw new DatabaseException("Only call one argPk*() method");
+    }
+    pkLong = arg;
+    return namedArg(argName, adaptor.nullNumeric(arg));
+  }
+
+  @Override
+  public SqlInsert argPkLong(Long arg) {
+    if (hasPk()) {
+      throw new DatabaseException("Only call one argPk*() method");
+    }
+    pkLong = arg;
+    return positionalArg(adaptor.nullNumeric(arg));
+  }
+
+  private boolean hasPk() {
+    return pkArgName != null || pkLong != null;
   }
 
   private int updateInternal(int expectedNumAffectedRows) {
@@ -306,6 +376,69 @@ public class SqlInsertImpl implements SqlInsert {
       logEx = e;
       throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
+      adaptor.closeQuietly(rs, log);
+      adaptor.closeQuietly(ps, log);
+      metric.done("close");
+      if (isSuccess) {
+        DebugSql.logSuccess("Insert", log, metric, executeSql, parameters, options);
+      } else {
+        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, options, logEx);
+      }
+    }
+  }
+
+  private <T> T updateInternal(int expectedNumAffectedRows, @NotNull String pkToReturn, RowsHandler<T> handler,
+                              String... otherCols) {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    Metric metric = new Metric(log.isDebugEnabled());
+
+    String executeSql;
+    Object[] parameters = ZERO_LENGTH_OBJECT_ARRAY;
+    if (parameterMap != null && parameterMap.size() > 0) {
+      NamedParameterSql paramSql = new NamedParameterSql(sql, parameterMap);
+      executeSql = paramSql.getSqlToExecute();
+      parameters = paramSql.getArgs();
+    } else {
+      executeSql = sql;
+      if (parameterList != null) {
+        parameters = parameterList.toArray(new Object[parameterList.size()]);
+      }
+    }
+
+    boolean isSuccess = false;
+    String errorCode = null;
+    Exception logEx = null;
+    try {
+      String[] returnCols = new String[otherCols.length + 1];
+      returnCols[0] = pkToReturn;
+      System.arraycopy(otherCols, 0, returnCols, 1, otherCols.length);
+      ps = connection.prepareStatement(executeSql, returnCols);
+
+      adaptor.addParameters(ps, parameters);
+      metric.checkpoint("prep");
+      int numAffectedRows = ps.executeUpdate();
+      metric.checkpoint("exec[" + numAffectedRows + "]");
+      if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
+        errorCode = options.generateErrorCode();
+        throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
+            + expectedNumAffectedRows + " were expected." + "\n"
+            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+      }
+      rs = ps.getGeneratedKeys();
+      final ResultSet finalRs = rs;
+      T result = handler.process(new RowsAdaptor(finalRs));
+      metric.checkpoint("read");
+      isSuccess = true;
+      return result;
+    } catch (WrongNumberOfRowsException e) {
+      throw e;
+    } catch (Exception e) {
+      errorCode = options.generateErrorCode();
+      logEx = e;
+      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+    } finally {
+      adaptor.closeQuietly(rs, log);
       adaptor.closeQuietly(ps, log);
       metric.done("close");
       if (isSuccess) {

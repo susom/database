@@ -16,6 +16,8 @@
 
 package com.github.susom.database;
 
+import java.util.Date;
+
 /**
  * Base class for selectively overriding another Options object.
  *
@@ -66,5 +68,10 @@ public class OptionsOverride implements Options {
   @Override
   public Flavor flavor() {
     return parent.flavor();
+  }
+
+  @Override
+  public Date currentDate() {
+    return parent.currentDate();
   }
 }

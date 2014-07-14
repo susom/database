@@ -56,6 +56,16 @@ public enum Flavor {
   },
   oracle {
     @Override
+    public String typeFloat() {
+      return "binary_float";
+    }
+
+    @Override
+    public String typeDouble() {
+      return "binary_double";
+    }
+
+    @Override
     public String typeLong() {
       return "numeric(19)";
     }

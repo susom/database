@@ -39,6 +39,7 @@ import com.github.susom.database.Rows;
 import com.github.susom.database.RowsHandler;
 import com.github.susom.database.Schema;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 /**
@@ -665,7 +666,7 @@ public abstract class CommonTest {
           public Object process(Rows rs) throws Exception {
             assertTrue(rs.next());
             assertEquals(new Long(1L), rs.getLongOrNull(1));
-            assertEquals(now, rs.getDateOrNull(2));
+            assertThat(rs.getDateOrNull(2), equalTo(now));
             assertFalse(rs.next());
             return null;
           }

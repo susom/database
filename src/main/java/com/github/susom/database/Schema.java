@@ -45,11 +45,11 @@ public class Schema {
   }
 
   public void validate() {
-    if (tables.size() < 1) {
-      throw new RuntimeException("Schema doesn't have any tables");
-    }
     for (Table t : tables) {
       t.validate();
+    }
+    for (Sequence s : sequences) {
+      s.validate();
     }
   }
 
@@ -204,8 +204,8 @@ public class Schema {
       return unique;
     }
 
-    public Index addIndex(String name, String...columnNames) {
-      Index index = new Index(name);
+    public Index addIndex(String name, String... columnNames) {
+      Index index = new Index(name, columnNames);
       indexes.add(index);
       return index;
     }
@@ -275,7 +275,7 @@ public class Schema {
         return this;
       }
 
-      public void validate() {
+      private void validate() {
         if (foreignTable == null) {
           throw new RuntimeException("Foreign key " + name + " must reference a table");
         }
@@ -296,7 +296,7 @@ public class Schema {
         this.expression = expression;
       }
 
-      public void validate() {
+      private void validate() {
         if (expression == null) {
           throw new RuntimeException("Expression needed for check constraint " + name + " on table " + Table.this.name);
         }
@@ -310,20 +310,23 @@ public class Schema {
 
     public class Index {
       private final String name;
-      private final String[] columns;
+      private final List<String> columnNames = new ArrayList<>();
       private boolean unique;
 
-      public Index(String name, String...columns) {
+      public Index(String name, String[] columnNames) {
         this.name = toName(name);
-        this.columns = columns;
+        for (String s : columnNames) {
+          this.columnNames.add(toName(s));
+        }
       }
 
-      public void unique() {
+      public Index unique() {
         unique = true;
+        return this;
       }
 
-      public void validate() {
-        if (columns.length < 1) {
+      private void validate() {
+        if (columnNames.size() < 1) {
           throw new RuntimeException("Index " + name + " needs at least one column");
         }
       }
@@ -606,7 +609,7 @@ public class Schema {
         sql.append(" on ");
         sql.append(table.name);
         sql.append(" (");
-        for (String name : index.columns) {
+        for (String name : index.columnNames) {
           if (sql.charAt(sql.length() - 1) == '(') {
             sql.append(name);
           } else {

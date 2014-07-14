@@ -279,7 +279,7 @@ public abstract class CommonTest {
       }
     });
 
-    db.update("update dbtest set str_lob=?, bin_blob=?").argClobReader(null).argBlobInputStream(null).update(1);
+    db.update("update dbtest set str_lob=?, bin_blob=?").argClobReader(null).argBlobStream(null).update(1);
     db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
@@ -292,7 +292,7 @@ public abstract class CommonTest {
       }
     });
     db.update("update dbtest set str_lob=?, bin_blob=?").argClobReader(new StringReader("World"))
-        .argBlobInputStream(new ByteArrayInputStream("More".getBytes())).update(1);
+        .argBlobStream(new ByteArrayInputStream("More".getBytes())).update(1);
     db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
@@ -397,7 +397,7 @@ public abstract class CommonTest {
       }
     });
 
-    db.update("update dbtest set str_lob=:a, bin_blob=:b").argClobReader(":a", null).argBlobInputStream(":b", null).update(1);
+    db.update("update dbtest set str_lob=:a, bin_blob=:b").argClobReader(":a", null).argBlobStream(":b", null).update(1);
     db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
@@ -410,7 +410,7 @@ public abstract class CommonTest {
       }
     });
     db.update("update dbtest set str_lob=:a, bin_blob=:b").argClobReader(":a", new StringReader("World"))
-        .argBlobInputStream(":b", new ByteArrayInputStream("More".getBytes())).update(1);
+        .argBlobStream(":b", new ByteArrayInputStream("More".getBytes())).update(1);
     db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
@@ -488,6 +488,21 @@ public abstract class CommonTest {
         assertTrue(rs.next());
         assertNull(rs.getClobReaderOrNull("str_lob"));
         assertNull(rs.getBlobInputStreamOrNull("bin_blob"));
+        return null;
+      }
+    });
+  }
+
+  @Test
+  public void metadataColumnNames() {
+    db.dropTableQuietly("dbtest");
+
+    new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
+
+    db.select("select pk from dbtest").query(new RowsHandler<Object>() {
+      @Override
+      public Object process(Rows rs) throws Exception {
+        assertArrayEquals(new String[] { "PK" }, rs.getColumnNames());
         return null;
       }
     });
@@ -655,6 +670,17 @@ public abstract class CommonTest {
           }
         }, "d");
     assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(now).queryLong());
+  }
+
+  @Test
+  public void nextSequenceValue() {
+    db.dropSequenceQuietly("dbtest_seq");
+
+    new Schema()
+        .addSequence("dbtest_seq").schema()
+        .execute(db);
+
+    assertEquals(new Long(1L), db.nextSequenceValue("dbtest_seq"));
   }
 
   @Test

@@ -73,16 +73,22 @@ public interface SqlUpdate {
   SqlUpdate argDate(@NotNull String argName, @Nullable Date arg);
 
   @NotNull
+  SqlUpdate argDateNowPerApp(@NotNull String argName);
+
+  @NotNull
+  SqlUpdate argDateNowPerDb(@NotNull String argName);
+
+  @NotNull
   SqlUpdate argBlobBytes(@Nullable byte[] arg);
 
   @NotNull
   SqlUpdate argBlobBytes(@NotNull String argName, @Nullable byte[] arg);
 
   @NotNull
-  SqlUpdate argBlobInputStream(@Nullable InputStream arg);
+  SqlUpdate argBlobStream(@Nullable InputStream arg);
 
   @NotNull
-  SqlUpdate argBlobInputStream(@NotNull String argName, @Nullable InputStream arg);
+  SqlUpdate argBlobStream(@NotNull String argName, @Nullable InputStream arg);
 
   @NotNull
   SqlUpdate argClobString(@Nullable String arg);
@@ -103,6 +109,13 @@ public interface SqlUpdate {
 //  SqlUpdate batch();
 
 //  SqlUpdate withTimeoutSeconds(int seconds);
+
+  interface Apply {
+    void apply(SqlUpdate update);
+  }
+
+  @NotNull
+  SqlUpdate apply(Apply apply);
 
   int update();
 

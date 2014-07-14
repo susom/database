@@ -21,59 +21,92 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Interface for configuring (setting parameters) and executing a chunk of SQL.
  *
  * @author garricko
  */
 public interface SqlInsert {
+  @NotNull
   SqlInsert argInteger(Integer arg);
 
-  SqlInsert argInteger(String argName, Integer arg);
+  @NotNull
+  SqlInsert argInteger(@NotNull String argName, Integer arg);
 
+  @NotNull
   SqlInsert argLong(Long arg);
 
-  SqlInsert argLong(String argName, Long arg);
+  @NotNull
+  SqlInsert argLong(@NotNull String argName, Long arg);
 
+  @NotNull
   SqlInsert argFloat(Float arg);
 
-  SqlInsert argFloat(String argName, Float arg);
+  @NotNull
+  SqlInsert argFloat(@NotNull String argName, Float arg);
 
+  @NotNull
   SqlInsert argDouble(Double arg);
 
-  SqlInsert argDouble(String argName, Double arg);
+  @NotNull
+  SqlInsert argDouble(@NotNull String argName, Double arg);
 
+  @NotNull
   SqlInsert argBigDecimal(BigDecimal arg);
 
-  SqlInsert argBigDecimal(String argName, BigDecimal arg);
+  @NotNull
+  SqlInsert argBigDecimal(@NotNull String argName, BigDecimal arg);
 
+  @NotNull
   SqlInsert argString(String arg);
 
-  SqlInsert argString(String argName, String arg);
+  @NotNull
+  SqlInsert argString(@NotNull String argName, String arg);
 
+  @NotNull
   SqlInsert argDate(Date arg);
 
-  SqlInsert argDate(String argName, Date arg);
+  @NotNull
+  SqlInsert argDate(@NotNull String argName, Date arg);
 
-  SqlInsert argDateNowPerApp(String argName);
+  @NotNull
+  SqlInsert argDateNowPerApp(@NotNull String argName);
 
-  SqlInsert argDateNowPerDb(String argName);
+  @NotNull
+  SqlInsert argDateNowPerDb(@NotNull String argName);
 
+  @NotNull
   SqlInsert argBlobBytes(byte[] arg);
 
-  SqlInsert argBlobBytes(String argName, byte[] arg);
+  @NotNull
+  SqlInsert argBlobBytes(@NotNull String argName, byte[] arg);
 
+  @NotNull
   SqlInsert argBlobStream(InputStream arg);
 
-  SqlInsert argBlobStream(String argName, InputStream arg);
+  @NotNull
+  SqlInsert argBlobStream(@NotNull String argName, InputStream arg);
 
+  @NotNull
   SqlInsert argClobString(String arg);
 
-  SqlInsert argClobString(String argName, String arg);
+  @NotNull
+  SqlInsert argClobString(@NotNull String argName, String arg);
 
+  @NotNull
   SqlInsert argClobReader(Reader arg);
 
-  SqlInsert argClobReader(String argName, Reader arg);
+  @NotNull
+  SqlInsert argClobReader(@NotNull String argName, Reader arg);
+
+  interface Apply {
+    void apply(SqlInsert insert);
+  }
+
+  @NotNull
+  SqlInsert apply(Apply apply);
 
   /**
    * Call this between setting rows of parameters for a SQL statement. You may call it before
@@ -109,7 +142,12 @@ public interface SqlInsert {
    * unable to return the value from the insert (such as Derby) this will be simulated
    * first issuing a select to read the sequence, then an insert.
    */
+  @NotNull
   SqlInsert argPkSeq(String argName, String sequenceName);
+
+  @NotNull
   SqlInsert argPkLong(Long pkValue);
+
+  @NotNull
   SqlInsert argPkLong(String argName, Long pkValue);
 }

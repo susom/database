@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
 import com.github.susom.database.Flavor;
@@ -72,6 +73,63 @@ public class DatabaseTest {
     assertEquals(new Long(1), new DatabaseImpl(c, options).select("select 1 from dual").queryLong());
 
     verify(c, ps, rs);
+  }
+
+  @Test
+  public void when() throws Exception {
+    Database db = new DatabaseImpl(createNiceMock(Connection.class), new OptionsDefault(Flavor.oracle));
+
+    assertEquals("oracle", db.when(Flavor.derby, "derby").when(Flavor.oracle, "oracle").otherwise(""));
+    assertEquals("", db.when(Flavor.derby, "derby").otherwise(""));
+  }
+
+  /**
+   * Verify the default options cause exceptions to be thrown when calling commitNow() and
+   * rollbackNow().
+   */
+  @Test
+  public void explicitTransactionControlDisabled() {
+    Database db = new DatabaseImpl(createNiceMock(Connection.class), new OptionsDefault(Flavor.oracle));
+
+    try {
+      db.commitNow();
+      fail("Should have thrown an exception");
+    } catch (DatabaseException e) {
+      assertThat(e.getMessage(), containsString("Calls to commitNow() are not allowed"));
+    }
+
+    try {
+      db.rollbackNow();
+      fail("Should have thrown an exception");
+    } catch (DatabaseException e) {
+      assertThat(e.getMessage(), containsString("Calls to rollbackNow() are not allowed"));
+    }
+  }
+
+  /**
+   * Verify custom options with allowTransactionControl() == true cause the commitNow()
+   * and rollbackNow() methods to call the underlying methods on the Connection class.
+   */
+  @Test
+  public void explicitTransactionControlEnabled() throws Exception {
+    Connection c = createNiceMock(Connection.class);
+
+    c.commit();
+    c.rollback();
+
+    replay(c);
+
+    Database db = new DatabaseImpl(c, new OptionsDefault(Flavor.oracle) {
+      @Override
+      public boolean allowTransactionControl() {
+        return true;
+      }
+    });
+
+    db.commitNow();
+    db.rollbackNow();
+
+    verify(c);
   }
 
   @Test

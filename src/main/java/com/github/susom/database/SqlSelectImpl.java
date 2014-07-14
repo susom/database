@@ -27,8 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.github.susom.database.NamedParameterSql.RewriteArg;
 
 /**
  * This is the key class for configuring (query parameters) and executing a database query.
@@ -126,6 +129,18 @@ public class SqlSelectImpl implements SqlSelect {
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
+  @NotNull
+  @Override
+  public SqlSelect argDateNowPerApp(@NotNull String argName) {
+    return namedArg(argName, adaptor.nullDate(options.currentDate()));
+  }
+
+  @NotNull
+  @Override
+  public SqlSelect argDateNowPerDb(@NotNull String argName) {
+    return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
+  }
+
   @Override
   public SqlSelect withTimeoutSeconds(int seconds) {
     timeoutSeconds = seconds;
@@ -135,6 +150,13 @@ public class SqlSelectImpl implements SqlSelect {
   @Override
   public SqlSelect withMaxRows(int rows) {
     maxRows = rows;
+    return this;
+  }
+
+  @NotNull
+  @Override
+  public SqlSelect apply(Apply apply) {
+    apply.apply(this);
     return this;
   }
 

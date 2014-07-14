@@ -61,123 +61,154 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  @NotNull
   public SqlInsert argInteger(Integer arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argInteger(String argName, Integer arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argLong(Long arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argLong(String argName, Long arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argFloat(Float arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argFloat(String argName, Float arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argDouble(Double arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argDouble(String argName, Double arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argBigDecimal(BigDecimal arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argBigDecimal(String argName, BigDecimal arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argString(String arg) {
     return positionalArg(adaptor.nullString(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argString(String argName, String arg) {
     return namedArg(argName, adaptor.nullString(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argDate(Date arg) {
     return positionalArg(adaptor.nullDate(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argDate(String argName, Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argDateNowPerApp(String argName) {
     return namedArg(argName, adaptor.nullDate(options.currentDate()));
   }
 
   @Override
+  @NotNull
   public SqlInsert argDateNowPerDb(String argName) {
     return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
   }
 
   @Override
+  @NotNull
   public SqlInsert argBlobBytes(byte[] arg) {
     return positionalArg(adaptor.nullBytes(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argBlobBytes(String argName, byte[] arg) {
     return namedArg(argName, adaptor.nullBytes(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argBlobStream(InputStream arg) {
     return positionalArg(adaptor.nullInputStream(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argBlobStream(String argName, InputStream arg) {
     return namedArg(argName, adaptor.nullInputStream(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argClobString(String arg) {
     return positionalArg(adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
   }
 
   @Override
+  @NotNull
   public SqlInsert argClobString(String argName, String arg) {
     return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
   }
 
   @Override
+  @NotNull
   public SqlInsert argClobReader(Reader arg) {
     return positionalArg(adaptor.nullClobReader(arg));
   }
 
   @Override
+  @NotNull
   public SqlInsert argClobReader(String argName, Reader arg) {
     return namedArg(argName, adaptor.nullClobReader(arg));
+  }
+
+  @NotNull
+  @Override
+  public SqlInsert apply(Apply apply) {
+    apply.apply(this);
+    return this;
   }
 
   @Override
@@ -245,6 +276,7 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  @NotNull
   public SqlInsert argPkSeq(String argName, String sequenceName) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");
@@ -255,6 +287,7 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  @NotNull
   public SqlInsert argPkLong(String argName, Long arg) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");
@@ -264,6 +297,7 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  @NotNull
   public SqlInsert argPkLong(Long arg) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");

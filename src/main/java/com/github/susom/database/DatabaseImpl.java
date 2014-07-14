@@ -70,6 +70,11 @@ public class DatabaseImpl implements Database {
     return new DdlImpl(connection, sql, options);
   }
 
+  @Override
+  public Long nextSequenceValue(@NotNull String sequenceName) {
+    return select(flavor().sequenceSelectNextVal(sequenceName)).queryLong();
+  }
+
   public void commitNow() {
     if (!options.allowTransactionControl()) {
       throw new DatabaseException("Calls to commitNow() are not allowed");
@@ -98,6 +103,30 @@ public class DatabaseImpl implements Database {
   @Override
   public Flavor flavor() {
     return options.flavor();
+  }
+
+  @NotNull
+  @Override
+  public When when(Flavor flavor, String sql) {
+    return new When() {
+      private String chosen;
+
+      @Override
+      public When when(Flavor flavor, String sql) {
+        if (options.flavor() == flavor) {
+          chosen = sql;
+        }
+        return this;
+      }
+
+      @Override
+      public String otherwise(String sql) {
+        if (chosen == null) {
+          chosen = sql;
+        }
+        return chosen;
+      }
+    };
   }
 
   @Override

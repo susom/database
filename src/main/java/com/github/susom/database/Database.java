@@ -42,12 +42,17 @@ public interface Database extends Provider<Database> {
   @NotNull
   Ddl ddl(@Language("SQL") String sql);
 
+  Long nextSequenceValue(@NotNull String sequenceName);
+
   void commitNow();
 
   void rollbackNow();
 
   @NotNull
   Flavor flavor();
+
+  @NotNull
+  When when(@NotNull Flavor flavor, @NotNull String sql);
 
   /**
    * Convenience method to deal with mutually incompatible syntax for this. For example:
@@ -58,4 +63,10 @@ public interface Database extends Provider<Database> {
   void dropSequenceQuietly(String sequenceName);
 
   void dropTableQuietly(String tableName);
+
+  interface When {
+    @NotNull
+    When when(@NotNull Flavor flavor, @NotNull String sql);
+    @NotNull String otherwise(@NotNull String sql);
+  }
 }

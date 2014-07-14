@@ -84,6 +84,11 @@ public enum Flavor {
     public String sysdate() {
       return "sysdate";
     }
+
+    @Override
+    public String fromAny() {
+      return " from dual";
+    }
   },
   postgresql {
     @Override
@@ -175,6 +180,7 @@ public enum Flavor {
 
   public String typeDate() {
     return "timestamp";
+//    return "timestamp(3)"; // TODO
   }
 
   public boolean useStringForClob() {
@@ -227,5 +233,9 @@ public enum Flavor {
 
   public String sequenceCycleClause(boolean cycle) {
     return cycle ? " cycle" : " no cycle";
+  }
+
+  public String fromAny() {
+    return "";
   }
 }

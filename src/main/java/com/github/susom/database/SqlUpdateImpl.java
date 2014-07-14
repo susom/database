@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.susom.database.NamedParameterSql.RewriteArg;
+
 /**
  * This is the key class for configuring (query parameters) and executing a database query.
  *
@@ -140,6 +142,18 @@ public class SqlUpdateImpl implements SqlUpdate {
 
   @Override
   @NotNull
+  public SqlUpdate argDateNowPerApp(@NotNull String argName) {
+    return namedArg(argName, adaptor.nullDate(options.currentDate()));
+  }
+
+  @Override
+  @NotNull
+  public SqlUpdate argDateNowPerDb(@NotNull String argName) {
+    return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
+  }
+
+  @Override
+  @NotNull
   public SqlUpdate argBlobBytes(@Nullable byte[] arg) {
     return positionalArg(adaptor.nullBytes(arg));
   }
@@ -152,13 +166,13 @@ public class SqlUpdateImpl implements SqlUpdate {
 
   @Override
   @NotNull
-  public SqlUpdate argBlobInputStream(@Nullable InputStream arg) {
+  public SqlUpdate argBlobStream(@Nullable InputStream arg) {
     return positionalArg(adaptor.nullInputStream(arg));
   }
 
   @Override
   @NotNull
-  public SqlUpdate argBlobInputStream(@NotNull String argName, @Nullable InputStream arg) {
+  public SqlUpdate argBlobStream(@NotNull String argName, @Nullable InputStream arg) {
     return namedArg(argName, adaptor.nullInputStream(arg));
   }
 
@@ -184,6 +198,13 @@ public class SqlUpdateImpl implements SqlUpdate {
   @NotNull
   public SqlUpdate argClobReader(@NotNull String argName, @Nullable Reader arg) {
     return namedArg(argName, adaptor.nullClobReader(arg));
+  }
+
+  @NotNull
+  @Override
+  public SqlUpdate apply(Apply apply) {
+    apply.apply(this);
+    return this;
   }
 
   @Override

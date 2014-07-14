@@ -20,43 +20,74 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Interface for configuring (setting parameters) and executing a chunk of SQL.
  *
  * @author garricko
  */
 public interface SqlSelect {
+  @NotNull
   SqlSelect argInteger(Integer arg);
 
-  SqlSelect argInteger(String argName, Integer arg);
+  @NotNull
+  SqlSelect argInteger(@NotNull String argName, Integer arg);
 
+  @NotNull
   SqlSelect argLong(Long arg);
 
-  SqlSelect argLong(String argName, Long arg);
+  @NotNull
+  SqlSelect argLong(@NotNull String argName, Long arg);
 
+  @NotNull
   SqlSelect argFloat(Float arg);
 
-  SqlSelect argFloat(String argName, Float arg);
+  @NotNull
+  SqlSelect argFloat(@NotNull String argName, Float arg);
 
+  @NotNull
   SqlSelect argDouble(Double arg);
 
-  SqlSelect argDouble(String argName, Double arg);
+  @NotNull
+  SqlSelect argDouble(@NotNull String argName, Double arg);
 
+  @NotNull
   SqlSelect argBigDecimal(BigDecimal arg);
 
-  SqlSelect argBigDecimal(String argName, BigDecimal arg);
+  @NotNull
+  SqlSelect argBigDecimal(@NotNull String argName, BigDecimal arg);
 
+  @NotNull
   SqlSelect argString(String arg);
 
-  SqlSelect argString(String argName, String arg);
+  @NotNull
+  SqlSelect argString(@NotNull String argName, String arg);
 
+  @NotNull
   SqlSelect argDate(Date arg);
 
-  SqlSelect argDate(String argName, Date arg);
+  @NotNull
+  SqlSelect argDate(@NotNull String argName, Date arg);
 
+  @NotNull
+  SqlSelect argDateNowPerApp(@NotNull String argName);
+
+  @NotNull
+  SqlSelect argDateNowPerDb(@NotNull String argName);
+
+  @NotNull
   SqlSelect withTimeoutSeconds(int seconds);
 
+  @NotNull
   SqlSelect withMaxRows(int rows);
+
+  interface Apply {
+    void apply(SqlSelect select);
+  }
+
+  @NotNull
+  SqlSelect apply(Apply apply);
 
   Long queryLong();
 

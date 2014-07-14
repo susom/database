@@ -22,6 +22,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -46,6 +47,21 @@ class RowsAdaptor implements Rows {
       return rs.next();
     } catch (SQLException e) {
       throw new DatabaseException(e);
+    }
+  }
+
+  @NotNull
+  @Override
+  public String[] getColumnNames() {
+    try {
+      ResultSetMetaData metaData = rs.getMetaData();
+      String[] names = new String[metaData.getColumnCount()];
+      for (int i = 0; i < names.length; i++) {
+        names[i] = metaData.getColumnName(i + 1);
+      }
+      return names;
+    } catch (SQLException e) {
+      throw new DatabaseException("Unable to retrieve metadata from ResultSet", e);
     }
   }
 

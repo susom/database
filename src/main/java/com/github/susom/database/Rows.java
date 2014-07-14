@@ -32,6 +32,9 @@ import org.jetbrains.annotations.Nullable;
 public interface Rows {
   boolean next();
 
+  @NotNull
+  String[] getColumnNames();
+
   @Nullable
   Integer getIntegerOrNull(int columnOneBased);
 

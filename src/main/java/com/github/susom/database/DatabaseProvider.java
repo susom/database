@@ -84,7 +84,7 @@ public final class DatabaseProvider implements Provider<Database> {
       log.info("Couldn't determine database flavor from JDBC URL, defaulting to generic");
     }
 
-    return new Builder(new Provider<Connection>() {
+    return new BuilderImpl(new Provider<Connection>() {
       @Override
       public Connection get() {
         try {
@@ -109,7 +109,7 @@ public final class DatabaseProvider implements Provider<Database> {
   public static Builder fromJndi(final Context context, final String lookupKey, Flavor flavor) {
     Options options = new OptionsDefault(flavor);
 
-    return new Builder(new Provider<Connection>() {
+    return new BuilderImpl(new Provider<Connection>() {
       @Override
       public Connection get() {
         DataSource ds;
@@ -149,22 +149,51 @@ public final class DatabaseProvider implements Provider<Database> {
     }
   }
 
-  public static class Builder {
-    private final Provider<Connection> connectionProvider;
-    private Options options;
+  public interface Builder {
+    Builder withOptions(OptionsOverride options);
 
-    private Builder(Provider<Connection> connectionProvider, Options options) {
+    /**
+     * Enable logging of parameter values along with the SQL, and include those is
+     * the text of exception messages.
+     */
+    Builder withDetailedLoggingAndExceptions();
+
+    /**
+     * Allow provided Database instances to explicitly control transactions using the
+     * commitNow() and rollbackNow() methods. Otherwise calling those methods would
+     * throw an exception.
+     */
+    Builder withTransactionControl();
+
+    /**
+     * Note that if you use this method you are responsible for managing
+     * the transaction and commit/rollback/close.
+     */
+    DatabaseProvider create();
+
+    /**
+     * Use this method to have resource management handled for you.
+     *
+     * @param run the code you want to run as a transaction with a Database
+     */
+    void transact(DbRun run);
+  }
+
+  private static class BuilderImpl implements Builder {
+    private final Provider<Connection> connectionProvider;
+    private final Options options;
+
+    private BuilderImpl(Provider<Connection> connectionProvider, Options options) {
       this.connectionProvider = connectionProvider;
       this.options = options;
     }
 
     public Builder withOptions(OptionsOverride options) {
-      this.options = options.withParent(this.options);
-      return this;
+      return new BuilderImpl(connectionProvider, options.withParent(this.options));
     }
 
     public Builder withDetailedLoggingAndExceptions() {
-      this.options = new OptionsOverride() {
+      return new BuilderImpl(connectionProvider, new OptionsOverride() {
         @Override
         public boolean isLogParameters() {
           return true;
@@ -174,23 +203,22 @@ public final class DatabaseProvider implements Provider<Database> {
         public boolean isDetailedExceptions() {
           return true;
         }
-      }.withParent(this.options);
-      return this;
+      }.withParent(this.options));
     }
 
-    /**
-     * Note that if you use this method you are responsible for managing
-     * the transaction and commit/rollback/close.
-     */
+    public Builder withTransactionControl() {
+      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+        @Override
+        public boolean allowTransactionControl() {
+          return true;
+        }
+      }.withParent(this.options));
+    }
+
     public DatabaseProvider create() {
       return new DatabaseProvider(connectionProvider, options);
     }
 
-    /**
-     * Use this method to have resource management handled for you.
-     *
-     * @param run the code you want to run as a transaction with a Database
-     */
     public void transact(DbRun run) {
       create().transact(run);
     }

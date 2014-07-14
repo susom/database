@@ -32,6 +32,16 @@ import org.jetbrains.annotations.Nullable;
 public interface Rows {
   boolean next();
 
+  /**
+   * Obtain the names of the columns in the database. You probably want to
+   * avoid this method if possible, as the way column names are handled varies
+   * by database and driver. For example, Derby and Oracle normally convert
+   * column names to uppercase, while PostgreSQL normally converts column
+   * names to lowercase. If you do use this method, you might want to either
+   * call toUppercase()/toLowercase() or ensure the SQL explicitly specifies
+   * parameters with AS "FOO" (including quotes) to ensure you desired name
+   * will be honored.
+   */
   @NotNull
   String[] getColumnNames();
 

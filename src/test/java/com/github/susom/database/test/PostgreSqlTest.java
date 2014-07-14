@@ -19,8 +19,15 @@ package com.github.susom.database.test;
 import java.io.FileReader;
 import java.util.Properties;
 
+import org.junit.Test;
+
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.OptionsOverride;
+import com.github.susom.database.Rows;
+import com.github.susom.database.RowsHandler;
+import com.github.susom.database.Schema;
+
+import static org.junit.Assert.assertArrayEquals;
 
 /**
  * Exercise Database functionality with a real PostgreSQL database.
@@ -44,5 +51,29 @@ public class PostgreSqlTest extends CommonTest {
         System.getProperty("postgres.database.user", properties.getProperty("postgres.database.user")),
         System.getProperty("postgres.database.password", properties.getProperty("postgres.database.password"))
     ).withDetailedLoggingAndExceptions().create();
+  }
+
+  /**
+   * PostgreSQL seems to have different behavior in that is does not convert
+   * column names to uppercase (it actually converts them to lowercase).
+   * I haven't figured out how to smooth over this difference, since all databases
+   * seem to respect the provided case when it is inside quotes, but don't provide
+   * a way to tell whether a particular parameter was quoted.
+   */
+  @Override
+  @Test
+  public void metadataColumnNames() {
+    db.dropTableQuietly("dbtest");
+
+    new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
+
+    db.select("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
+        .query(new RowsHandler<Object>() {
+      @Override
+      public Object process(Rows rs) throws Exception {
+        assertArrayEquals(new String[] { "pk", "foo", "Foo" }, rs.getColumnNames());
+        return null;
+      }
+    });
   }
 }

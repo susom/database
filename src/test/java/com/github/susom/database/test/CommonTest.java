@@ -499,13 +499,14 @@ public abstract class CommonTest {
 
     new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
 
-    db.select("select pk from dbtest").query(new RowsHandler<Object>() {
-      @Override
-      public Object process(Rows rs) throws Exception {
-        assertArrayEquals(new String[] { "PK" }, rs.getColumnNames());
-        return null;
-      }
-    });
+    db.select("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertArrayEquals(new String[] { "PK", "FOO", "Foo" }, rs.getColumnNames());
+            return null;
+          }
+        });
   }
 
   @Test

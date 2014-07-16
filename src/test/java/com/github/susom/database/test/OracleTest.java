@@ -41,6 +41,6 @@ public class OracleTest extends CommonTest {
         System.getProperty("database.url", properties.getProperty("database.url")),
         System.getProperty("database.user", properties.getProperty("database.user")),
         System.getProperty("database.password", properties.getProperty("database.password"))
-    ).withDetailedLoggingAndExceptions().withOptions(options).create();
+    ).withSqlParameterLogging().withSqlInExceptionMessages().withOptions(options).create();
   }
 }

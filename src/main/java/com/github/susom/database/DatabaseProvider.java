@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class DatabaseProvider implements Provider<Database> {
   private static final Logger log = LoggerFactory.getLogger(DatabaseProvider.class);
+  private DatabaseProvider delegateTo = null;
   private Provider<Connection> connectionProvider;
   private boolean txStarted = false;
   private Connection connection = null;
@@ -47,6 +48,11 @@ public final class DatabaseProvider implements Provider<Database> {
   public DatabaseProvider(Provider<Connection> connectionProvider, Options options) {
     this.connectionProvider = connectionProvider;
     this.options = options;
+  }
+
+  private DatabaseProvider(DatabaseProvider delegateTo) {
+    this.delegateTo = delegateTo;
+    this.options = delegateTo.options;
   }
 
   /**
@@ -134,6 +140,11 @@ public final class DatabaseProvider implements Provider<Database> {
    * @param run the code you want to run as a transaction with a Database
    */
   public void transact(DbRun run) {
+    if (delegateTo != null) {
+      delegateTo.transact(run);
+      return;
+    }
+
     boolean complete = false;
     try {
       run.run(get());
@@ -153,10 +164,24 @@ public final class DatabaseProvider implements Provider<Database> {
     Builder withOptions(OptionsOverride options);
 
     /**
-     * Enable logging of parameter values along with the SQL, and include those is
-     * the text of exception messages.
+     * Enable logging of parameter values along with the SQL.
      */
-    Builder withDetailedLoggingAndExceptions();
+    Builder withSqlParameterLogging();
+
+    /**
+     * Include SQL in exception messages. This will also include parameters in the
+     * exception messages if SQL parameter logging is enabled. This is handy for
+     * development, but be careful as this is an information disclosure risk,
+     * dependent on how the exception are caught and handled.
+     */
+    Builder withSqlInExceptionMessages();
+
+    /**
+     * Wherever argDateNowPerDb() is specified, use argDateNowPerApp() instead. This is
+     * useful for testing purposes as you can use OptionsOverride to provide your
+     * own system clock that will be used for time travel.
+     */
+    Builder withDatePerAppOnly();
 
     /**
      * Allow provided Database instances to explicitly control transactions using the
@@ -164,6 +189,12 @@ public final class DatabaseProvider implements Provider<Database> {
      * throw an exception.
      */
     Builder withTransactionControl();
+
+    /**
+     * This can be useful when testing code, as it can pretend to use transactions,
+     * while giving you control over whether it actually commits or rolls back.
+     */
+    Builder withTransactionControlSilentlyIgnored();
 
     /**
      * Note that if you use this method you are responsible for managing
@@ -188,17 +219,24 @@ public final class DatabaseProvider implements Provider<Database> {
       this.options = options;
     }
 
+    @Override
     public Builder withOptions(OptionsOverride options) {
       return new BuilderImpl(connectionProvider, options.withParent(this.options));
     }
 
-    public Builder withDetailedLoggingAndExceptions() {
+    @Override
+    public Builder withSqlParameterLogging() {
       return new BuilderImpl(connectionProvider, new OptionsOverride() {
         @Override
         public boolean isLogParameters() {
           return true;
         }
+      }.withParent(this.options));
+    }
 
+    @Override
+    public Builder withSqlInExceptionMessages() {
+      return new BuilderImpl(connectionProvider, new OptionsOverride() {
         @Override
         public boolean isDetailedExceptions() {
           return true;
@@ -206,10 +244,31 @@ public final class DatabaseProvider implements Provider<Database> {
       }.withParent(this.options));
     }
 
+    @Override
+    public Builder withDatePerAppOnly() {
+      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+        @Override
+        public boolean useDatePerAppOnly() {
+          return true;
+        }
+      }.withParent(this.options));
+    }
+
+    @Override
     public Builder withTransactionControl() {
       return new BuilderImpl(connectionProvider, new OptionsOverride() {
         @Override
         public boolean allowTransactionControl() {
+          return true;
+        }
+      }.withParent(this.options));
+    }
+
+    @Override
+    public Builder withTransactionControlSilentlyIgnored() {
+      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+        @Override
+        public boolean ignoreTransactionControl() {
           return true;
         }
       }.withParent(this.options));
@@ -225,6 +284,10 @@ public final class DatabaseProvider implements Provider<Database> {
   }
 
   public Database get() {
+    if (delegateTo != null) {
+      return delegateTo.get();
+    }
+
     if (database != null) {
       return database;
     }
@@ -264,7 +327,57 @@ public final class DatabaseProvider implements Provider<Database> {
     return database;
   }
 
+
+  public Builder fakeBuilder() {
+    return new Builder() {
+      @Override
+      public Builder withOptions(OptionsOverride optionsOverride) {
+        return this;
+      }
+
+      @Override
+      public Builder withSqlParameterLogging() {
+        return this;
+      }
+
+      @Override
+      public Builder withSqlInExceptionMessages() {
+        return this;
+      }
+
+      @Override
+      public Builder withDatePerAppOnly() {
+        return this;
+      }
+
+      @Override
+      public Builder withTransactionControl() {
+        return this;
+      }
+
+      @Override
+      public Builder withTransactionControlSilentlyIgnored() {
+        return this;
+      }
+
+      @Override
+      public DatabaseProvider create() {
+        return new DatabaseProvider(DatabaseProvider.this);
+      }
+
+      @Override
+      public void transact(DbRun dbRun) {
+        create().transact(dbRun);
+      }
+    };
+  }
+
   public void commitAndClose() {
+    if (delegateTo != null) {
+      delegateTo.commitAndClose();
+      return;
+    }
+
     if (txStarted) {
       try {
         connection.commit();
@@ -276,6 +389,11 @@ public final class DatabaseProvider implements Provider<Database> {
   }
 
   public void rollbackAndClose() {
+    if (delegateTo != null) {
+      delegateTo.rollbackAndClose();
+      return;
+    }
+
     if (txStarted) {
       try {
         connection.rollback();

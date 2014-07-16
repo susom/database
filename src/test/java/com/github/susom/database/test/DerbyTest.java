@@ -38,6 +38,6 @@ public class DerbyTest extends CommonTest {
   @Override
   protected DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception {
     return DatabaseProvider.fromDriverManager("jdbc:derby:build/testdb;create=true")
-        .withDetailedLoggingAndExceptions().withOptions(options).create();
+        .withSqlParameterLogging().withSqlInExceptionMessages().withOptions(options).create();
   }
 }

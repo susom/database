@@ -41,6 +41,11 @@ public class OptionsOverride implements Options {
   }
 
   @Override
+  public boolean ignoreTransactionControl() {
+    return parent.ignoreTransactionControl();
+  }
+
+  @Override
   public boolean isLogParameters() {
     return parent.isLogParameters();
   }
@@ -73,5 +78,10 @@ public class OptionsOverride implements Options {
   @Override
   public Date currentDate() {
     return parent.currentDate();
+  }
+
+  @Override
+  public boolean useDatePerAppOnly() {
+    return parent.useDatePerAppOnly();
   }
 }

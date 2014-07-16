@@ -24,7 +24,20 @@ import java.util.Date;
  * @author garricko
  */
 public interface Options {
+  /**
+   * Control whether the Database object will allow calls to commitNow()
+   * and rollbackNow(). By default it will throw exceptions if you try to
+   * call those.
+   */
   boolean allowTransactionControl();
+
+  /**
+   * Useful for testing code that explicitly controls transactions, and you
+   * don't really want it to commit/rollback. Disabled by default, meaning
+   * calls will be allowed or throw exceptions depending on allowTransctionControl().
+   * The value of allowTranscationControl() has no affect if this returns true.
+   */
+  boolean ignoreTransactionControl();
 
   /**
    * If this is false, log messages will look something like:
@@ -92,5 +105,16 @@ public interface Options {
    */
   Flavor flavor();
 
+  /**
+   * The value returned by this method will be used for argDateNowPerApp() calls. It
+   * may also be used for argDateNowPerDb() calls if you have enabled that.
+   */
   Date currentDate();
+
+  /**
+   * Wherever argDateNowPerDb() is specified, use argDateNowPerApp() instead. This is
+   * useful for testing purposes as you can use OptionsOverride to provide your
+   * own system clock that will be used for time travel.
+   */
+  boolean useDatePerAppOnly();
 }

@@ -154,12 +154,18 @@ public class SqlUpdateImpl implements SqlUpdate {
   @NotNull
   @Override
   public SqlUpdate argDateNowPerDb() {
+    if (options.useDatePerAppOnly()) {
+      return positionalArg(adaptor.nullDate(options.currentDate()));
+    }
     return positionalArg(new RewriteArg(options.flavor().sysdate()));
   }
 
   @Override
   @NotNull
   public SqlUpdate argDateNowPerDb(@NotNull String argName) {
+    if (options.useDatePerAppOnly()) {
+      return namedArg(argName, adaptor.nullDate(options.currentDate()));
+    }
     return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
   }
 

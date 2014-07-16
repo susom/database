@@ -19,6 +19,8 @@ package com.github.susom.database;
 import java.sql.Connection;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Primary class for accessing a relational (SQL) database.
@@ -26,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
  * @author garricko
  */
 public class DatabaseImpl implements Database {
+  private static final Logger log = LoggerFactory.getLogger(Database.class);
   private final Connection connection;
   private final Options options;
 
@@ -76,6 +79,11 @@ public class DatabaseImpl implements Database {
   }
 
   public void commitNow() {
+    if (options.ignoreTransactionControl()) {
+      log.debug("Ignoring call to commitNow()");
+      return;
+    }
+
     if (!options.allowTransactionControl()) {
       throw new DatabaseException("Calls to commitNow() are not allowed");
     }
@@ -88,6 +96,11 @@ public class DatabaseImpl implements Database {
   }
 
   public void rollbackNow() {
+    if (options.ignoreTransactionControl()) {
+      log.debug("Ignoring call to rollbackNow()");
+      return;
+    }
+
     if (!options.allowTransactionControl()) {
       throw new DatabaseException("Calls to rollbackNow() are not allowed");
     }

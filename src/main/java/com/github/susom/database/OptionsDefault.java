@@ -37,45 +37,21 @@ public class OptionsDefault implements Options {
     return false;
   }
 
-  /**
-   * If this is false, log messages will look something like:
-   *
-   * <pre>
-   *   ...select a from b where c=?
-   * </pre>
-   *
-   * If this is true, log messages will look something like:
-   *
-   * <pre>
-   *   ...select a from b where c=?|select a from b where c='abc'
-   * </pre>
-   *
-   * @return true if parameter values should be logged along with SQL, false otherwise
-   */
+  @Override
+  public boolean ignoreTransactionControl() {
+    return false;
+  }
+
   @Override
   public boolean isLogParameters() {
     return false;
   }
 
-  /**
-   * If true, text of the SQL and possibly parameter values (depending on @{#isLogParameters()})
-   * will be included in exception messages. This can be very helpful for debugging, but poses
-   * some disclosure risks.
-   *
-   * @return true to add possibly sensitive data in exception messages, false otherwise
-   */
   @Override
   public boolean isDetailedExceptions() {
     return false;
   }
 
-  /**
-   * In cases where exceptions are thrown, use this method to provide a common
-   * code that will be included in the exception message and the log message
-   * so they can be searched and correlated later.
-   *
-   * @return an arbitrary, fairly unique, speakable over the phone, without whitespace
-   */
   @Override
   public String generateErrorCode() {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:H:m:s");
@@ -100,5 +76,10 @@ public class OptionsDefault implements Options {
   @Override
   public Date currentDate() {
     return new Date();
+  }
+
+  @Override
+  public boolean useDatePerAppOnly() {
+    return false;
   }
 }

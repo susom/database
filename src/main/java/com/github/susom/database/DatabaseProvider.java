@@ -139,7 +139,7 @@ public final class DatabaseProvider implements Provider<Database> {
       run.run(get());
       complete = true;
     } catch (Exception e) {
-      throw new DatabaseException("Checked exception during transaction", e);
+      throw new DatabaseException("Exception during transaction", e);
     } finally {
       if (run.isRollbackOnly() || (run.isRollbackOnError() && !complete)) {
         rollbackAndClose();

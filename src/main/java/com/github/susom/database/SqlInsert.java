@@ -72,7 +72,13 @@ public interface SqlInsert {
   SqlInsert argDate(@NotNull String argName, Date arg);
 
   @NotNull
+  SqlInsert argDateNowPerApp();
+
+  @NotNull
   SqlInsert argDateNowPerApp(@NotNull String argName);
+
+  @NotNull
+  SqlInsert argDateNowPerDb();
 
   @NotNull
   SqlInsert argDateNowPerDb(@NotNull String argName);
@@ -132,7 +138,8 @@ public interface SqlInsert {
   <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> rowsHandler,
                         String...otherColumnNames);
 
-//  SqlInsert argPkSeq(String sequenceName);
+  @NotNull
+  SqlInsert argPkSeq(@NotNull String sequenceName);
 
   /**
    * Use this method to populate the primary key value (assumed to be type Long)
@@ -143,7 +150,7 @@ public interface SqlInsert {
    * first issuing a select to read the sequence, then an insert.
    */
   @NotNull
-  SqlInsert argPkSeq(String argName, String sequenceName);
+  SqlInsert argPkSeq(@NotNull String argName, @NotNull String sequenceName);
 
   @NotNull
   SqlInsert argPkLong(Long pkValue);

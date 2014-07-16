@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.susom.database.NamedParameterSql.RewriteArg;
+import com.github.susom.database.MixedParameterSql.RewriteArg;
 
 /**
  * This is the key class for configuring (query parameters) and executing a database query.
@@ -40,7 +40,6 @@ import com.github.susom.database.NamedParameterSql.RewriteArg;
  */
 public class SqlSelectImpl implements SqlSelect {
   private static final Logger log = LoggerFactory.getLogger(Database.class);
-  private static final Object[] ZERO_LENGTH_OBJECT_ARRAY = new Object[0];
   private final Connection connection;
   private final StatementAdaptor adaptor;
   private PreparedStatement ps; // hold reference to support cancel from another thread
@@ -59,74 +58,94 @@ public class SqlSelectImpl implements SqlSelect {
     adaptor = new StatementAdaptor(options);
   }
 
+  @NotNull
   @Override
   public SqlSelect argInteger(Integer arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
-  public SqlSelect argInteger(String argName, Integer arg) {
+  public SqlSelect argInteger(@NotNull String argName, Integer arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
   public SqlSelect argLong(Long arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
-  public SqlSelect argLong(String argName, Long arg) {
+  public SqlSelect argLong(@NotNull String argName, Long arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
   public SqlSelect argFloat(Float arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
-  public SqlSelect argFloat(String argName, Float arg) {
+  public SqlSelect argFloat(@NotNull String argName, Float arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
   public SqlSelect argDouble(Double arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
-  public SqlSelect argDouble(String argName, Double arg) {
+  public SqlSelect argDouble(@NotNull String argName, Double arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
   public SqlSelect argBigDecimal(BigDecimal arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
-  public SqlSelect argBigDecimal(String argName, BigDecimal arg) {
+  public SqlSelect argBigDecimal(@NotNull String argName, BigDecimal arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
+  @NotNull
   @Override
   public SqlSelect argString(String arg) {
     return positionalArg(adaptor.nullString(arg));
   }
 
+  @NotNull
   @Override
-  public SqlSelect argString(String argName, String arg) {
+  public SqlSelect argString(@NotNull String argName, String arg) {
     return namedArg(argName, adaptor.nullString(arg));
   }
 
+  @NotNull
   @Override
   public SqlSelect argDate(Date arg) {
     return positionalArg(adaptor.nullDate(arg));
   }
 
+  @NotNull
   @Override
-  public SqlSelect argDate(String argName, Date arg) {
+  public SqlSelect argDate(@NotNull String argName, Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
+  }
+
+  @NotNull
+  @Override
+  public SqlSelect argDateNowPerApp() {
+    return positionalArg(adaptor.nullDate(options.currentDate()));
   }
 
   @NotNull
@@ -137,16 +156,24 @@ public class SqlSelectImpl implements SqlSelect {
 
   @NotNull
   @Override
+  public SqlSelect argDateNowPerDb() {
+    return positionalArg(new RewriteArg(options.flavor().sysdate()));
+  }
+
+  @NotNull
+  @Override
   public SqlSelect argDateNowPerDb(@NotNull String argName) {
     return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
   }
 
+  @NotNull
   @Override
   public SqlSelect withTimeoutSeconds(int seconds) {
     timeoutSeconds = seconds;
     return this;
   }
 
+  @NotNull
   @Override
   public SqlSelect withMaxRows(int rows) {
     maxRows = rows;
@@ -220,9 +247,6 @@ public class SqlSelectImpl implements SqlSelect {
   }
 
   private SqlSelect positionalArg(Object arg) {
-    if (parameterMap != null) {
-      throw new DatabaseException("Use either positional or named query parameters, not both");
-    }
     if (parameterList == null) {
       parameterList = new ArrayList<>();
     }
@@ -231,9 +255,6 @@ public class SqlSelectImpl implements SqlSelect {
   }
 
   private SqlSelect namedArg(String argName, Object arg) {
-    if (parameterList != null) {
-      throw new DatabaseException("Use either positional or named query parameters, not both");
-    }
     if (parameterMap == null) {
       parameterMap = new HashMap<>();
     }
@@ -249,24 +270,18 @@ public class SqlSelectImpl implements SqlSelect {
     ResultSet rs = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
-    String executeSql;
-    Object[] parameters = ZERO_LENGTH_OBJECT_ARRAY;
-    if (parameterMap != null && parameterMap.size() > 0) {
-      NamedParameterSql paramSql = new NamedParameterSql(sql, parameterMap);
-      executeSql = paramSql.getSqlToExecute();
-      parameters = paramSql.getArgs();
-    } else {
-      executeSql = sql;
-      if (parameterList != null) {
-        parameters = parameterList.toArray(new Object[parameterList.size()]);
-      }
-    }
+    String executeSql = sql;
+    Object[] parameters = null;
 
     boolean isWarn = false;
     boolean isSuccess = false;
     String errorCode = null;
     Exception logEx = null;
     try {
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      executeSql = mpSql.getSqlToExecute();
+      parameters = mpSql.getArgs();
+
       synchronized (cancelLock) {
         ps = connection.prepareStatement(executeSql);
       }

@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.susom.database.NamedParameterSql.RewriteArg;
+import com.github.susom.database.MixedParameterSql.RewriteArg;
 
 /**
  * This is the key class for configuring (query parameters) and executing a database query.
@@ -42,7 +42,6 @@ import com.github.susom.database.NamedParameterSql.RewriteArg;
  */
 public class SqlInsertImpl implements SqlInsert {
   private static final Logger log = LoggerFactory.getLogger(Database.class);
-  private static final Object[] ZERO_LENGTH_OBJECT_ARRAY = new Object[0];
   private final Connection connection;
   private final StatementAdaptor adaptor;
   private final String sql;
@@ -50,6 +49,7 @@ public class SqlInsertImpl implements SqlInsert {
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
   private String pkArgName;
+  private int pkPos;
   private String pkSeqName;
   private Long pkLong;
 
@@ -68,7 +68,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argInteger(String argName, Integer arg) {
+  public SqlInsert argInteger(@NotNull String argName, Integer arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
@@ -80,7 +80,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argLong(String argName, Long arg) {
+  public SqlInsert argLong(@NotNull String argName, Long arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
@@ -92,7 +92,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argFloat(String argName, Float arg) {
+  public SqlInsert argFloat(@NotNull String argName, Float arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
@@ -104,7 +104,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argDouble(String argName, Double arg) {
+  public SqlInsert argDouble(@NotNull String argName, Double arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
@@ -116,7 +116,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argBigDecimal(String argName, BigDecimal arg) {
+  public SqlInsert argBigDecimal(@NotNull String argName, BigDecimal arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
@@ -128,7 +128,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argString(String argName, String arg) {
+  public SqlInsert argString(@NotNull String argName, String arg) {
     return namedArg(argName, adaptor.nullString(arg));
   }
 
@@ -140,19 +140,31 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argDate(String argName, Date arg) {
+  public SqlInsert argDate(@NotNull String argName, Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
-  @Override
   @NotNull
-  public SqlInsert argDateNowPerApp(String argName) {
-    return namedArg(argName, adaptor.nullDate(options.currentDate()));
+  @Override
+  public SqlInsert argDateNowPerApp() {
+    return positionalArg(adaptor.nullDate(options.currentDate()));
   }
 
   @Override
   @NotNull
-  public SqlInsert argDateNowPerDb(String argName) {
+  public SqlInsert argDateNowPerApp(@NotNull String argName) {
+    return namedArg(argName, adaptor.nullDate(options.currentDate()));
+  }
+
+  @NotNull
+  @Override
+  public SqlInsert argDateNowPerDb() {
+    return positionalArg(new RewriteArg(options.flavor().sysdate()));
+  }
+
+  @Override
+  @NotNull
+  public SqlInsert argDateNowPerDb(@NotNull String argName) {
     return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
   }
 
@@ -164,7 +176,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argBlobBytes(String argName, byte[] arg) {
+  public SqlInsert argBlobBytes(@NotNull String argName, byte[] arg) {
     return namedArg(argName, adaptor.nullBytes(arg));
   }
 
@@ -176,7 +188,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argBlobStream(String argName, InputStream arg) {
+  public SqlInsert argBlobStream(@NotNull String argName, InputStream arg) {
     return namedArg(argName, adaptor.nullInputStream(arg));
   }
 
@@ -188,7 +200,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argClobString(String argName, String arg) {
+  public SqlInsert argClobString(@NotNull String argName, String arg) {
     return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
   }
 
@@ -200,7 +212,7 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @NotNull
-  public SqlInsert argClobReader(String argName, Reader arg) {
+  public SqlInsert argClobReader(@NotNull String argName, Reader arg) {
     return namedArg(argName, adaptor.nullClobReader(arg));
   }
 
@@ -232,7 +244,11 @@ public class SqlInsertImpl implements SqlInsert {
     } else {
       // Simulate by issuing a select for the next sequence value, inserting, and returning it
       Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLong();
-      namedArg(pkArgName, adaptor.nullNumeric(pk));
+      if (pkArgName != null) {
+        namedArg(pkArgName, adaptor.nullNumeric(pk));
+      } else {
+        parameterList.set(pkPos, adaptor.nullNumeric(pk));
+      }
       updateInternal(1);
       return pk;
     }
@@ -275,9 +291,21 @@ public class SqlInsertImpl implements SqlInsert {
     }
   }
 
+  @NotNull
+  @Override
+  public SqlInsert argPkSeq(@NotNull String sequenceName) {
+    if (hasPk()) {
+      throw new DatabaseException("Only call one argPk*() method");
+    }
+    pkSeqName = sequenceName;
+    SqlInsert sqlInsert = positionalArg(new RewriteArg(options.flavor().sequenceNextVal(sequenceName)));
+    pkPos = parameterList.size() - 1;
+    return sqlInsert;
+  }
+
   @Override
   @NotNull
-  public SqlInsert argPkSeq(String argName, String sequenceName) {
+  public SqlInsert argPkSeq(@NotNull String argName, @NotNull String sequenceName) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");
     }
@@ -307,30 +335,24 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   private boolean hasPk() {
-    return pkArgName != null || pkLong != null;
+    return pkArgName != null || pkSeqName != null || pkLong != null;
   }
 
   private int updateInternal(int expectedNumAffectedRows) {
     PreparedStatement ps = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
-    String executeSql;
-    Object[] parameters = ZERO_LENGTH_OBJECT_ARRAY;
-    if (parameterMap != null && parameterMap.size() > 0) {
-      NamedParameterSql paramSql = new NamedParameterSql(sql, parameterMap);
-      executeSql = paramSql.getSqlToExecute();
-      parameters = paramSql.getArgs();
-    } else {
-      executeSql = sql;
-      if (parameterList != null) {
-        parameters = parameterList.toArray(new Object[parameterList.size()]);
-      }
-    }
+    String executeSql = sql;
+    Object[] parameters = null;
 
     boolean isSuccess = false;
     String errorCode = null;
     Exception logEx = null;
     try {
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      executeSql = mpSql.getSqlToExecute();
+      parameters = mpSql.getArgs();
+
       ps = connection.prepareStatement(executeSql);
 
       adaptor.addParameters(ps, parameters);
@@ -367,23 +389,17 @@ public class SqlInsertImpl implements SqlInsert {
     ResultSet rs = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
-    String executeSql;
-    Object[] parameters = ZERO_LENGTH_OBJECT_ARRAY;
-    if (parameterMap != null && parameterMap.size() > 0) {
-      NamedParameterSql paramSql = new NamedParameterSql(sql, parameterMap);
-      executeSql = paramSql.getSqlToExecute();
-      parameters = paramSql.getArgs();
-    } else {
-      executeSql = sql;
-      if (parameterList != null) {
-        parameters = parameterList.toArray(new Object[parameterList.size()]);
-      }
-    }
+    String executeSql = sql;
+    Object[] parameters = null;
 
     boolean isSuccess = false;
     String errorCode = null;
     Exception logEx = null;
     try {
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      executeSql = mpSql.getSqlToExecute();
+      parameters = mpSql.getArgs();
+
       ps = connection.prepareStatement(executeSql, new String[] { pkToReturn });
 
       adaptor.addParameters(ps, parameters);
@@ -427,23 +443,17 @@ public class SqlInsertImpl implements SqlInsert {
     ResultSet rs = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
-    String executeSql;
-    Object[] parameters = ZERO_LENGTH_OBJECT_ARRAY;
-    if (parameterMap != null && parameterMap.size() > 0) {
-      NamedParameterSql paramSql = new NamedParameterSql(sql, parameterMap);
-      executeSql = paramSql.getSqlToExecute();
-      parameters = paramSql.getArgs();
-    } else {
-      executeSql = sql;
-      if (parameterList != null) {
-        parameters = parameterList.toArray(new Object[parameterList.size()]);
-      }
-    }
+    String executeSql = sql;
+    Object[] parameters = null;
 
     boolean isSuccess = false;
     String errorCode = null;
     Exception logEx = null;
     try {
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      executeSql = mpSql.getSqlToExecute();
+      parameters = mpSql.getArgs();
+
       String[] returnCols = new String[otherCols.length + 1];
       returnCols[0] = pkToReturn;
       System.arraycopy(otherCols, 0, returnCols, 1, otherCols.length);
@@ -484,9 +494,6 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   private SqlInsert positionalArg(Object arg) {
-    if (parameterMap != null) {
-      throw new DatabaseException("Use either positional or named query parameters, not both");
-    }
     if (parameterList == null) {
       parameterList = new ArrayList<>();
     }
@@ -495,9 +502,6 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   private SqlInsert namedArg(String argName, Object arg) {
-    if (parameterList != null) {
-      throw new DatabaseException("Use either positional or named query parameters, not both");
-    }
     if (parameterMap == null) {
       parameterMap = new HashMap<>();
     }

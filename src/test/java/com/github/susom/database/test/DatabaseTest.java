@@ -54,7 +54,15 @@ public class DatabaseTest {
     log.info("Initialized log4j using file: " + log4jConfig);
   }
 
-  private OptionsDefault options = new OptionsDefault(Flavor.generic);
+  private OptionsDefault options = new OptionsDefault(Flavor.generic) {
+    int errors = 0;
+
+    @Override
+    public String generateErrorCode() {
+      errors++;
+      return Integer.toString(errors);
+    }
+  };
 
   @Test
   public void staticSqlToLong() throws Exception {
@@ -283,11 +291,6 @@ public class DatabaseTest {
     IMocksControl control = createStrictControl();
 
     Connection c = control.createMock(Connection.class);
-    PreparedStatement ps = control.createMock(PreparedStatement.class);
-
-    expect(c.prepareStatement("select a from b where c=?")).andReturn(ps);
-    expect(ps.executeQuery()).andThrow(new SQLException("Wrong number of parameters"));
-    ps.close();
 
     control.replay();
 
@@ -314,13 +317,6 @@ public class DatabaseTest {
     IMocksControl control = createStrictControl();
 
     Connection c = control.createMock(Connection.class);
-    PreparedStatement ps = control.createMock(PreparedStatement.class);
-
-    expect(c.prepareStatement("select a from b where c=?")).andReturn(ps);
-    ps.setObject(eq(1), eq("hi"));
-    ps.setObject(eq(2), eq(new Integer(1)));
-    expect(ps.executeQuery()).andThrow(new SQLException("Wrong number of parameters"));
-    ps.close();
 
     control.replay();
 
@@ -346,7 +342,7 @@ public class DatabaseTest {
       }).select("select a from b where c=?").argString("hi").argInteger(1).queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("Error executing SQL (errorCode=1): (wrong # args) query: select a from b where c=? args: [hi, 1]", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1): (wrong # args) query: select a from b where c=?", e.getMessage());
     }
 
     control.verify();
@@ -357,11 +353,6 @@ public class DatabaseTest {
     IMocksControl control = createStrictControl();
 
     Connection c = control.createMock(Connection.class);
-    PreparedStatement ps = control.createMock(PreparedStatement.class);
-
-    expect(c.prepareStatement("select a from b where c=:x")).andReturn(ps);
-    expect(ps.executeQuery()).andThrow(new SQLException("Wrong number of parameters"));
-    ps.close();
 
     control.replay();
 
@@ -405,7 +396,7 @@ public class DatabaseTest {
       new DatabaseImpl(c, options).select("select a from b where c=:x and d=:y").argString("x", "hi").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("The SQL requires parameter 'y' but no value was provided", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1)", e.getMessage());
     }
 
     control.verify();
@@ -424,7 +415,7 @@ public class DatabaseTest {
           .argString("x", "hi").argString("y", "bye").queryLong();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
-      assertEquals("These named parameters do not exist in the query: [y]", e.getMessage());
+      assertEquals("Error executing SQL (errorCode=1)", e.getMessage());
     }
 
     control.verify();
@@ -435,23 +426,46 @@ public class DatabaseTest {
     IMocksControl control = createStrictControl();
 
     Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    expect(c.prepareStatement("select a from b where c=? and d=?")).andReturn(ps);
+    ps.setObject(eq(1), eq("bye"));
+    ps.setNull(eq(2), eq(Types.TIMESTAMP));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
 
     control.replay();
 
-    try {
-      new DatabaseImpl(c, options).select("select a from b where c=:x").argString("y", "bye").argDate(null).queryLong();
-      fail("Should have thrown an exception");
-    } catch (DatabaseException e) {
-      assertEquals("Use either positional or named query parameters, not both", e.getMessage());
-    }
+    new DatabaseImpl(c, options).select("select a from b where c=:x and d=?")
+        .argString(":x", "bye").argDate(null).queryLong();
+
+    control.verify();
+  }
+
+  @Test
+  public void mixedParameterTypesReversed() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    expect(c.prepareStatement("select a from b where c=? and d=?")).andReturn(ps);
+    ps.setObject(eq(1), eq("bye"));
+    ps.setNull(eq(2), eq(Types.TIMESTAMP));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
 
     // Reverse order of args should be the same
-    try {
-      new DatabaseImpl(c, options).select("select a from b where c=:x").argDate(null).argString("y", "bye").queryLong();
-      fail("Should have thrown an exception");
-    } catch (DatabaseException e) {
-      assertEquals("Use either positional or named query parameters, not both", e.getMessage());
-    }
+    new DatabaseImpl(c, options).select("select a from b where c=:x and d=?")
+        .argDate(null).argString(":x", "bye").queryLong();
 
     control.verify();
   }

@@ -46,11 +46,13 @@ public class DebugSql {
     if (sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
       buf.append("(wrong # args) query: ");
       buf.append(sql);
-      buf.append(" args: ");
-      if (options.isLogParameters()) {
-        buf.append(Arrays.toString(argsToPrint));
-      } else {
-        buf.append(argsToPrint.length);
+      if (args != null) {
+        buf.append(" args: ");
+        if (options.isLogParameters()) {
+          buf.append(Arrays.toString(argsToPrint));
+        } else {
+          buf.append(argsToPrint.length);
+        }
       }
     } else {
       buf.append(sql);

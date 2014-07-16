@@ -49,6 +49,13 @@ public class Metric {
     }
   }
 
+  public long elapsedMillis() {
+    if (!enabled) {
+      return -1;
+    }
+    return (System.nanoTime() - startNanos) / 1000000;
+  }
+
   public void checkpoint(String description) {
     if (enabled) {
       long currentCheckpointNanos = System.nanoTime();

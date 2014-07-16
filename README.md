@@ -76,9 +76,9 @@ Query: 38.627ms(prep=27.642ms,exec=9.846ms,read=1.013ms,close=0.125ms) select co
 Built to make life easier in modern IDEs. Everything you need is accessed from a
 single interface (Database).
 
-### A Quick Example
+### Quick Examples
 
-For the impatient:
+Basic example including setup:
 
 ```java
   String url = "jdbc:derby:testdb;create=true";
@@ -99,6 +99,33 @@ For the impatient:
 Note the lack of error handling, resource management, and transaction calls. This
 is not because it is left as an exercise for the reader, but because it is handled
 automatically.
+
+A taste of some more sophisticated features:
+
+```java
+  // Observe that this will work across the supported databases, with
+  // specific syntax and SQL types tuned for that database.
+  new Schema()
+      .addTable("t")
+        .addColumn("pk").primaryKey().table()
+        .addColumn("d").asDate().table()
+        .addColumn("s").asString(80).table().schema()
+      .addSequence("pk_seq").schema().execute(db);
+
+  // Insert a row into the table, populate the primary key from a sequence,
+  // the date based on current database time, and return the primary key value.
+  Long pk = db.insert(
+      "insert into t (pk,d,s) values (?,?,?)")
+      .argPkSeq("pk_seq")
+      .argDateNowPerDb()
+      .argString("Hi")
+      .insertReturningPkSeq("pk");
+```
+
+Look carefully at what is happening with the insert statement. This code works
+consistently in both Oracle and Derby, even though Derby does not support insert
+returning in the way we are using it. Also note how the SQL for the date value
+is left unspecified because the syntax and semantics varies across databases.
 
 For a more realistic server-side example, a container will usually manage creation
 of the Database or Provider<Database>, and business layer code will declare a 
@@ -130,7 +157,7 @@ public class MyBusiness {
               public List<Date> process(Rows rs) throws Exception {
                 List<Date> result = new ArrayList<>();
                 while (rs.next()) {
-                  result.add(rs.getDate("my_date"));
+                  result.add(rs.getDateOrNull("my_date"));
                 }
                 return result;
               }
@@ -160,3 +187,7 @@ The functionality is currently tested with Oracle, Derby, and PostgreSQL. It
 probably won't work out of the box with other databases right now.
 
 The library is compiled and tested with Java 7, so it won't work with Java 6.
+
+There is currently no support for batch inserts (hopefully coming soon).
+
+No fancy things with results (e.g. scrolling or updating result sets).

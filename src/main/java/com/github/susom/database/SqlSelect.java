@@ -71,7 +71,13 @@ public interface SqlSelect {
   SqlSelect argDate(@NotNull String argName, Date arg);
 
   @NotNull
+  SqlSelect argDateNowPerApp();
+
+  @NotNull
   SqlSelect argDateNowPerApp(@NotNull String argName);
+
+  @NotNull
+  SqlSelect argDateNowPerDb();
 
   @NotNull
   SqlSelect argDateNowPerDb(@NotNull String argName);

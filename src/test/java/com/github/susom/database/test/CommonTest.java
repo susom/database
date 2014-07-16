@@ -715,21 +715,26 @@ public abstract class CommonTest {
     assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(dbNow).queryLong());
   }
 
-//  @Test
-//  public void appDateRoundTrip() {
-//    now = new Date();
-//    db.dropTableQuietly("dbtest");
-//    new Schema().addTable("dbtest").addColumn("d").asDate().table().schema().execute(db);
-//    db.insert("insert into dbtest (d) values (:d)").argDateNowPerApp(":d").insert(1);
-//  }
-//
-//  @Test
-//  public void dbDateRoundTrip() {
-//    now = new Date();
-//    db.dropTableQuietly("dbtest");
-//    new Schema().addTable("dbtest").addColumn("d").asDate().table().schema().execute(db);
-//    db.insert("insert into dbtest (d) values (:d)").argDateNowPerApp(":d").insert(1);
-//  }
+  @Test
+  public void mixPositionalAndNamedParameters() {
+    db.dropTableQuietly("dbtest");
+
+    new Schema()
+        .addTable("dbtest")
+        .addColumn("pk").primaryKey().table()
+        .addColumn("d").asDate().table()
+        .addColumn("a").asInteger().table().schema()
+        .execute(db);
+
+    db.select("select pk as \"time:: now??\" from dbtest where a=? and d=:now")
+        .argInteger(1).argDateNowPerDb("now").query(new RowsHandler<Object>() {
+      @Override
+      public Object process(Rows rs) throws Exception {
+        assertFalse(rs.next());
+        return null;
+      }
+    });
+  }
 
   public String readerToString(Reader reader) throws IOException {
     char[] buffer = new char[1024];

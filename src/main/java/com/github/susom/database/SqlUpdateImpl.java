@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.susom.database.NamedParameterSql.RewriteArg;
+import com.github.susom.database.MixedParameterSql.RewriteArg;
 
 /**
  * This is the key class for configuring (query parameters) and executing a database query.
@@ -41,7 +41,6 @@ import com.github.susom.database.NamedParameterSql.RewriteArg;
  */
 public class SqlUpdateImpl implements SqlUpdate {
   private static final Logger log = LoggerFactory.getLogger(Database.class);
-  private static final Object[] ZERO_LENGTH_OBJECT_ARRAY = new Object[0];
   private final Connection connection;
   private final StatementAdaptor adaptor;
   private final String sql;
@@ -140,10 +139,22 @@ public class SqlUpdateImpl implements SqlUpdate {
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
+  @NotNull
+  @Override
+  public SqlUpdate argDateNowPerApp() {
+    return positionalArg(adaptor.nullDate(options.currentDate()));
+  }
+
   @Override
   @NotNull
   public SqlUpdate argDateNowPerApp(@NotNull String argName) {
     return namedArg(argName, adaptor.nullDate(options.currentDate()));
+  }
+
+  @NotNull
+  @Override
+  public SqlUpdate argDateNowPerDb() {
+    return positionalArg(new RewriteArg(options.flavor().sysdate()));
   }
 
   @Override
@@ -221,23 +232,17 @@ public class SqlUpdateImpl implements SqlUpdate {
     PreparedStatement ps = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
-    String executeSql;
-    Object[] parameters = ZERO_LENGTH_OBJECT_ARRAY;
-    if (parameterMap != null && parameterMap.size() > 0) {
-      NamedParameterSql paramSql = new NamedParameterSql(sql, parameterMap);
-      executeSql = paramSql.getSqlToExecute();
-      parameters = paramSql.getArgs();
-    } else {
-      executeSql = sql;
-      if (parameterList != null) {
-        parameters = parameterList.toArray(new Object[parameterList.size()]);
-      }
-    }
+    String executeSql = sql;
+    Object[] parameters = null;
 
     boolean isSuccess = false;
     String errorCode = null;
     Exception logEx = null;
     try {
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      executeSql = mpSql.getSqlToExecute();
+      parameters = mpSql.getArgs();
+
       ps = connection.prepareStatement(executeSql);
 
       adaptor.addParameters(ps, parameters);
@@ -271,9 +276,6 @@ public class SqlUpdateImpl implements SqlUpdate {
 
   @NotNull
   private SqlUpdate positionalArg(@Nullable Object arg) {
-    if (parameterMap != null) {
-      throw new DatabaseException("Use either positional or named query parameters, not both");
-    }
     if (parameterList == null) {
       parameterList = new ArrayList<>();
     }
@@ -283,9 +285,6 @@ public class SqlUpdateImpl implements SqlUpdate {
 
   @NotNull
   private SqlUpdate namedArg(@NotNull String argName, @Nullable Object arg) {
-    if (parameterList != null) {
-      throw new DatabaseException("Use either positional or named query parameters, not both");
-    }
     if (parameterMap == null) {
       parameterMap = new HashMap<>();
     }

@@ -73,7 +73,13 @@ public interface SqlUpdate {
   SqlUpdate argDate(@NotNull String argName, @Nullable Date arg);
 
   @NotNull
+  SqlUpdate argDateNowPerApp();
+
+  @NotNull
   SqlUpdate argDateNowPerApp(@NotNull String argName);
+
+  @NotNull
+  SqlUpdate argDateNowPerDb();
 
   @NotNull
   SqlUpdate argDateNowPerDb(@NotNull String argName);

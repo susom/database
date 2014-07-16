@@ -137,8 +137,20 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   }
 
   @NotNull
+  public SqlArgs argDateNowPerApp() {
+    invocations.add(new Invocation(ColumnType.DateNowPerApp, null, null));
+    return this;
+  }
+
+  @NotNull
   public SqlArgs argDateNowPerApp(@NotNull String argName) {
     invocations.add(new Invocation(ColumnType.DateNowPerApp, argName, null));
+    return this;
+  }
+
+  @NotNull
+  public SqlArgs argDateNowPerDb() {
+    invocations.add(new Invocation(ColumnType.DateNowPerDb, null, null));
     return this;
   }
 
@@ -264,14 +276,14 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         break;
       case DateNowPerApp:
         if (i.argName == null) {
-          throw new DatabaseException("Use named parameters with argDateNowPerApp()");
+          select.argDateNowPerApp();
         } else {
           select.argDateNowPerApp(i.argName);
         }
         break;
       case DateNowPerDb:
         if (i.argName == null) {
-          throw new DatabaseException("Use named parameters with argDateNowPerDb()");
+          select.argDateNowPerDb();
         } else {
           select.argDateNowPerDb(i.argName);
         }
@@ -363,14 +375,14 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         break;
       case DateNowPerApp:
         if (i.argName == null) {
-          throw new DatabaseException("Use named parameters with argDateNowPerApp()");
+          insert.argDateNowPerApp();
         } else {
           insert.argDateNowPerApp(i.argName);
         }
         break;
       case DateNowPerDb:
         if (i.argName == null) {
-          throw new DatabaseException("Use named parameters with argDateNowPerDb()");
+          insert.argDateNowPerDb();
         } else {
           insert.argDateNowPerDb(i.argName);
         }
@@ -462,14 +474,14 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         break;
       case DateNowPerApp:
         if (i.argName == null) {
-          throw new DatabaseException("Use named parameters with argDateNowPerApp()");
+          update.argDateNowPerApp();
         } else {
           update.argDateNowPerApp(i.argName);
         }
         break;
       case DateNowPerDb:
         if (i.argName == null) {
-          throw new DatabaseException("Use named parameters with argDateNowPerDb()");
+          update.argDateNowPerDb();
         } else {
           update.argDateNowPerDb(i.argName);
         }

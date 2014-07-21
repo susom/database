@@ -374,7 +374,7 @@ public final class DatabaseProvider implements Provider<Database> {
 
   public void commitAndClose() {
     if (delegateTo != null) {
-      delegateTo.commitAndClose();
+      log.debug("Ignoring commitAndClose() because this is a fake provider");
       return;
     }
 
@@ -390,7 +390,7 @@ public final class DatabaseProvider implements Provider<Database> {
 
   public void rollbackAndClose() {
     if (delegateTo != null) {
-      delegateTo.rollbackAndClose();
+      log.debug("Ignoring rollbackAndClose() because this is a fake provider");
       return;
     }
 

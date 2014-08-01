@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface for configuring (setting parameters) and executing a chunk of SQL.
@@ -95,12 +96,26 @@ public interface SqlSelect {
   @NotNull
   SqlSelect apply(Apply apply);
 
-  Long queryLong();
+  @Nullable
+  Long queryLongOrNull();
 
+  /**
+   * Shorthand for reading numbers from the first column of the result.
+   *
+   * @return the first column values, omitting any that were null
+   */
+  @NotNull
   List<Long> queryLongs();
 
-  String queryString();
+  @Nullable
+  String queryStringOrNull();
 
+  /**
+   * Shorthand for reading strings from the first column of the result.
+   *
+   * @return the first column values, omitting any that were null
+   */
+  @NotNull
   List<String> queryStrings();
 
   <T> T query(RowsHandler<T> rowsHandler);

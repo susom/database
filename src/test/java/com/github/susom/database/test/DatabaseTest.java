@@ -78,7 +78,7 @@ public class DatabaseTest {
 
     replay(c, ps, rs);
 
-    assertEquals(new Long(1), new DatabaseImpl(c, options).select("select 1 from dual").queryLong());
+    assertEquals(new Long(1), new DatabaseImpl(c, options).select("select 1 from dual").queryLongOrNull());
 
     verify(c, ps, rs);
   }
@@ -152,7 +152,7 @@ public class DatabaseTest {
 
     replay(c, ps, rs);
 
-    assertNull(new DatabaseImpl(c, options).select("select * from dual").queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select * from dual").queryLongOrNull());
 
     verify(c, ps, rs);
   }
@@ -171,7 +171,7 @@ public class DatabaseTest {
 
     replay(c, ps, rs);
 
-    assertNull(new DatabaseImpl(c, options).select("select null from dual").queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select null from dual").queryLongOrNull());
 
     verify(c, ps, rs);
   }
@@ -193,7 +193,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c, options).select("select a from b where c=?").argLong(1L).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b where c=?").argLong(1L).queryLongOrNull());
 
     control.verify();
   }
@@ -215,7 +215,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c, options).select("select a from b where c=?").argLong(null).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b where c=?").argLong(null).queryLongOrNull());
 
     control.verify();
   }
@@ -237,7 +237,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c, options).select("select a from b").withTimeoutSeconds(21).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b").withTimeoutSeconds(21).queryLongOrNull());
 
     control.verify();
   }
@@ -259,7 +259,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c, options).select("select a from b").withMaxRows(15).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select a from b").withMaxRows(15).queryLongOrNull());
 
     control.verify();
   }
@@ -281,7 +281,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c, options).select("select '::a' from b where c=:c").argLong("c", 1L).queryLong());
+    assertNull(new DatabaseImpl(c, options).select("select '::a' from b where c=:c").argLong("c", 1L).queryLongOrNull());
 
     control.verify();
   }
@@ -303,7 +303,7 @@ public class DatabaseTest {
           errors++;
           return Integer.toString(errors);
         }
-      }).select("select a from b where c=?").queryLong();
+      }).select("select a from b where c=?").queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Error executing SQL (errorCode=1)", e.getMessage());
@@ -339,7 +339,7 @@ public class DatabaseTest {
           errors++;
           return Integer.toString(errors);
         }
-      }).select("select a from b where c=?").argString("hi").argInteger(1).queryLong();
+      }).select("select a from b where c=?").argString("hi").argInteger(1).queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Error executing SQL (errorCode=1): (wrong # args) query: select a from b where c=?", e.getMessage());
@@ -375,7 +375,7 @@ public class DatabaseTest {
           errors++;
           return Integer.toString(errors);
         }
-      }).select("select a from b where c=:x").queryLong();
+      }).select("select a from b where c=:x").queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Error executing SQL (errorCode=1): select a from b where c=:x", e.getMessage());
@@ -393,7 +393,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, options).select("select a from b where c=:x and d=:y").argString("x", "hi").queryLong();
+      new DatabaseImpl(c, options).select("select a from b where c=:x and d=:y").argString("x", "hi").queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Error executing SQL (errorCode=1)", e.getMessage());
@@ -412,7 +412,7 @@ public class DatabaseTest {
 
     try {
       new DatabaseImpl(c, options).select("select a from b where c=:x")
-          .argString("x", "hi").argString("y", "bye").queryLong();
+          .argString("x", "hi").argString("y", "bye").queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Error executing SQL (errorCode=1)", e.getMessage());
@@ -440,7 +440,7 @@ public class DatabaseTest {
     control.replay();
 
     new DatabaseImpl(c, options).select("select a from b where c=:x and d=?")
-        .argString(":x", "bye").argDate(null).queryLong();
+        .argString(":x", "bye").argDate(null).queryLongOrNull();
 
     control.verify();
   }
@@ -465,7 +465,7 @@ public class DatabaseTest {
 
     // Reverse order of args should be the same
     new DatabaseImpl(c, options).select("select a from b where c=:x and d=?")
-        .argDate(null).argString(":x", "bye").queryLong();
+        .argDate(null).argString(":x", "bye").queryLongOrNull();
 
     control.verify();
   }
@@ -507,7 +507,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, options).select("select a from b").queryLong();
+      new DatabaseImpl(c, options).select("select a from b").queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Timeout of -1 seconds exceeded or user cancelled", e.getMessage());
@@ -548,7 +548,7 @@ public class DatabaseTest {
           errors++;
           return Integer.toString(errors);
         }
-      }).select("select a from b").queryLong();
+      }).select("select a from b").queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Error executing SQL (errorCode=1): select a from b", e.getMessage());
@@ -594,7 +594,7 @@ public class DatabaseTest {
           errors++;
           return Integer.toString(errors);
         }
-      }).select("select a from b").queryLong();
+      }).select("select a from b").queryLongOrNull();
       fail("Should have thrown an exception");
     } catch (DatabaseException e) {
       assertEquals("Error executing SQL (errorCode=1): select a from b", e.getMessage());

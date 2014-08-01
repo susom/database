@@ -249,7 +249,7 @@ public class SqlInsertImpl implements SqlInsert {
       return updateInternal(1, primaryKeyColumnName);
     } else {
       // Simulate by issuing a select for the next sequence value, inserting, and returning it
-      Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLong();
+      Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLongOrNull();
       if (pkArgName != null) {
         namedArg(pkArgName, adaptor.nullNumeric(pk));
       } else {
@@ -271,7 +271,7 @@ public class SqlInsertImpl implements SqlInsert {
       return updateInternal(1, primaryKeyColumnName, handler, otherColumnNames);
     } else if (pkSeqName != null) {
       // Simulate by issuing a select for the next sequence value, inserting, and returning it
-      Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLong();
+      Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLongOrNull();
       namedArg(pkArgName, adaptor.nullNumeric(pk));
       updateInternal(1);
       StringBuilder sql = new StringBuilder();

@@ -172,7 +172,7 @@ public abstract class CommonTest {
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
         + "and str_fixed=:sf and date_millis=:date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
-        .argDate("date", now).queryLong());
+        .argDate("date", now).queryLongOrNull());
     List<Long> result = db.select("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
         + "and str_fixed=:sf and date_millis=:date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
@@ -671,7 +671,7 @@ public abstract class CommonTest {
             return null;
           }
         }, "d");
-    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(now).queryLong());
+    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(now).queryLongOrNull());
   }
 
   @Test
@@ -712,7 +712,7 @@ public abstract class CommonTest {
         }, "d");
 //    System.err.println("***** d: " + db.select("select d from dbtest").queryString());
 //    System.err.println("***** n: " + dbNow.getTime());
-    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(dbNow).queryLong());
+    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(dbNow).queryLongOrNull());
   }
 
   @Test

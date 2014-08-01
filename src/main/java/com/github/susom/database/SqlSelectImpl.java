@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -194,7 +195,8 @@ public class SqlSelectImpl implements SqlSelect {
   }
 
   @Override
-  public Long queryLong() {
+  @Nullable
+  public Long queryLongOrNull() {
     return queryWithTimeout(new RowsHandler<Long>() {
       @Override
       public Long process(Rows rs) throws Exception {
@@ -206,14 +208,18 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
+  @NotNull
   @Override
   public List<Long> queryLongs() {
     return query(new RowsHandler<List<Long>>() {
       @Override
       public List<Long> process(Rows rs) throws Exception {
         List<Long> result = new ArrayList<>();
-        if (rs.next()) {
-          result.add(rs.getLongOrNull(1));
+        while (rs.next()) {
+          Long value = rs.getLongOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
         }
         return result;
       }
@@ -221,7 +227,7 @@ public class SqlSelectImpl implements SqlSelect {
   }
 
   @Override
-  public String queryString() {
+  public String queryStringOrNull() {
     return queryWithTimeout(new RowsHandler<String>() {
       @Override
       public String process(Rows rs) throws Exception {
@@ -233,14 +239,18 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
+  @NotNull
   @Override
   public List<String> queryStrings() {
     return query(new RowsHandler<List<String>>() {
       @Override
       public List<String> process(Rows rs) throws Exception {
         List<String> result = new ArrayList<>();
-        if (rs.next()) {
-          result.add(rs.getStringOrNull(1));
+        while (rs.next()) {
+          String value = rs.getStringOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
         }
         return result;
       }

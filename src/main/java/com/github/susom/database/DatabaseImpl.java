@@ -75,7 +75,7 @@ public class DatabaseImpl implements Database {
 
   @Override
   public Long nextSequenceValue(@NotNull String sequenceName) {
-    return select(flavor().sequenceSelectNextVal(sequenceName)).queryLong();
+    return select(flavor().sequenceSelectNextVal(sequenceName)).queryLongOrNull();
   }
 
   public void commitNow() {

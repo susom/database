@@ -108,7 +108,16 @@ public interface SqlSelect {
   List<Long> queryLongs();
 
   @Nullable
+  Integer queryIntegerOrNull();
+
+  @NotNull
+  List<Integer> queryIntegers();
+
+  @Nullable
   String queryStringOrNull();
+
+  @NotNull
+  String queryStringOrEmpty();
 
   /**
    * Shorthand for reading strings from the first column of the result.
@@ -117,6 +126,12 @@ public interface SqlSelect {
    */
   @NotNull
   List<String> queryStrings();
+
+  @Nullable
+  Date queryDateOrNull();
+
+  @NotNull
+  List<Date> queryDates();
 
   <T> T query(RowsHandler<T> rowsHandler);
 }

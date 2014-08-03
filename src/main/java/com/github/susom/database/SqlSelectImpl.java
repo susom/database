@@ -211,12 +211,44 @@ public class SqlSelectImpl implements SqlSelect {
   @NotNull
   @Override
   public List<Long> queryLongs() {
-    return query(new RowsHandler<List<Long>>() {
+    return queryWithTimeout(new RowsHandler<List<Long>>() {
       @Override
       public List<Long> process(Rows rs) throws Exception {
         List<Long> result = new ArrayList<>();
         while (rs.next()) {
           Long value = rs.getLongOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
+        }
+        return result;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public Integer queryIntegerOrNull() {
+    return queryWithTimeout(new RowsHandler<Integer>() {
+      @Override
+      public Integer process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getIntegerOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @NotNull
+  @Override
+  public List<Integer> queryIntegers() {
+    return queryWithTimeout(new RowsHandler<List<Integer>>() {
+      @Override
+      public List<Integer> process(Rows rs) throws Exception {
+        List<Integer> result = new ArrayList<Integer>();
+        while (rs.next()) {
+          Integer value = rs.getIntegerOrNull(1);
           if (value != null) {
             result.add(value);
           }
@@ -241,13 +273,59 @@ public class SqlSelectImpl implements SqlSelect {
 
   @NotNull
   @Override
+  public String queryStringOrEmpty() {
+    return queryWithTimeout(new RowsHandler<String>() {
+      @Override
+      public String process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getStringOrEmpty(1);
+        }
+        return "";
+      }
+    });
+  }
+
+  @NotNull
+  @Override
   public List<String> queryStrings() {
-    return query(new RowsHandler<List<String>>() {
+    return queryWithTimeout(new RowsHandler<List<String>>() {
       @Override
       public List<String> process(Rows rs) throws Exception {
         List<String> result = new ArrayList<>();
         while (rs.next()) {
           String value = rs.getStringOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
+        }
+        return result;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public Date queryDateOrNull() {
+    return queryWithTimeout(new RowsHandler<Date>() {
+      @Override
+      public Date process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getDateOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @NotNull
+  @Override
+  public List<Date> queryDates() {
+    return queryWithTimeout(new RowsHandler<List<Date>>() {
+      @Override
+      public List<Date> process(Rows rs) throws Exception {
+        List<Date> result = new ArrayList<>();
+        while (rs.next()) {
+          Date value = rs.getDateOrNull(1);
           if (value != null) {
             result.add(value);
           }

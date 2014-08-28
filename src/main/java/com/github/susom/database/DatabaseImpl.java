@@ -112,6 +112,15 @@ public class DatabaseImpl implements Database {
     }
   }
 
+  @Override
+  public Connection underlyingConnection() {
+    if (!options.allowConnectionAccess()) {
+      throw new DatabaseException("Calls to underlyingConnection() are not allowed");
+    }
+
+    return connection;
+  }
+
   @NotNull
   @Override
   public Flavor flavor() {

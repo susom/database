@@ -46,6 +46,11 @@ public class OptionsOverride implements Options {
   }
 
   @Override
+  public boolean allowConnectionAccess() {
+    return parent.allowConnectionAccess();
+  }
+
+  @Override
   public boolean isLogParameters() {
     return parent.isLogParameters();
   }

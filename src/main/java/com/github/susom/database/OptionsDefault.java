@@ -43,6 +43,11 @@ public class OptionsDefault implements Options {
   }
 
   @Override
+  public boolean allowConnectionAccess() {
+    return false;
+  }
+
+  @Override
   public boolean isLogParameters() {
     return false;
   }

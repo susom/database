@@ -40,6 +40,12 @@ public interface Options {
   boolean ignoreTransactionControl();
 
   /**
+   * Control whether the Database object will allow calls to underlyingConnection().
+   * By default that method will throw an exception.
+   */
+  boolean allowConnectionAccess();
+
+  /**
    * If this is false, log messages will look something like:
    *
    * <pre>

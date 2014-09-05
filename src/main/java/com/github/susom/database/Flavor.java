@@ -71,6 +71,11 @@ public enum Flavor {
     }
 
     @Override
+    public String typeDate() {
+      return "timestamp(3)";
+    }
+
+    @Override
     public String typeStringVar(int bytes) {
       return "varchar2(" + bytes + ")";
     }
@@ -114,6 +119,11 @@ public enum Flavor {
     @Override
     public String typeBlob() {
       return "bytea";
+    }
+
+    @Override
+    public String typeDate() {
+      return "timestamp(3)";
     }
 
     @Override
@@ -190,7 +200,6 @@ public enum Flavor {
 
   public String typeDate() {
     return "timestamp";
-//    return "timestamp(3)"; // TODO
   }
 
   public boolean useStringForClob() {

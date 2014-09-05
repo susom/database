@@ -4,7 +4,12 @@
 
 The point of this project is to provide a simplified way of accessing databases. It is a
 wrapper around the JDBC driver, and tries to hide some of the more error-prone and unsafe
-parts of the standard API.
+parts of the standard API. It uses standard Java types for all operations (as opposed to java.sql.*),
+and acts as a compatibility layer in making every attempt to behave consistently
+with all supported databases.
+
+The operations supported are the typical relational database ones. This is NOT an object-relational
+mapping layer or attempt to create a new language for querying.
 
 ### Features
 
@@ -78,12 +83,21 @@ and dealing with millisecond truncation and nanoseconds.
 ```java
   Date now = new Date(); // java.util.Date
 
-  db.insert(...).argDate(now).insert();
-  Date sameNow = db.select(...).queryDateOrNull();
+  db.insert("insert into t (pk,d) values (?,?)")
+      .argInteger(123)
+      .argDate(now)
+      .insert(1);
+  Date sameNow = db.select("select d from t where pk=?")
+      .argInteger(123)
+      .queryDateOrNull();
+
+  if (now.equals(sameNow)) {
+    // don't look so surprised...
+  }
 ```
 
 There is also a convenient way to deal with "now", which hides the `new Date()` call
-with the configurable `Options`. This is handy for testing because you can explicitly
+within the configurable `Options`. This is handy for testing because you can explicitly
 control and manipulate the clock.
 
 ```java
@@ -265,10 +279,10 @@ The library is available in the public Maven repository:
 Just add that to your pom.xml, use one of the static builder methods on 
 `com.github.susom.database.DatabaseProvider` (see example above), and enjoy!
 
-To see more examples of how to use the library, I recommend taking a look at
+To see more examples of how to use the library, take a look at
 some of the tests:
 
-https://github.com/susom/database/blob/master/src/test/java/com/github/susom/database/test/CommonTest.java
+[CommonTest.java](https://github.com/susom/database/blob/master/src/test/java/com/github/susom/database/test/CommonTest.java)
 
 ### Limitations
 

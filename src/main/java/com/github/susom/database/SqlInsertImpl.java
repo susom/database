@@ -162,7 +162,7 @@ public class SqlInsertImpl implements SqlInsert {
     if (options.useDatePerAppOnly()) {
       return positionalArg(adaptor.nullDate(options.currentDate()));
     }
-    return positionalArg(new RewriteArg(options.flavor().sysdate()));
+    return positionalArg(new RewriteArg(options.flavor().dbTimeMillis()));
   }
 
   @Override
@@ -171,7 +171,7 @@ public class SqlInsertImpl implements SqlInsert {
     if (options.useDatePerAppOnly()) {
       return namedArg(argName, adaptor.nullDate(options.currentDate()));
     }
-    return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
+    return namedArg(argName, new RewriteArg(options.flavor().dbTimeMillis()));
   }
 
   @Override

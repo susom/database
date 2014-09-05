@@ -161,7 +161,7 @@ public class SqlSelectImpl implements SqlSelect {
     if (options.useDatePerAppOnly()) {
       return positionalArg(adaptor.nullDate(options.currentDate()));
     }
-    return positionalArg(new RewriteArg(options.flavor().sysdate()));
+    return positionalArg(new RewriteArg(options.flavor().dbTimeMillis()));
   }
 
   @NotNull
@@ -170,7 +170,7 @@ public class SqlSelectImpl implements SqlSelect {
     if (options.useDatePerAppOnly()) {
       return namedArg(argName, adaptor.nullDate(options.currentDate()));
     }
-    return namedArg(argName, new RewriteArg(options.flavor().sysdate()));
+    return namedArg(argName, new RewriteArg(options.flavor().dbTimeMillis()));
   }
 
   @NotNull

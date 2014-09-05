@@ -112,7 +112,7 @@ to the database server (the operating system time).
   db.insert(...).argDateNowPerDb().insert();
 ```
 
-For Oracle the above code will substitute `sysdate` for the parameter, while for PostgreSQL
+For Oracle the above code will substitute `systimestamp(3)` for the parameter, while for PostgreSQL
 the value `date_trunc('milliseconds',localtimestamp)` will be used. To make testing easier,
 there is also a configuration option to make the above code do exactly the same thing as
 `argDateNowPerApp()` so you can in effect control the database server time as well as that

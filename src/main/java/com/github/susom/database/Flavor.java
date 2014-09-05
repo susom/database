@@ -50,7 +50,7 @@ public enum Flavor {
     }
 
     @Override
-    public String sysdate() {
+    public String dbTimeMillis() {
       return "current_timestamp";
     }
   },
@@ -91,8 +91,8 @@ public enum Flavor {
     }
 
     @Override
-    public String sysdate() {
-      return "sysdate";
+    public String dbTimeMillis() {
+      return "systimestamp(3)";
     }
 
     @Override
@@ -147,7 +147,7 @@ public enum Flavor {
     }
 
     @Override
-    public String sysdate() {
+    public String dbTimeMillis() {
       return "date_trunc('milliseconds',localtimestamp)";
     }
   };
@@ -217,7 +217,7 @@ public enum Flavor {
     return false;
   }
 
-  public String sysdate() {
+  public String dbTimeMillis() {
     return "current_time";
   }
 

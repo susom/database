@@ -715,6 +715,66 @@ public abstract class CommonTest {
     assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(dbNow).queryLongOrNull());
   }
 
+  /**
+   * Make sure database times are inserted will at least millisecond precision.
+   */
+  @Test
+  public void dbDateMillis() {
+    db.dropTableQuietly("dbtest");
+
+    new Schema()
+        .addTable("dbtest")
+        .addColumn("d").asDate().table().schema()
+        .execute(db);
+
+    // Insert dates repeatedly until we get one with non-zero in the last millisecond digit
+    int attempts = 0;
+    int maxAttempts = 50;
+    do {
+      db.insert("insert into dbtest (d) values (?)")
+          .argDateNowPerDb()
+          .insert(1);
+
+      Date dbNow = db.select("select d from dbtest").queryDateOrNull();
+
+//      System.err.println("***** d: " + db.select("select to_char(d) from dbtest").queryStringOrNull());
+
+      if (dbNow != null && dbNow.getTime() % 10 != 0) {
+        break;
+      }
+    } while (++attempts < maxAttempts);
+
+    assertTrue(attempts < maxAttempts);
+  }
+
+  @Test
+  public void dbDateRoundTrip() {
+    db.dropTableQuietly("dbtest");
+
+    new Schema()
+        .addTable("dbtest")
+        .addColumn("d1").asDate().table()
+        .addColumn("d2").asDate().table().schema()
+        .execute(db);
+
+    // Store current time as per the database
+    db.insert("insert into dbtest (d1) values (?)")
+        .argDateNowPerDb()
+        .insert(1);
+
+    // Now pull it out, put it back in, and verify it matches in the database
+    Date dbNow = db.select("select d1 from dbtest").queryDateOrNull();
+
+    db.update("update dbtest set d2=?")
+        .argDate(dbNow)
+        .update();
+
+//    System.err.println("***** d1: " + db.select("select to_char(d1) from dbtest").queryStringOrNull());
+//    System.err.println("***** d2: " + db.select("select to_char(d2) from dbtest").queryStringOrNull());
+
+    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d1=d2").queryLongOrNull());
+  }
+
   @Test
   public void mixPositionalAndNamedParameters() {
     db.dropTableQuietly("dbtest");

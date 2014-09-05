@@ -34,11 +34,39 @@ driver can't figure out what type it should be.
 
 You can use traditional positional parameters in the SQL (the '?' character),
 or you can use named parameters. This can help reduce errors due to counting
-incorrectly. Note you cannot use both positional and named within the same SQL statement.
+incorrectly.
 
 ```java
   db.update("update foo set bar=?").argLong(23L).update();
   db.update("update foo set bar=:baz").argLong("baz", 23L).update();
+```
+
+You can use both positional and named within the same SQL statement. The positional
+parameters must be in the correct order, but the `arg*()` calls for the named
+parameters can be mixed anywhere among the positional ones.
+
+```java
+  db.select("select c from t where a=:a and b=?")
+      .argString("value for b")
+      .argString(":a", "value for a")
+      .queryLongOrNull();
+```
+
+Parameter setting can also be deferred for convenient dynamic SQL generation:
+
+```java
+  StringBuilder sql = new StringBuilder();
+  SqlArgs args = new SqlArgs();
+
+  sql.append("select a from b where c=?");
+  args.argInteger(1);
+
+  if (d) {
+    sql.append(" and d=?");
+    args.argString("foo");
+  }
+
+  db.select(sql).apply(args).query(...);
 ```
 
 #### Correct handling of java.util.Date
@@ -46,6 +74,35 @@ incorrectly. Note you cannot use both positional and named within the same SQL s
 As long as your database columns have enough precision, Date
 objects will round-trip correctly with millisecond precision. No more fiddling with Timestamp
 and dealing with millisecond truncation and nanoseconds.
+
+```java
+  Date now = new Date(); // java.util.Date
+
+  db.insert(...).argDate(now).insert();
+  Date sameNow = db.select(...).queryDateOrNull();
+```
+
+There is also a convenient way to deal with "now", which hides the `new Date()` call
+with the configurable `Options`. This is handy for testing because you can explicitly
+control and manipulate the clock.
+
+```java
+  db.insert(...).argDateNowPerApp().insert();
+```
+
+Since every database seems to have a different way of dealing with time, this library also
+tries to smooth out some of the syntactic (and semantic) differences in using time according
+to the database server (the operating system time).
+
+```java
+  db.insert(...).argDateNowPerDb().insert();
+```
+
+For Oracle the above code will substitute `sysdate` for the parameter, while for PostgreSQL
+the value `date_trunc('milliseconds',localtimestamp)` will be used. To make testing easier,
+there is also a configuration option to make the above code do exactly the same thing as
+`argDateNowPerApp()` so you can in effect control the database server time as well as that
+of the application server.
 
 #### Correct handling of java.math.BigDecimal
 
@@ -71,10 +128,64 @@ Insert: 71.295ms(prep=65.093ms,exec=6.153ms,close=0.048ms) insert into dbtest (a
 Query: 38.627ms(prep=27.642ms,exec=9.846ms,read=1.013ms,close=0.125ms) select count(1) from dbtest|select count(1) from dbtest
 ```
 
+#### Allocation of Primary Keys
+
+It is often a good idea to generate primary keys from a sequence, but this is
+not always easy to do in a clean and efficient way. This library provides a
+way to do it that will be efficient on advanced databases, and still be able to
+transparently fall back to multiple database calls when necessary.
+
+```java
+  Long pk = db.insert(
+      "insert into t (pk,s) values (?,?)")
+      .argPkSeq("pk_seq")
+      .argString("Hi")
+      .insertReturningPkSeq("pk");
+```
+
+This has a more general form for returning multiple columns. For example, if you
+inserted a database timestamp and need that value as well to update an object in memory:
+
+```java
+  db.insert("insert into t (pk,d,s) values (?,?,?)")
+      .argPkSeq("pk_seq")
+      .argDateNowPerDb()
+      .argString("Hi")
+      .insertReturning("t", "pk", new RowsHandler<Foo>() {
+        @Override
+        public Foo process(Rows rs) throws Exception {
+          ...
+          if (rs.next()) {
+            ... = rs.getLongOrNull(1); // value of pk
+            ... = rs.getDateOrNull(2); // value of d
+          }
+          ...
+        }
+      }, "d");
+```
+
 #### Fluent API that is auto-completion friendly
 
 Built to make life easier in modern IDEs. Everything you need is accessed from a
 single interface (Database).
+
+#### Schema Definition and Creation
+
+You can define your database schema using a simple Java API and execute the database specific DDL.
+When defining this schema you use the same basic Java types you use when querying, and appropriate
+database-specific column types will be chosen such that data will round-trip correctly. This
+API also smooths over some syntax differences like sequence creation.
+
+```java
+  // Observe that this will work across the supported databases, with
+  // specific syntax and SQL types tuned for that database.
+  new Schema()
+      .addTable("t")
+        .addColumn("pk").primaryKey().table()
+        .addColumn("d").asDate().table()
+        .addColumn("s").asString(80).table().schema()
+      .addSequence("pk_seq").schema().execute(db);
+```
 
 ### Quick Examples
 
@@ -90,7 +201,7 @@ Basic example including setup:
       db.insert("insert into t (a) values (?)").argInteger(32).insert(1);
       db.update("update t set a=:val").argInteger("val", 23).update();
 
-      Long rows = db.select("select count(1) from t").queryLong();
+      Long rows = db.select("select count(1) from t").queryLongOrNull();
       System.out.println("Rows: " + rows);
     }
   });
@@ -99,33 +210,6 @@ Basic example including setup:
 Note the lack of error handling, resource management, and transaction calls. This
 is not because it is left as an exercise for the reader, but because it is handled
 automatically.
-
-A taste of some more sophisticated features:
-
-```java
-  // Observe that this will work across the supported databases, with
-  // specific syntax and SQL types tuned for that database.
-  new Schema()
-      .addTable("t")
-        .addColumn("pk").primaryKey().table()
-        .addColumn("d").asDate().table()
-        .addColumn("s").asString(80).table().schema()
-      .addSequence("pk_seq").schema().execute(db);
-
-  // Insert a row into the table, populate the primary key from a sequence,
-  // the date based on current database time, and return the primary key value.
-  Long pk = db.insert(
-      "insert into t (pk,d,s) values (?,?,?)")
-      .argPkSeq("pk_seq")
-      .argDateNowPerDb()
-      .argString("Hi")
-      .insertReturningPkSeq("pk");
-```
-
-Look carefully at what is happening with the insert statement. This code works
-consistently in both Oracle and Derby, even though Derby does not support insert
-returning in the way we are using it. Also note how the SQL for the date value
-is left unspecified because the syntax and semantics varies across databases.
 
 For a more realistic server-side example, a container will usually manage creation
 of the Database or Provider<Database>, and business layer code will declare a 
@@ -174,17 +258,22 @@ The library is available in the public Maven repository:
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
 </dependency>
 ```
 
 Just add that to your pom.xml, use one of the static builder methods on 
 `com.github.susom.database.DatabaseProvider` (see example above), and enjoy!
 
+To see more examples of how to use the library, I recommend taking a look at
+some of the tests:
+
+https://github.com/susom/database/blob/master/src/test/java/com/github/susom/database/test/CommonTest.java
+
 ### Limitations
 
 The functionality is currently tested with Oracle, Derby, and PostgreSQL. It
-probably won't work out of the box with other databases right now.
+won't work out of the box with other databases right now, but should in the future.
 
 The library is compiled and tested with Java 7, so it won't work with Java 6.
 

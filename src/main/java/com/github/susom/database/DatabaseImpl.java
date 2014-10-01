@@ -148,7 +148,7 @@ public class DatabaseImpl implements Database {
         }
         return chosen;
       }
-    };
+    }.when(flavor, sql);
   }
 
   @Override

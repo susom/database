@@ -87,6 +87,7 @@ public class DatabaseTest {
   public void when() throws Exception {
     Database db = new DatabaseImpl(createNiceMock(Connection.class), new OptionsDefault(Flavor.oracle));
 
+    assertEquals("oracle", "" + db.when(Flavor.oracle, "oracle"));
     assertEquals("oracle", db.when(Flavor.oracle, "oracle").otherwise(""));
     assertEquals("oracle", db.when(Flavor.derby, "derby").when(Flavor.oracle, "oracle").otherwise(""));
     assertEquals("", db.when(Flavor.derby, "derby").otherwise(""));

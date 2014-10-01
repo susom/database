@@ -148,6 +148,16 @@ public class DatabaseImpl implements Database {
         }
         return chosen;
       }
+
+      @Override
+      public int hashCode() {
+        return otherwise("").hashCode();
+      }
+
+      @Override
+      public String toString() {
+        return otherwise("");
+      }
     }.when(flavor, sql);
   }
 

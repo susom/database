@@ -87,7 +87,7 @@ class RowsAdaptor implements Rows {
   public int getIntegerOrZero(int columnOneBased) {
     Integer result = getIntegerOrNull(columnOneBased);
     if (result == null) {
-      return 0;
+      result = 0;
     }
     return result;
   }
@@ -96,7 +96,7 @@ class RowsAdaptor implements Rows {
   public int getIntegerOrZero(String columnName) {
     Integer result = getIntegerOrNull(columnName);
     if (result == null) {
-      return 0;
+      result = 0;
     }
     return result;
   }
@@ -123,7 +123,7 @@ class RowsAdaptor implements Rows {
   public long getLongOrZero(int columnOneBased) {
     Long result = getLongOrNull(columnOneBased);
     if (result == null) {
-      return 0;
+      result = 0L;
     }
     return result;
   }
@@ -132,7 +132,7 @@ class RowsAdaptor implements Rows {
   public long getLongOrZero(String columnName) {
     Long result = getLongOrNull(columnName);
     if (result == null) {
-      return 0;
+      result = 0L;
     }
     return result;
   }
@@ -159,7 +159,7 @@ class RowsAdaptor implements Rows {
   public float getFloatOrZero(int columnOneBased) {
     Float result = getFloatOrNull(columnOneBased);
     if (result == null) {
-      return 0;
+      result = 0f;
     }
     return result;
   }
@@ -168,7 +168,7 @@ class RowsAdaptor implements Rows {
   public float getFloatOrZero(String columnName) {
     Float result = getFloatOrNull(columnName);
     if (result == null) {
-      return 0;
+      result = 0f;
     }
     return result;
   }
@@ -195,7 +195,7 @@ class RowsAdaptor implements Rows {
   public double getDoubleOrZero(int columnOneBased) {
     Double result = getDoubleOrNull(columnOneBased);
     if (result == null) {
-      return 0;
+      result = 0d;
     }
     return result;
   }
@@ -204,7 +204,7 @@ class RowsAdaptor implements Rows {
   public double getDoubleOrZero(String columnName) {
     Double result = getDoubleOrNull(columnName);
     if (result == null) {
-      return 0;
+      result = 0d;
     }
     return result;
   }
@@ -232,7 +232,7 @@ class RowsAdaptor implements Rows {
   public BigDecimal getBigDecimalOrZero(int columnOneBased) {
     BigDecimal result = getBigDecimalOrNull(columnOneBased);
     if (result == null) {
-      return BigDecimal.ZERO;
+      result = BigDecimal.ZERO;
     }
     return result;
   }
@@ -242,7 +242,7 @@ class RowsAdaptor implements Rows {
   public BigDecimal getBigDecimalOrZero(String columnName) {
     BigDecimal result = getBigDecimalOrNull(columnName);
     if (result == null) {
-      return BigDecimal.ZERO;
+      result = BigDecimal.ZERO;
     }
     return result;
   }
@@ -278,7 +278,7 @@ class RowsAdaptor implements Rows {
   public String getStringOrEmpty(int columnOneBased) {
     String result = getStringOrNull(columnOneBased);
     if (result == null) {
-      return "";
+      result = "";
     }
     return result;
   }
@@ -288,7 +288,7 @@ class RowsAdaptor implements Rows {
   public String getStringOrEmpty(String columnName) {
     String result = getStringOrNull(columnName);
     if (result == null) {
-      return "";
+      result = "";
     }
     return result;
   }
@@ -324,7 +324,7 @@ class RowsAdaptor implements Rows {
   public String getClobStringOrEmpty(int columnOneBased) {
     String result = getClobStringOrNull(columnOneBased);
     if (result == null) {
-      return "";
+      result = "";
     }
     return result;
   }
@@ -334,7 +334,7 @@ class RowsAdaptor implements Rows {
   public String getClobStringOrEmpty(String columnName) {
     String result = getClobStringOrNull(columnName);
     if (result == null) {
-      return "";
+      result = "";
     }
     return result;
   }
@@ -362,7 +362,7 @@ class RowsAdaptor implements Rows {
   public Reader getClobReaderOrEmpty(int columnOneBased) {
     Reader result = getClobReaderOrNull(columnOneBased);
     if (result == null) {
-      return new StringReader("");
+      result = new StringReader("");
     }
     return result;
   }
@@ -372,7 +372,7 @@ class RowsAdaptor implements Rows {
   public Reader getClobReaderOrEmpty(String columnName) {
     Reader result = getClobReaderOrNull(columnName);
     if (result == null) {
-      return new StringReader("");
+      result = new StringReader("");
     }
     return result;
   }
@@ -400,7 +400,7 @@ class RowsAdaptor implements Rows {
   public byte[] getBlobBytesOrZeroLen(int columnOneBased) {
     byte[] result = getBlobBytesOrNull(columnOneBased);
     if (result == null) {
-      return new byte[0];
+      result = new byte[0];
     }
     return result;
   }
@@ -410,7 +410,7 @@ class RowsAdaptor implements Rows {
   public byte[] getBlobBytesOrZeroLen(String columnName) {
     byte[] result = getBlobBytesOrNull(columnName);
     if (result == null) {
-      return new byte[0];
+      result = new byte[0];
     }
     return result;
   }
@@ -438,7 +438,7 @@ class RowsAdaptor implements Rows {
   public InputStream getBlobInputStreamOrEmpty(int columnOneBased) {
     InputStream result = getBlobInputStreamOrNull(columnOneBased);
     if (result == null) {
-      return new ByteArrayInputStream(new byte[0]);
+      result = new ByteArrayInputStream(new byte[0]);
     }
     return result;
   }
@@ -448,7 +448,7 @@ class RowsAdaptor implements Rows {
   public InputStream getBlobInputStreamOrEmpty(String columnName) {
     InputStream result = getBlobInputStreamOrNull(columnName);
     if (result == null) {
-      return new ByteArrayInputStream(new byte[0]);
+      result = new ByteArrayInputStream(new byte[0]);
     }
     return result;
   }

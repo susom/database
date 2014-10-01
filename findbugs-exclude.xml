@@ -1,0 +1,8 @@
+<FindBugsFilter>
+
+  <Match>
+    <Class name="com.github.susom.database.OptionsDefault"/>
+    <Bug code="DMI,RV" />
+  </Match>
+
+</FindBugsFilter>

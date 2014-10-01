@@ -30,6 +30,7 @@ import java.util.List;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.github.susom.database.Database;
@@ -716,9 +717,17 @@ public abstract class CommonTest {
   }
 
   /**
-   * Make sure database times are inserted will at least millisecond precision.
+   * Enable retrying failed tests if they have the @Retry annotation.
    */
-  @Test
+  @Rule
+  public Retryable retry = new Retryable();
+
+  /**
+   * Make sure database times are inserted will at least millisecond precision.
+   * This test is non-deterministic since it is checking the timestamp provided
+   * by the database, so we use a retry mechanism to give it three attempts.
+   */
+  @Test @Retry
   public void dbDateMillis() {
     db.dropTableQuietly("dbtest");
 
@@ -727,24 +736,12 @@ public abstract class CommonTest {
         .addColumn("d").asDate().table().schema()
         .execute(db);
 
-    // Insert dates repeatedly until we get one with non-zero in the last millisecond digit
-    int attempts = 0;
-    int maxAttempts = 50;
-    do {
-      db.insert("insert into dbtest (d) values (?)")
-          .argDateNowPerDb()
-          .insert(1);
+    db.insert("insert into dbtest (d) values (?)")
+        .argDateNowPerDb()
+        .insert(1);
 
-      Date dbNow = db.select("select d from dbtest").queryDateOrNull();
-
-//      System.err.println("***** d: " + db.select("select to_char(d) from dbtest").queryStringOrNull());
-
-      if (dbNow != null && dbNow.getTime() % 10 != 0) {
-        break;
-      }
-    } while (++attempts < maxAttempts);
-
-    assertTrue(attempts < maxAttempts);
+    Date dbNow = db.select("select d from dbtest").queryDateOrNull();
+    assertTrue("Timestamp had zero in the least significant digit", dbNow != null && dbNow.getTime() % 10 != 0);
   }
 
   @Test

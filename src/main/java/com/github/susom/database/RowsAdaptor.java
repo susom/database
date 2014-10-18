@@ -28,6 +28,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Safely wrap a ResultSet and provide access to the data it contains.
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
  */
 class RowsAdaptor implements Rows {
   private final ResultSet rs;
+  private int column = 1;
 
   public RowsAdaptor(ResultSet rs) {
     this.rs = rs;
@@ -44,6 +46,7 @@ class RowsAdaptor implements Rows {
   @Override
   public boolean next() {
     try {
+      column = 1;
       return rs.next();
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -65,6 +68,12 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  @Nullable
+  @Override
+  public Integer getIntegerOrNull() {
+    return getIntegerOrNull(column++);
+  }
+
   @Override
   public Integer getIntegerOrNull(int columnOneBased) {
     try {
@@ -84,6 +93,11 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
+  public int getIntegerOrZero() {
+    return getIntegerOrZero(column++);
+  }
+
+  @Override
   public int getIntegerOrZero(int columnOneBased) {
     Integer result = getIntegerOrNull(columnOneBased);
     if (result == null) {
@@ -99,6 +113,12 @@ class RowsAdaptor implements Rows {
       result = 0;
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public Long getLongOrNull() {
+    return getLongOrNull(column++);
   }
 
   @Override
@@ -120,6 +140,11 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
+  public long getLongOrZero() {
+    return getLongOrZero(column++);
+  }
+
+  @Override
   public long getLongOrZero(int columnOneBased) {
     Long result = getLongOrNull(columnOneBased);
     if (result == null) {
@@ -135,6 +160,12 @@ class RowsAdaptor implements Rows {
       result = 0L;
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public Float getFloatOrNull() {
+    return getFloatOrNull(column++);
   }
 
   @Override
@@ -156,6 +187,11 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
+  public float getFloatOrZero() {
+    return getFloatOrZero(column++);
+  }
+
+  @Override
   public float getFloatOrZero(int columnOneBased) {
     Float result = getFloatOrNull(columnOneBased);
     if (result == null) {
@@ -171,6 +207,12 @@ class RowsAdaptor implements Rows {
       result = 0f;
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public Double getDoubleOrNull() {
+    return getDoubleOrNull(column++);
   }
 
   @Override
@@ -192,6 +234,11 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
+  public double getDoubleOrZero() {
+    return getDoubleOrZero(column++);
+  }
+
+  @Override
   public double getDoubleOrZero(int columnOneBased) {
     Double result = getDoubleOrNull(columnOneBased);
     if (result == null) {
@@ -207,6 +254,12 @@ class RowsAdaptor implements Rows {
       result = 0d;
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public BigDecimal getBigDecimalOrNull() {
+    return getBigDecimalOrNull(column++);
   }
 
   @Override
@@ -229,6 +282,12 @@ class RowsAdaptor implements Rows {
 
   @NotNull
   @Override
+  public BigDecimal getBigDecimalOrZero() {
+    return getBigDecimalOrZero(column++);
+  }
+
+  @NotNull
+  @Override
   public BigDecimal getBigDecimalOrZero(int columnOneBased) {
     BigDecimal result = getBigDecimalOrNull(columnOneBased);
     if (result == null) {
@@ -245,6 +304,12 @@ class RowsAdaptor implements Rows {
       result = BigDecimal.ZERO;
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public String getStringOrNull() {
+    return getStringOrNull(column++);
   }
 
   @Override
@@ -275,6 +340,12 @@ class RowsAdaptor implements Rows {
 
   @NotNull
   @Override
+  public String getStringOrEmpty() {
+    return getStringOrEmpty(column++);
+  }
+
+  @NotNull
+  @Override
   public String getStringOrEmpty(int columnOneBased) {
     String result = getStringOrNull(columnOneBased);
     if (result == null) {
@@ -291,6 +362,12 @@ class RowsAdaptor implements Rows {
       result = "";
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public String getClobStringOrNull() {
+    return getClobStringOrNull(column++);
   }
 
   @Override
@@ -321,6 +398,12 @@ class RowsAdaptor implements Rows {
 
   @NotNull
   @Override
+  public String getClobStringOrEmpty() {
+    return getClobStringOrEmpty(column++);
+  }
+
+  @NotNull
+  @Override
   public String getClobStringOrEmpty(int columnOneBased) {
     String result = getClobStringOrNull(columnOneBased);
     if (result == null) {
@@ -337,6 +420,12 @@ class RowsAdaptor implements Rows {
       result = "";
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public Reader getClobReaderOrNull() {
+    return getClobReaderOrNull(column++);
   }
 
   @Override
@@ -359,6 +448,12 @@ class RowsAdaptor implements Rows {
 
   @NotNull
   @Override
+  public Reader getClobReaderOrEmpty() {
+    return getClobReaderOrEmpty(column++);
+  }
+
+  @NotNull
+  @Override
   public Reader getClobReaderOrEmpty(int columnOneBased) {
     Reader result = getClobReaderOrNull(columnOneBased);
     if (result == null) {
@@ -375,6 +470,12 @@ class RowsAdaptor implements Rows {
       result = new StringReader("");
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public byte[] getBlobBytesOrNull() {
+    return getBlobBytesOrNull(column++);
   }
 
   @Override
@@ -397,6 +498,12 @@ class RowsAdaptor implements Rows {
 
   @NotNull
   @Override
+  public byte[] getBlobBytesOrZeroLen() {
+    return getBlobBytesOrZeroLen(column++);
+  }
+
+  @NotNull
+  @Override
   public byte[] getBlobBytesOrZeroLen(int columnOneBased) {
     byte[] result = getBlobBytesOrNull(columnOneBased);
     if (result == null) {
@@ -413,6 +520,12 @@ class RowsAdaptor implements Rows {
       result = new byte[0];
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public InputStream getBlobInputStreamOrNull() {
+    return getBlobInputStreamOrNull(column++);
   }
 
   @Override
@@ -435,6 +548,12 @@ class RowsAdaptor implements Rows {
 
   @NotNull
   @Override
+  public InputStream getBlobInputStreamOrEmpty() {
+    return getBlobInputStreamOrEmpty(column++);
+  }
+
+  @NotNull
+  @Override
   public InputStream getBlobInputStreamOrEmpty(int columnOneBased) {
     InputStream result = getBlobInputStreamOrNull(columnOneBased);
     if (result == null) {
@@ -451,6 +570,12 @@ class RowsAdaptor implements Rows {
       result = new ByteArrayInputStream(new byte[0]);
     }
     return result;
+  }
+
+  @Nullable
+  @Override
+  public Date getDateOrNull() {
+    return getDateOrNull(column++);
   }
 
   @Override

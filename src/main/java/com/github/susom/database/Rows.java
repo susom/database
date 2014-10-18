@@ -46,14 +46,22 @@ public interface Rows {
   String[] getColumnNames();
 
   @Nullable
+  Integer getIntegerOrNull();
+
+  @Nullable
   Integer getIntegerOrNull(int columnOneBased);
 
   @Nullable
   Integer getIntegerOrNull(String columnName);
 
+  int getIntegerOrZero();
+
   int getIntegerOrZero(int columnOneBased);
 
   int getIntegerOrZero(String columnName);
+
+  @Nullable
+  Long getLongOrNull();
 
   @Nullable
   Long getLongOrNull(int columnOneBased);
@@ -61,9 +69,14 @@ public interface Rows {
   @Nullable
   Long getLongOrNull(String columnName);
 
+  long getLongOrZero();
+
   long getLongOrZero(int columnOneBased);
 
   long getLongOrZero(String columnName);
+
+  @Nullable
+  Float getFloatOrNull();
 
   @Nullable
   Float getFloatOrNull(int columnOneBased);
@@ -71,15 +84,22 @@ public interface Rows {
   @Nullable
   Float getFloatOrNull(String columnName);
 
+  float getFloatOrZero();
+
   float getFloatOrZero(int columnOneBased);
 
   float getFloatOrZero(String columnName);
+
+  @Nullable
+  Double getDoubleOrNull();
 
   @Nullable
   Double getDoubleOrNull(int columnOneBased);
 
   @Nullable
   Double getDoubleOrNull(String columnName);
+
+  double getDoubleOrZero();
 
   double getDoubleOrZero(int columnOneBased);
 
@@ -91,16 +111,28 @@ public interface Rows {
    * method tries to reduce scale if there is zero padding to the right of the decimal.
    */
   @Nullable
+  BigDecimal getBigDecimalOrNull();
+
+  @Nullable
   BigDecimal getBigDecimalOrNull(int columnOneBased);
 
   @Nullable
   BigDecimal getBigDecimalOrNull(String columnName);
 
   @NotNull
+  BigDecimal getBigDecimalOrZero();
+
+  @NotNull
   BigDecimal getBigDecimalOrZero(int columnOneBased);
 
   @NotNull
   BigDecimal getBigDecimalOrZero(String columnName);
+
+  /**
+   * @return the value, or null if it is SQL null; never returns the empty string
+   */
+  @Nullable
+  String getStringOrNull();
 
   /**
    * @return the value, or null if it is SQL null; never returns the empty string
@@ -118,6 +150,12 @@ public interface Rows {
    * @return the value, or the empty string if it is SQL null; never returns null
    */
   @NotNull
+  String getStringOrEmpty();
+
+  /**
+   * @return the value, or the empty string if it is SQL null; never returns null
+   */
+  @NotNull
   String getStringOrEmpty(int columnOneBased);
 
   /**
@@ -125,6 +163,12 @@ public interface Rows {
    */
   @NotNull
   String getStringOrEmpty(String columnName);
+
+  /**
+   * @return the value, or null if it is SQL null; never returns the empty string
+   */
+  @Nullable
+  String getClobStringOrNull();
 
   /**
    * @return the value, or null if it is SQL null; never returns the empty string
@@ -142,6 +186,12 @@ public interface Rows {
    * @return the value, or the empty string if it is SQL null; never returns null
    */
   @NotNull
+  String getClobStringOrEmpty();
+
+  /**
+   * @return the value, or the empty string if it is SQL null; never returns null
+   */
+  @NotNull
   String getClobStringOrEmpty(int columnOneBased);
 
   /**
@@ -149,6 +199,12 @@ public interface Rows {
    */
   @NotNull
   String getClobStringOrEmpty(String columnName);
+
+  /**
+   * @return the value, or null if it is SQL null
+   */
+  @Nullable
+  Reader getClobReaderOrNull();
 
   /**
    * @return the value, or null if it is SQL null
@@ -166,6 +222,12 @@ public interface Rows {
    * @return the value, or a StringReader containing the empty string if it is SQL null
    */
   @NotNull
+  Reader getClobReaderOrEmpty();
+
+  /**
+   * @return the value, or a StringReader containing the empty string if it is SQL null
+   */
+  @NotNull
   Reader getClobReaderOrEmpty(int columnOneBased);
 
   /**
@@ -175,10 +237,16 @@ public interface Rows {
   Reader getClobReaderOrEmpty(String columnName);
 
   @Nullable
+  byte[] getBlobBytesOrNull();
+
+  @Nullable
   byte[] getBlobBytesOrNull(int columnOneBased);
 
   @Nullable
   byte[] getBlobBytesOrNull(String columnName);
+
+  @NotNull
+  byte[] getBlobBytesOrZeroLen();
 
   @NotNull
   byte[] getBlobBytesOrZeroLen(int columnOneBased);
@@ -187,16 +255,29 @@ public interface Rows {
   byte[] getBlobBytesOrZeroLen(String columnName);
 
   @Nullable
+  InputStream getBlobInputStreamOrNull();
+
+  @Nullable
   InputStream getBlobInputStreamOrNull(int columnOneBased);
 
   @Nullable
   InputStream getBlobInputStreamOrNull(String columnName);
 
   @NotNull
+  InputStream getBlobInputStreamOrEmpty();
+
+  @NotNull
   InputStream getBlobInputStreamOrEmpty(int columnOneBased);
 
   @NotNull
   InputStream getBlobInputStreamOrEmpty(String columnName);
+
+  /**
+   * Return the millisecond precision Date, which should be represented as a TIMESTAMP
+   * in the database. The nanoseconds are truncated.
+   */
+  @Nullable
+  Date getDateOrNull();
 
   /**
    * Return the millisecond precision Date, which should be represented as a TIMESTAMP

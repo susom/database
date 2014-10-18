@@ -150,6 +150,42 @@ public abstract class CommonTest {
         return null;
       }
     });
+    // Repeat the above query, using the various methods that automatically infer the column
+    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+      @Override
+      public Void process(Rows rs) throws Exception {
+        assertTrue(rs.next());
+        assertEquals(new Integer(1), rs.getIntegerOrNull());
+        assertEquals(new Long(2), rs.getLongOrNull());
+        assertEquals(new Float(3.2f), rs.getFloatOrNull());
+        assertEquals(new Double(4.2), rs.getDoubleOrNull());
+        assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull());
+        assertEquals("Hello", rs.getStringOrNull());
+        assertEquals("T", rs.getStringOrNull());
+        assertEquals("World", rs.getClobStringOrNull());
+        assertArrayEquals("More".getBytes(), rs.getBlobBytesOrNull());
+        assertEquals(now, rs.getDateOrNull());
+        return null;
+      }
+    });
+    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+      @Override
+      public Void process(Rows rs) throws Exception {
+        assertTrue(rs.next());
+        assertEquals(1, rs.getIntegerOrZero());
+        assertEquals(2, rs.getLongOrZero());
+        assertEquals(3.2, rs.getFloatOrZero(), 0.01);
+        assertEquals(4.2, rs.getDoubleOrZero(), 0.01);
+        assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrZero());
+        assertEquals("Hello", rs.getStringOrEmpty());
+        assertEquals("T", rs.getStringOrEmpty());
+        assertEquals("World", rs.getClobStringOrEmpty());
+        assertArrayEquals("More".getBytes(), rs.getBlobBytesOrZeroLen());
+        return null;
+      }
+    });
     db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
@@ -163,8 +199,44 @@ public abstract class CommonTest {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
+        assertEquals("World", readerToString(rs.getClobReaderOrEmpty(1)));
+        assertArrayEquals("More".getBytes(), inputStreamToString(rs.getBlobInputStreamOrEmpty(2)));
+        return null;
+      }
+    });
+    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+      @Override
+      public Void process(Rows rs) throws Exception {
+        assertTrue(rs.next());
+        assertEquals("World", readerToString(rs.getClobReaderOrNull()));
+        assertArrayEquals("More".getBytes(), inputStreamToString(rs.getBlobInputStreamOrNull()));
+        return null;
+      }
+    });
+    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+      @Override
+      public Void process(Rows rs) throws Exception {
+        assertTrue(rs.next());
+        assertEquals("World", readerToString(rs.getClobReaderOrEmpty()));
+        assertArrayEquals("More".getBytes(), inputStreamToString(rs.getBlobInputStreamOrEmpty()));
+        return null;
+      }
+    });
+    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+      @Override
+      public Void process(Rows rs) throws Exception {
+        assertTrue(rs.next());
         assertEquals("World", readerToString(rs.getClobReaderOrNull("str_lob")));
         assertArrayEquals("More".getBytes(), inputStreamToString(rs.getBlobInputStreamOrNull("bin_blob")));
+        return null;
+      }
+    });
+    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+      @Override
+      public Void process(Rows rs) throws Exception {
+        assertTrue(rs.next());
+        assertEquals("World", readerToString(rs.getClobReaderOrEmpty("str_lob")));
+        assertArrayEquals("More".getBytes(), inputStreamToString(rs.getBlobInputStreamOrEmpty("bin_blob")));
         return null;
       }
     });

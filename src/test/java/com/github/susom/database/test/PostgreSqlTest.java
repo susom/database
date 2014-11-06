@@ -67,7 +67,7 @@ public class PostgreSqlTest extends CommonTest {
 
     new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
 
-    db.select("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
+    db.toSelect("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
         .query(new RowsHandler<Object>() {
       @Override
       public Object process(Rows rs) throws Exception {

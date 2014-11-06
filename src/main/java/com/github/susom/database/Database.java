@@ -41,7 +41,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
-  SqlInsert insert(@Language("SQL") @NotNull String sql);
+  SqlInsert toInsert(@Language("SQL") @NotNull String sql);
 
   /**
    * Create a SQL "select" statement for further manipulation and execution.
@@ -55,7 +55,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
-  SqlSelect select(@Language("SQL") @NotNull String sql);
+  SqlSelect toSelect(@Language("SQL") @NotNull String sql);
 
   /**
    * Create a SQL "update" statement for further manipulation and execution.
@@ -69,7 +69,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
-  SqlUpdate update(@Language("SQL") @NotNull String sql);
+  SqlUpdate toUpdate(@Language("SQL") @NotNull String sql);
 
   /**
    * Create a SQL "delete" statement for further manipulation and execution.
@@ -83,7 +83,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
-  SqlUpdate delete(@Language("SQL") @NotNull String sql);
+  SqlUpdate toDelete(@Language("SQL") @NotNull String sql);
 
   /**
    * Create a DDL (schema modifying) statement for further manipulation and execution.

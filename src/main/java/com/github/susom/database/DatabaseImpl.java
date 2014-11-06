@@ -45,25 +45,25 @@ public class DatabaseImpl implements Database {
 
   @Override
   @NotNull
-  public SqlInsert insert(@NotNull String sql) {
+  public SqlInsert toInsert(@NotNull String sql) {
     return new SqlInsertImpl(connection, sql, options);
   }
 
   @Override
   @NotNull
-  public SqlSelect select(@NotNull String sql) {
+  public SqlSelect toSelect(@NotNull String sql) {
     return new SqlSelectImpl(connection, sql, options);
   }
 
   @Override
   @NotNull
-  public SqlUpdate update(@NotNull String sql) {
+  public SqlUpdate toUpdate(@NotNull String sql) {
     return new SqlUpdateImpl(connection, sql, options);
   }
 
   @Override
   @NotNull
-  public SqlUpdate delete(@NotNull String sql) {
+  public SqlUpdate toDelete(@NotNull String sql) {
     return new SqlUpdateImpl(connection, sql, options);
   }
 
@@ -75,7 +75,7 @@ public class DatabaseImpl implements Database {
 
   @Override
   public Long nextSequenceValue(@NotNull String sequenceName) {
-    return select(flavor().sequenceSelectNextVal(sequenceName)).queryLongOrNull();
+    return toSelect(flavor().sequenceSelectNextVal(sequenceName)).queryLongOrNull();
   }
 
   public void commitNow() {

@@ -100,12 +100,13 @@ public abstract class CommonTest {
 
     now = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
-    db.insert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?)").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
+    db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?)").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
         .argBigDecimal(bigDecimal).argString("Hello").argString("T").argClobString("World")
         .argBlobBytes("More".getBytes()).argDate(now).insert(1);
 
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -151,8 +152,9 @@ public abstract class CommonTest {
       }
     });
     // Repeat the above query, using the various methods that automatically infer the column
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -169,8 +171,9 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -186,7 +189,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -195,7 +198,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -204,7 +207,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -213,7 +216,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -222,7 +225,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -231,7 +234,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -241,12 +244,12 @@ public abstract class CommonTest {
       }
     });
 
-    assertEquals(new Long(1), db.select("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
+    assertEquals(new Long(1), db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
         + "and str_fixed=:sf and date_millis=:date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
         .argDate("date", now).queryLongOrNull());
-    List<Long> result = db.select("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
+    List<Long> result = db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
         + "and str_fixed=:sf and date_millis=:date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
@@ -275,7 +278,7 @@ public abstract class CommonTest {
 
     now = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
-    assertEquals(1, db.insert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?)")
+    assertEquals(1, db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?)")
         .argLong(1L)
         .argInteger(1)
         .argLong(2L)
@@ -288,12 +291,13 @@ public abstract class CommonTest {
         .argBlobBytes("More".getBytes())
         .argDate(now).insert());
 
-    db.update("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, nbr_big_decimal=?, "
+    db.toUpdate("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, nbr_big_decimal=?, "
         + "str_varchar=?, str_fixed=?, str_lob=?, bin_blob=?, date_millis=?").argInteger(null).argLong(null)
         .argFloat(null).argDouble(null).argBigDecimal(null).argString(null).argString(null).argClobString(null)
         .argBlobBytes(null).argDate(null).update(1);
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -320,12 +324,13 @@ public abstract class CommonTest {
         return null;
       }
     });
-    assertEquals(1, db.update("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, "
+    assertEquals(1, db.toUpdate("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, "
         + "nbr_big_decimal=?, str_varchar=?, str_fixed=?, str_lob=?, bin_blob=?, date_millis=?").argInteger(1)
         .argLong(2L).argFloat(3.2f).argDouble(4.2).argBigDecimal(bigDecimal).argString("Hello").argString("T")
         .argClobString("World").argBlobBytes("More".getBytes()).argDate(now).update());
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -353,8 +358,8 @@ public abstract class CommonTest {
       }
     });
 
-    db.update("update dbtest set str_lob=?, bin_blob=?").argClobReader(null).argBlobStream(null).update(1);
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toUpdate("update dbtest set str_lob=?, bin_blob=?").argClobReader(null).argBlobStream(null).update(1);
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -365,9 +370,9 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.update("update dbtest set str_lob=?, bin_blob=?").argClobReader(new StringReader("World"))
+    db.toUpdate("update dbtest set str_lob=?, bin_blob=?").argClobReader(new StringReader("World"))
         .argBlobStream(new ByteArrayInputStream("More".getBytes())).update(1);
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -400,17 +405,18 @@ public abstract class CommonTest {
 
     now = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
-    db.insert("insert into dbtest values (:pk,:a,:b,:c,:d,:e,:f,:sf,:g,:h,:i)").argLong(":pk", 1L).argInteger(":a", 1)
+    db.toInsert("insert into dbtest values (:pk,:a,:b,:c,:d,:e,:f,:sf,:g,:h,:i)").argLong(":pk", 1L).argInteger(":a", 1)
         .argLong(":b", 2L).argFloat(":c", 3.2f).argDouble(":d", 4.2).argBigDecimal(":e", bigDecimal)
         .argString(":f", "Hello").argString(":sf", "T")
         .argClobString(":g", "World").argBlobBytes(":h", "More".getBytes()).argDate(":i", now).insert(1);
-    db.update("update dbtest set nbr_integer=:a, nbr_long=:b, nbr_float=:c, nbr_double=:d, nbr_big_decimal=:e, "
+    db.toUpdate("update dbtest set nbr_integer=:a, nbr_long=:b, nbr_float=:c, nbr_double=:d, nbr_big_decimal=:e, "
         + "str_varchar=:f, str_fixed=:sf, str_lob=:g, bin_blob=:h, date_millis=:i").argInteger(":a", null)
         .argLong(":b", null).argFloat(":c", null).argDouble(":d", null).argBigDecimal(":e", null)
         .argString(":f", null).argString(":sf", null)
         .argClobString(":g", null).argBlobBytes(":h", null).argDate(":i", null).update(1);
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -437,13 +443,14 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.update("update dbtest set nbr_integer=:a, nbr_long=:b, nbr_float=:c, nbr_double=:d, nbr_big_decimal=:e, "
+    db.toUpdate("update dbtest set nbr_integer=:a, nbr_long=:b, nbr_float=:c, nbr_double=:d, nbr_big_decimal=:e, "
         + "str_varchar=:f, str_fixed=:sf, str_lob=:g, bin_blob=:h, date_millis=:i").argInteger(":a", 1)
         .argLong(":b", 2L).argFloat(":c", 3.2f).argDouble(":d", 4.2).argBigDecimal(":e", bigDecimal)
         .argString(":f", "Hello").argString(":sf", "T")
         .argClobString(":g", "World").argBlobBytes(":h", "More".getBytes()).argDate(":i", now).update(1);
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -471,8 +478,8 @@ public abstract class CommonTest {
       }
     });
 
-    db.update("update dbtest set str_lob=:a, bin_blob=:b").argClobReader(":a", null).argBlobStream(":b", null).update(1);
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toUpdate("update dbtest set str_lob=:a, bin_blob=:b").argClobReader(":a", null).argBlobStream(":b", null).update(1);
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -483,9 +490,9 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.update("update dbtest set str_lob=:a, bin_blob=:b").argClobReader(":a", new StringReader("World"))
+    db.toUpdate("update dbtest set str_lob=:a, bin_blob=:b").argClobReader(":a", new StringReader("World"))
         .argBlobStream(":b", new ByteArrayInputStream("More".getBytes())).update(1);
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -516,11 +523,12 @@ public abstract class CommonTest {
         .addColumn("bin_blob").asBlob().table()
         .addColumn("date_millis").asDate().table().schema().execute(db);
 
-    db.insert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?)").argLong(1L).argInteger(null).argLong(null)
+    db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?)").argLong(1L).argInteger(null).argLong(null)
         .argFloat(null).argDouble(null).argBigDecimal(null).argString(null).argString(null).argClobString(null)
         .argBlobBytes(null).argDate(null).insert(1);
-    db.select("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-        + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect(
+        "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
+            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -547,7 +555,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -556,7 +564,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -573,7 +581,7 @@ public abstract class CommonTest {
 
     new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
 
-    db.select("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
+    db.toSelect("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
         .query(new RowsHandler<Object>() {
           @Override
           public Object process(Rows rs) throws Exception {
@@ -595,8 +603,8 @@ public abstract class CommonTest {
     }
     final String longString = buf.toString();
 
-    db.insert("insert into dbtest values (?)").argClobString(longString).insert(1);
-    db.select("select str_lob from dbtest").query(new RowsHandler<Void>() {
+    db.toInsert("insert into dbtest values (?)").argClobString(longString).insert(1);
+    db.toSelect("select str_lob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -607,7 +615,7 @@ public abstract class CommonTest {
       }
     });
     // Intentional slight variation here to test get()
-    db.get().select("select str_lob from dbtest").query(new RowsHandler<Void>() {
+    db.get().toSelect("select str_lob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -615,9 +623,9 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.delete("delete from dbtest").update(1);
-    db.insert("insert into dbtest values (?)").argClobReader(new StringReader(longString)).insert(1);
-    db.select("select str_lob from dbtest").query(new RowsHandler<Void>() {
+    db.toDelete("delete from dbtest").update(1);
+    db.toInsert("insert into dbtest values (?)").argClobReader(new StringReader(longString)).insert(1);
+    db.toSelect("select str_lob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -627,7 +635,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select str_lob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -649,8 +657,8 @@ public abstract class CommonTest {
     }
     final byte[] bigBytes = buf.toString().getBytes();
 
-    db.insert("insert into dbtest values (?)").argBlobBytes(bigBytes).insert(1);
-    db.select("select bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toInsert("insert into dbtest values (?)").argBlobBytes(bigBytes).insert(1);
+    db.toSelect("select bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -660,7 +668,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -668,9 +676,9 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.delete("delete from dbtest").update(1);
-    db.insert("insert into dbtest values (?)").argBlobStream(new ByteArrayInputStream(bigBytes)).insert(1);
-    db.select("select bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toDelete("delete from dbtest").update(1);
+    db.toInsert("insert into dbtest values (?)").argBlobStream(new ByteArrayInputStream(bigBytes)).insert(1);
+    db.toSelect("select bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -680,7 +688,7 @@ public abstract class CommonTest {
         return null;
       }
     });
-    db.select("select bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select bin_blob from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -712,9 +720,9 @@ public abstract class CommonTest {
     db.ddl("create table dbtest (pk numeric)").execute();
     db.ddl("create sequence dbtest_seq start with 1").execute();
 
-    assertEquals(new Long(1L), db.insert("insert into dbtest (pk) values (:seq)")
+    assertEquals(new Long(1L), db.toInsert("insert into dbtest (pk) values (:seq)")
         .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
-    assertEquals(new Long(2L), db.insert("insert into dbtest (pk) values (:seq)")
+    assertEquals(new Long(2L), db.toInsert("insert into dbtest (pk) values (:seq)")
         .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
   }
 
@@ -731,7 +739,7 @@ public abstract class CommonTest {
         .execute(db);
 
     now = new Date();
-    db.insert("insert into dbtest (pk, d) values (:seq, :d)")
+    db.toInsert("insert into dbtest (pk, d) values (:seq, :d)")
         .argPkSeq(":seq", "dbtest_seq")
         .argDateNowPerApp(":d")
         .insertReturning("dbtest", "pk", new RowsHandler<Object>() {
@@ -744,7 +752,7 @@ public abstract class CommonTest {
             return null;
           }
         }, "d");
-    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(now).queryLongOrNull());
+    assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d=?").argDate(now).queryLongOrNull());
   }
 
   @Test
@@ -770,7 +778,7 @@ public abstract class CommonTest {
         .addSequence("dbtest_seq").schema()
         .execute(db);
 
-    Date dbNow = db.insert("insert into dbtest (pk, d) values (:seq, :d)")
+    Date dbNow = db.toInsert("insert into dbtest (pk, d) values (:seq, :d)")
         .argPkSeq(":seq", "dbtest_seq")
         .argDateNowPerDb(":d")
         .insertReturning("dbtest", "pk", new RowsHandler<Date>() {
@@ -785,7 +793,7 @@ public abstract class CommonTest {
         }, "d");
 //    System.err.println("***** d: " + db.select("select d from dbtest").queryString());
 //    System.err.println("***** n: " + dbNow.getTime());
-    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d=?").argDate(dbNow).queryLongOrNull());
+    assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d=?").argDate(dbNow).queryLongOrNull());
   }
 
   /**
@@ -808,11 +816,11 @@ public abstract class CommonTest {
         .addColumn("d").asDate().table().schema()
         .execute(db);
 
-    db.insert("insert into dbtest (d) values (?)")
+    db.toInsert("insert into dbtest (d) values (?)")
         .argDateNowPerDb()
         .insert(1);
 
-    Date dbNow = db.select("select d from dbtest").queryDateOrNull();
+    Date dbNow = db.toSelect("select d from dbtest").queryDateOrNull();
     assertTrue("Timestamp had zero in the least significant digit", dbNow != null && dbNow.getTime() % 10 != 0);
   }
 
@@ -827,21 +835,21 @@ public abstract class CommonTest {
         .execute(db);
 
     // Store current time as per the database
-    db.insert("insert into dbtest (d1) values (?)")
+    db.toInsert("insert into dbtest (d1) values (?)")
         .argDateNowPerDb()
         .insert(1);
 
     // Now pull it out, put it back in, and verify it matches in the database
-    Date dbNow = db.select("select d1 from dbtest").queryDateOrNull();
+    Date dbNow = db.toSelect("select d1 from dbtest").queryDateOrNull();
 
-    db.update("update dbtest set d2=?")
+    db.toUpdate("update dbtest set d2=?")
         .argDate(dbNow)
         .update();
 
 //    System.err.println("***** d1: " + db.select("select to_char(d1) from dbtest").queryStringOrNull());
 //    System.err.println("***** d2: " + db.select("select to_char(d2) from dbtest").queryStringOrNull());
 
-    assertEquals(new Long(1L), db.select("select count(*) from dbtest where d1=d2").queryLongOrNull());
+    assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());
   }
 
   @Test
@@ -855,7 +863,7 @@ public abstract class CommonTest {
         .addColumn("a").asInteger().table().schema()
         .execute(db);
 
-    db.select("select pk as \"time:: now??\" from dbtest where a=? and d=:now")
+    db.toSelect("select pk as \"time:: now??\" from dbtest where a=? and d=:now")
         .argInteger(1).argDateNowPerDb("now").query(new RowsHandler<Object>() {
       @Override
       public Object process(Rows rs) throws Exception {

@@ -18,6 +18,7 @@ package com.github.susom.database;
 
 import java.sql.Connection;
 
+import javax.annotation.CheckReturnValue;
 import javax.inject.Provider;
 
 import org.intellij.lang.annotations.Language;
@@ -41,6 +42,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
+  @CheckReturnValue
   SqlInsert toInsert(@Language("SQL") @NotNull String sql);
 
   /**
@@ -55,6 +57,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
+  @CheckReturnValue
   SqlSelect toSelect(@Language("SQL") @NotNull String sql);
 
   /**
@@ -69,6 +72,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
+  @CheckReturnValue
   SqlUpdate toUpdate(@Language("SQL") @NotNull String sql);
 
   /**
@@ -83,6 +87,7 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
+  @CheckReturnValue
   SqlUpdate toDelete(@Language("SQL") @NotNull String sql);
 
   /**
@@ -97,12 +102,14 @@ public interface Database extends Provider<Database> {
    * @return an interface for further manipulating the statement; never null
    */
   @NotNull
+  @CheckReturnValue
   Ddl ddl(@Language("SQL") @NotNull String sql);
 
   /**
    * Read the next value from a sequence. This method helps smooth over the
    * syntax differences across databases.
    */
+  @CheckReturnValue
   Long nextSequenceValue(@NotNull String sequenceName);
 
   /**
@@ -175,6 +182,11 @@ public interface Database extends Provider<Database> {
     @NotNull
     When postgres(@NotNull String sql);
 
+    /**
+     * The value provided to this method will be used if none of the
+     * other databases specified up to this point in the call chain
+     * match the current flavor.
+     */
     @NotNull String other(@NotNull String sql);
   }
 }

@@ -208,6 +208,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
     return this;
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Override
   public void apply(SqlSelect select) {
     for (Invocation i : invocations) {
@@ -262,11 +263,11 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case ClobStream:
-        throw new DatabaseException("Don't user Clob stream parameters with select statements");
+        throw new DatabaseException("Don't use Clob stream parameters with select statements");
       case BlobBytes:
-        throw new DatabaseException("Don't user Blob parameters with select statements");
+        throw new DatabaseException("Don't use Blob parameters with select statements");
       case BlobStream:
-        throw new DatabaseException("Don't user Blob parameters with select statements");
+        throw new DatabaseException("Don't use Blob parameters with select statements");
       case Date:
         if (i.argName == null) {
           select.argDate((Date) i.arg);
@@ -292,6 +293,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
     }
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Override
   public void apply(SqlInsert insert) {
     for (Invocation i : invocations) {
@@ -391,6 +393,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
     }
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Override
   public void apply(SqlUpdate update) {
     for (Invocation i : invocations) {

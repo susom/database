@@ -189,6 +189,12 @@ public class SqlSelectImpl implements SqlSelect {
 
   @NotNull
   @Override
+  public SqlSelect withArgs(SqlArgs args) {
+    return apply(args);
+  }
+
+  @NotNull
+  @Override
   public SqlSelect apply(Apply apply) {
     apply.apply(this);
     return this;

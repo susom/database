@@ -224,6 +224,12 @@ public class SqlInsertImpl implements SqlInsert {
 
   @NotNull
   @Override
+  public SqlInsert withArgs(SqlArgs args) {
+    return apply(args);
+  }
+
+  @NotNull
+  @Override
   public SqlInsert apply(Apply apply) {
     apply.apply(this);
     return this;

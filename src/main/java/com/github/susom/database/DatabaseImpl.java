@@ -112,6 +112,7 @@ public class DatabaseImpl implements Database {
     }
   }
 
+  @NotNull
   @Override
   public Connection underlyingConnection() {
     if (!options.allowConnectionAccess()) {

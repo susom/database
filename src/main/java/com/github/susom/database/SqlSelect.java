@@ -20,6 +20,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
+import javax.annotation.CheckReturnValue;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,63 +32,83 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface SqlSelect {
   @NotNull
+  @CheckReturnValue
   SqlSelect argInteger(Integer arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argInteger(@NotNull String argName, Integer arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argLong(Long arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argLong(@NotNull String argName, Long arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argFloat(Float arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argFloat(@NotNull String argName, Float arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDouble(Double arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDouble(@NotNull String argName, Double arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argBigDecimal(BigDecimal arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argBigDecimal(@NotNull String argName, BigDecimal arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argString(String arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argString(@NotNull String argName, String arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDate(Date arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDate(@NotNull String argName, Date arg);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDateNowPerApp();
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDateNowPerApp(@NotNull String argName);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDateNowPerDb();
 
   @NotNull
+  @CheckReturnValue
   SqlSelect argDateNowPerDb(@NotNull String argName);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect withTimeoutSeconds(int seconds);
 
   @NotNull
+  @CheckReturnValue
   SqlSelect withMaxRows(int rows);
 
   interface Apply {
@@ -94,9 +116,15 @@ public interface SqlSelect {
   }
 
   @NotNull
+  @CheckReturnValue
+  SqlSelect withArgs(SqlArgs args);
+
+  @NotNull
+  @CheckReturnValue
   SqlSelect apply(Apply apply);
 
   @Nullable
+  @CheckReturnValue
   Long queryLongOrNull();
 
   /**
@@ -105,18 +133,23 @@ public interface SqlSelect {
    * @return the first column values, omitting any that were null
    */
   @NotNull
+  @CheckReturnValue
   List<Long> queryLongs();
 
   @Nullable
+  @CheckReturnValue
   Integer queryIntegerOrNull();
 
   @NotNull
+  @CheckReturnValue
   List<Integer> queryIntegers();
 
   @Nullable
+  @CheckReturnValue
   String queryStringOrNull();
 
   @NotNull
+  @CheckReturnValue
   String queryStringOrEmpty();
 
   /**
@@ -125,12 +158,15 @@ public interface SqlSelect {
    * @return the first column values, omitting any that were null
    */
   @NotNull
+  @CheckReturnValue
   List<String> queryStrings();
 
   @Nullable
+  @CheckReturnValue
   Date queryDateOrNull();
 
   @NotNull
+  @CheckReturnValue
   List<Date> queryDates();
 
   <T> T query(RowsHandler<T> rowsHandler);

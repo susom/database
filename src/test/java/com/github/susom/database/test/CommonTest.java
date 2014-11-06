@@ -844,7 +844,7 @@ public abstract class CommonTest {
 
     db.toUpdate("update dbtest set d2=?")
         .argDate(dbNow)
-        .update();
+        .update(1);
 
 //    System.err.println("***** d1: " + db.select("select to_char(d1) from dbtest").queryStringOrNull());
 //    System.err.println("***** d2: " + db.select("select to_char(d2) from dbtest").queryStringOrNull());

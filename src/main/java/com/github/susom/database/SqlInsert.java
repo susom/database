@@ -21,6 +21,8 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import javax.annotation.CheckReturnValue;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,81 +32,107 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface SqlInsert {
   @NotNull
+  @CheckReturnValue
   SqlInsert argInteger(Integer arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argInteger(@NotNull String argName, Integer arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argLong(Long arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argLong(@NotNull String argName, Long arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argFloat(Float arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argFloat(@NotNull String argName, Float arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDouble(Double arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDouble(@NotNull String argName, Double arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argBigDecimal(BigDecimal arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argBigDecimal(@NotNull String argName, BigDecimal arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argString(String arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argString(@NotNull String argName, String arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDate(Date arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDate(@NotNull String argName, Date arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDateNowPerApp();
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDateNowPerApp(@NotNull String argName);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDateNowPerDb();
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argDateNowPerDb(@NotNull String argName);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argBlobBytes(byte[] arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argBlobBytes(@NotNull String argName, byte[] arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argBlobStream(InputStream arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argBlobStream(@NotNull String argName, InputStream arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argClobString(String arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argClobString(@NotNull String argName, String arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argClobReader(Reader arg);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argClobReader(@NotNull String argName, Reader arg);
 
   interface Apply {
@@ -112,6 +140,11 @@ public interface SqlInsert {
   }
 
   @NotNull
+  @CheckReturnValue
+  SqlInsert withArgs(SqlArgs args);
+
+  @NotNull
+  @CheckReturnValue
   SqlInsert apply(Apply apply);
 
   /**
@@ -120,6 +153,7 @@ public interface SqlInsert {
    */
 //  SqlInsert batch();
 
+  @CheckReturnValue
   int insert();
 
   void insert(int expectedRowsUpdated);
@@ -133,12 +167,14 @@ public interface SqlInsert {
    * <p>This version of insert expects exactly one row to be inserted, and will throw
    * a DatabaseException if that isn't the case.</p>
    */
+  @CheckReturnValue
   Long insertReturningPkSeq(String primaryKeyColumnName);
 
   <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> rowsHandler,
                         String...otherColumnNames);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argPkSeq(@NotNull String sequenceName);
 
   /**

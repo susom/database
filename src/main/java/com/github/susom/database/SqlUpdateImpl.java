@@ -219,6 +219,12 @@ public class SqlUpdateImpl implements SqlUpdate {
 
   @NotNull
   @Override
+  public SqlUpdate withArgs(SqlArgs args) {
+    return apply(args);
+  }
+
+  @NotNull
+  @Override
   public SqlUpdate apply(Apply apply) {
     apply.apply(this);
     return this;

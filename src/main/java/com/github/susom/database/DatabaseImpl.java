@@ -129,20 +129,38 @@ public class DatabaseImpl implements Database {
 
   @NotNull
   @Override
-  public When when(Flavor flavor, String sql) {
+  public When when() {
     return new When() {
       private String chosen;
 
-      @Override
-      public When when(Flavor flavor, String sql) {
+      private When when(Flavor flavor, String sql) {
         if (options.flavor() == flavor) {
           chosen = sql;
         }
         return this;
       }
 
+      @NotNull
       @Override
-      public String otherwise(String sql) {
+      public When oracle(@NotNull String sql) {
+        return when(Flavor.oracle, sql);
+      }
+
+      @NotNull
+      @Override
+      public When derby(@NotNull String sql) {
+        return when(Flavor.derby, sql);
+      }
+
+      @NotNull
+      @Override
+      public When postgres(@NotNull String sql) {
+        return when(Flavor.postgresql, sql);
+      }
+
+      @NotNull
+      @Override
+      public String other(@NotNull String sql) {
         if (chosen == null) {
           chosen = sql;
         }
@@ -151,14 +169,14 @@ public class DatabaseImpl implements Database {
 
       @Override
       public int hashCode() {
-        return otherwise("").hashCode();
+        return other("").hashCode();
       }
 
       @Override
       public String toString() {
-        return otherwise("");
+        return other("");
       }
-    }.when(flavor, sql);
+    };
   }
 
   @Override

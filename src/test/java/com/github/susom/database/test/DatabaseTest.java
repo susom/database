@@ -87,10 +87,10 @@ public class DatabaseTest {
   public void when() throws Exception {
     Database db = new DatabaseImpl(createNiceMock(Connection.class), new OptionsDefault(Flavor.oracle));
 
-    assertEquals("oracle", "" + db.when(Flavor.oracle, "oracle"));
-    assertEquals("oracle", db.when(Flavor.oracle, "oracle").otherwise(""));
-    assertEquals("oracle", db.when(Flavor.derby, "derby").when(Flavor.oracle, "oracle").otherwise(""));
-    assertEquals("", db.when(Flavor.derby, "derby").otherwise(""));
+    assertEquals("oracle", "" + db.when().oracle("oracle"));
+    assertEquals("oracle", db.when().oracle("oracle").other(""));
+    assertEquals("oracle", db.when().derby("derby").oracle("oracle").other("other"));
+    assertEquals("", db.when().derby("derby").other(""));
   }
 
   /**

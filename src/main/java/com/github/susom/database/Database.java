@@ -142,14 +142,13 @@ public interface Database extends Provider<Database> {
    * <p>A little syntax sugar to make it easier to customize your SQL based on the
    * specific database. For example:</p>
    *
-   * <pre>"select 1" + db.when(Flavor.oracle, " from dual").otherwise("")</pre>
+   * <pre>"select 1" + db.when().oracle(" from dual")</pre>
+   * <pre>"select " + db.when().postgres("date_trunc('day',").other("trunc(") + ") ..."</pre>
    *
-   * @param flavor the current database will be checked to see if it is this flavor
-   * @param sql this string will be the return value if the flavor matches
    * @return an interface for chaining or terminating the conditionals
    */
   @NotNull
-  When when(@NotNull Flavor flavor, @NotNull String sql);
+  When when();
 
   /**
    * Convenience method to deal with mutually incompatible syntax for this. For example:
@@ -170,7 +169,12 @@ public interface Database extends Provider<Database> {
 
   interface When {
     @NotNull
-    When when(@NotNull Flavor flavor, @NotNull String sql);
-    @NotNull String otherwise(@NotNull String sql);
+    When oracle(@NotNull String sql);
+    @NotNull
+    When derby(@NotNull String sql);
+    @NotNull
+    When postgres(@NotNull String sql);
+
+    @NotNull String other(@NotNull String sql);
   }
 }

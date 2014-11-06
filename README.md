@@ -32,7 +32,7 @@ therefore handle null values correctly. No more errors because you pass a null a
 driver can't figure out what type it should be.
 
 ```java
-  db.insert("insert into foo (bar) values (?)").argLong(maybeNull).insert(1);
+  db.toInsert("insert into foo (bar) values (?)").argLong(maybeNull).insert(1);
 ```
 
 #### Indexed or named parameters
@@ -42,8 +42,8 @@ or you can use named parameters. This can help reduce errors due to counting
 incorrectly.
 
 ```java
-  db.update("update foo set bar=?").argLong(23L).update();
-  db.update("update foo set bar=:baz").argLong("baz", 23L).update();
+  db.toUpdate("update foo set bar=?").argLong(23L).update();
+  db.toUpdate("update foo set bar=:baz").argLong("baz", 23L).update();
 ```
 
 You can use both positional and named within the same SQL statement. The positional
@@ -51,7 +51,7 @@ parameters must be in the correct order, but the `arg*()` calls for the named
 parameters can be mixed anywhere among the positional ones.
 
 ```java
-  db.select("select c from t where a=:a and b=?")
+  db.toSelect("select c from t where a=:a and b=?")
       .argString("value for b")
       .argString(":a", "value for a")
       .queryLongOrNull();
@@ -71,7 +71,7 @@ Parameter setting can also be deferred for convenient dynamic SQL generation:
     args.argString("foo");
   }
 
-  db.select(sql).apply(args).query(...);
+  db.toSelect(sql).withArgs(args).query(...);
 ```
 
 #### Correct handling of java.util.Date
@@ -83,11 +83,11 @@ and dealing with millisecond truncation and nanoseconds.
 ```java
   Date now = new Date(); // java.util.Date
 
-  db.insert("insert into t (pk,d) values (?,?)")
+  db.toInsert("insert into t (pk,d) values (?,?)")
       .argInteger(123)
       .argDate(now)
       .insert(1);
-  Date sameNow = db.select("select d from t where pk=?")
+  Date sameNow = db.toSelect("select d from t where pk=?")
       .argInteger(123)
       .queryDateOrNull();
 
@@ -101,7 +101,7 @@ within the configurable `Options`. This is handy for testing because you can exp
 control and manipulate the clock.
 
 ```java
-  db.insert(...).argDateNowPerApp().insert();
+  db.toInsert(...).argDateNowPerApp().insert();
 ```
 
 Since every database seems to have a different way of dealing with time, this library also
@@ -109,7 +109,7 @@ tries to smooth out some of the syntactic (and semantic) differences in using ti
 to the database server (the operating system time).
 
 ```java
-  db.insert(...).argDateNowPerDb().insert();
+  db.toInsert(...).argDateNowPerDb().insert();
 ```
 
 For Oracle the above code will substitute `systimestamp(3)` for the parameter, while for PostgreSQL
@@ -150,7 +150,7 @@ way to do it that will be efficient on advanced databases, and still be able to
 transparently fall back to multiple database calls when necessary.
 
 ```java
-  Long pk = db.insert(
+  Long pk = db.toInsert(
       "insert into t (pk,s) values (?,?)")
       .argPkSeq("pk_seq")
       .argString("Hi")
@@ -161,7 +161,7 @@ This has a more general form for returning multiple columns. For example, if you
 inserted a database timestamp and need that value as well to update an object in memory:
 
 ```java
-  db.insert("insert into t (pk,d,s) values (?,?,?)")
+  db.toInsert("insert into t (pk,d,s) values (?,?,?)")
       .argPkSeq("pk_seq")
       .argDateNowPerDb()
       .argString("Hi")
@@ -182,6 +182,11 @@ inserted a database timestamp and need that value as well to update an object in
 
 Built to make life easier in modern IDEs. Everything you need is accessed from a
 single interface (Database).
+
+Methods within the library have also been annotated to help IDEs like IntelliJ
+provide better support. For example, it can warn you about checking nulls, or
+forgetting to use a return value on a fluent API. Try using the
+[error-prone](http://errorprone.info/) plugin and/or build tools in your project.
 
 #### Schema Definition and Creation
 
@@ -212,10 +217,10 @@ Basic example including setup:
     public void run(Database db) {
       db.ddl("drop table t").executeQuietly();
       db.ddl("create table t (a numeric)").execute();
-      db.insert("insert into t (a) values (?)").argInteger(32).insert(1);
-      db.update("update t set a=:val").argInteger("val", 23).update();
+      db.toInsert("insert into t (a) values (?)").argInteger(32).insert(1);
+      db.toUpdate("update t set a=:val").argInteger("val", 23).update();
 
-      Long rows = db.select("select count(1) from t").queryLongOrNull();
+      Long rows = db.toSelect("select count(1) from t").queryLongOrNull();
       System.out.println("Rows: " + rows);
     }
   });
@@ -243,13 +248,13 @@ public class MyBusiness {
       return cached(data);
     }
     
-    return db.get().select("select count(*) from a where b=:data")
+    return db.get().toSelect("select count(*) from a where b=:data")
              .argString("data", data).queryLong();
   }
 
   // Note we use only java.util.Date, not java.sql.*
   public List<Date> doMoreStuff(Date after) {
-    return db.get().select("select my_date from a where b > ?").argDate(after)
+    return db.get().toSelect("select my_date from a where b > ?").argDate(after)
            .query(new RowsHandler<List<Date>>() {
               @Override
               public List<Date> process(Rows rs) throws Exception {
@@ -259,9 +264,34 @@ public class MyBusiness {
                 }
                 return result;
               }
-           }
+           });
   }
 }
+```
+
+Note the handlers are Java 8 closure-friendly, so the last method above could be written:
+
+```java
+  public List<Date> doMoreStuff(Date after) {
+    return db.get().toSelect("select my_date from a where b > ?").argDate(after)
+           .query(rs -> {
+              List<Date> result = new ArrayList<>();
+              while (rs.next()) {
+                result.add(rs.getDateOrNull("my_date"));
+              }
+              return result;
+           });
+  }
+```
+
+Of course there are also convenience methods for simple cases like
+this having only one column in the result:
+
+```java
+  public List<Date> doMoreStuff(Date after) {
+    return db.get().toSelect("select my_date from a where b > ?")
+        .argDate(after).queryDates();
+  }
 ```
 
 ### Getting Started
@@ -272,7 +302,7 @@ The library is available in the public Maven repository:
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
-  <version>1.1</version>
+  <version>1.2</version>
 </dependency>
 ```
 

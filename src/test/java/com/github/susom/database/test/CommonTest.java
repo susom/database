@@ -59,7 +59,7 @@ public abstract class CommonTest {
 
   protected DatabaseProvider dbp;
   protected Database db;
-  protected Date now;
+  protected Date now = new Date();
 
   @Before
   public void setupJdbc() throws Exception {
@@ -98,7 +98,6 @@ public abstract class CommonTest {
           .addColumn("bin_blob").asBlob().table()
           .addColumn("date_millis").asDate().table().schema().execute(db);
 
-    now = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
     db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?)").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
         .argBigDecimal(bigDecimal).argString("Hello").argString("T").argClobString("World")
@@ -276,7 +275,6 @@ public abstract class CommonTest {
         .addColumn("bin_blob").asBlob().table()
         .addColumn("date_millis").asDate().table().schema().execute(db);
 
-    now = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
     assertEquals(1, db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?)")
         .argLong(1L)
@@ -403,7 +401,6 @@ public abstract class CommonTest {
         .addColumn("bin_blob").asBlob().table()
         .addColumn("date_millis").asDate().table().schema().execute(db);
 
-    now = new Date();
     BigDecimal bigDecimal = new BigDecimal("5.3");
     db.toInsert("insert into dbtest values (:pk,:a,:b,:c,:d,:e,:f,:sf,:g,:h,:i)").argLong(":pk", 1L).argInteger(":a", 1)
         .argLong(":b", 2L).argFloat(":c", 3.2f).argDouble(":d", 4.2).argBigDecimal(":e", bigDecimal)
@@ -738,7 +735,6 @@ public abstract class CommonTest {
         .addSequence("dbtest_seq").schema()
         .execute(db);
 
-    now = new Date();
     db.toInsert("insert into dbtest (pk, d) values (:seq, :d)")
         .argPkSeq(":seq", "dbtest_seq")
         .argDateNowPerApp(":d")

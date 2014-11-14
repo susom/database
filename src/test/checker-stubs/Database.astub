@@ -1,0 +1,23 @@
+import org.checkerframework.checker.tainting.qual.Untainted;
+
+package com.github.susom.database;
+
+class Database {
+  SqlInsert toInsert(@Untainted String sql);
+
+  SqlSelect toSelect(@Untainted String sql);
+
+  SqlSelect toSelect(@Untainted Sql sql);
+
+  SqlUpdate toUpdate(@Untainted String sql);
+
+  SqlUpdate toDelete(@Untainted String sql);
+
+  Long nextSequenceValue(@Untainted String sequenceName);
+
+  void dropSequenceQuietly(@Untainted String sequenceName);
+
+  void dropTableQuietly(@Untainted String tableName);
+
+  @Untainted When when();
+}

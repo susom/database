@@ -1,0 +1,13 @@
+import org.checkerframework.checker.tainting.qual.Untainted;
+
+package com.github.susom.database;
+
+@Untainted
+class Sql {
+  Sql(@Untainted String sql);
+
+  Sql append(@Untainted String sql);
+
+  @Untainted
+  String sql();
+}

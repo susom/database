@@ -129,7 +129,9 @@ public class MixedParameterSql {
       Set<String> unusedNames = new HashSet<>(nameToArg.keySet());
       unusedNames.removeAll(argNamesList);
       unusedNames.removeAll(rewrittenArgs);
-      throw new DatabaseException("These named parameters do not exist in the query: " + unusedNames);
+      if (!unusedNames.isEmpty()) {
+        throw new DatabaseException("These named parameters do not exist in the query: " + unusedNames);
+      }
     }
   }
 

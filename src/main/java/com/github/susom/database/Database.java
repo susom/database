@@ -60,6 +60,10 @@ public interface Database extends Provider<Database> {
   @CheckReturnValue
   SqlSelect toSelect(@Language("SQL") @NotNull String sql);
 
+  @NotNull
+  @CheckReturnValue
+  SqlSelect toSelect(@NotNull Sql sql);
+
   /**
    * Create a SQL "update" statement for further manipulation and execution.
    * Note this call does not actually execute the SQL.
@@ -173,20 +177,4 @@ public interface Database extends Provider<Database> {
    * @param tableName the table to be dropped
    */
   void dropTableQuietly(String tableName);
-
-  interface When {
-    @NotNull
-    When oracle(@NotNull String sql);
-    @NotNull
-    When derby(@NotNull String sql);
-    @NotNull
-    When postgres(@NotNull String sql);
-
-    /**
-     * The value provided to this method will be used if none of the
-     * other databases specified up to this point in the call chain
-     * match the current flavor.
-     */
-    @NotNull String other(@NotNull String sql);
-  }
 }

@@ -21,6 +21,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import javax.annotation.CheckReturnValue;
 import javax.inject.Provider;
 import javax.naming.Context;
 import javax.sql.DataSource;
@@ -60,6 +61,7 @@ public final class DatabaseProvider implements Provider<Database> {
    * the JDBC standard DriverManager method. The url parameter will be inspected
    * to determine the Flavor for this database.
    */
+  @CheckReturnValue
   public static Builder fromDriverManager(String url) {
     return fromDriverManager(url, null, null, null);
   }
@@ -69,6 +71,7 @@ public final class DatabaseProvider implements Provider<Database> {
    * the JDBC standard DriverManager method. The url parameter will be inspected
    * to determine the Flavor for this database.
    */
+  @CheckReturnValue
   public static Builder fromDriverManager(String url, Properties info) {
     return fromDriverManager(url, info, null, null);
   }
@@ -78,6 +81,7 @@ public final class DatabaseProvider implements Provider<Database> {
    * the JDBC standard DriverManager method. The url parameter will be inspected
    * to determine the Flavor for this database.
    */
+  @CheckReturnValue
   public static Builder fromDriverManager(String url, String user, String password) {
     return fromDriverManager(url, null, user, password);
   }
@@ -112,6 +116,7 @@ public final class DatabaseProvider implements Provider<Database> {
    * a JNDI resource. To use this method you must explicitly indicate what
    * Flavor of database we are dealing with.
    */
+  @CheckReturnValue
   public static Builder fromJndi(final Context context, final String lookupKey, Flavor flavor) {
     Options options = new OptionsDefault(flavor);
 
@@ -160,12 +165,19 @@ public final class DatabaseProvider implements Provider<Database> {
     }
   }
 
+  /**
+   * This builder is immutable, so setting various options does not affect
+   * the previous instance. This is intended to make it safe to pass builders
+   * around without risk someone will reconfigure it.
+   */
   public interface Builder {
+    @CheckReturnValue
     Builder withOptions(OptionsOverride options);
 
     /**
      * Enable logging of parameter values along with the SQL.
      */
+    @CheckReturnValue
     Builder withSqlParameterLogging();
 
     /**
@@ -174,6 +186,7 @@ public final class DatabaseProvider implements Provider<Database> {
      * development, but be careful as this is an information disclosure risk,
      * dependent on how the exception are caught and handled.
      */
+    @CheckReturnValue
     Builder withSqlInExceptionMessages();
 
     /**
@@ -181,6 +194,7 @@ public final class DatabaseProvider implements Provider<Database> {
      * useful for testing purposes as you can use OptionsOverride to provide your
      * own system clock that will be used for time travel.
      */
+    @CheckReturnValue
     Builder withDatePerAppOnly();
 
     /**
@@ -188,18 +202,21 @@ public final class DatabaseProvider implements Provider<Database> {
      * commitNow() and rollbackNow() methods. Otherwise calling those methods would
      * throw an exception.
      */
+    @CheckReturnValue
     Builder withTransactionControl();
 
     /**
      * This can be useful when testing code, as it can pretend to use transactions,
      * while giving you control over whether it actually commits or rolls back.
      */
+    @CheckReturnValue
     Builder withTransactionControlSilentlyIgnored();
 
     /**
      * Note that if you use this method you are responsible for managing
      * the transaction and commit/rollback/close.
      */
+    @CheckReturnValue
     DatabaseProvider create();
 
     /**

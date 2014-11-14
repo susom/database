@@ -5,4 +5,9 @@
     <Bug code="DMI,RV" />
   </Match>
 
+  <Match>
+    <!-- Seems to be giving an incorrect error for this class about redundant null check -->
+    <Class name="com.github.susom.database.When"/>
+  </Match>
+
 </FindBugsFilter>

@@ -152,7 +152,7 @@ public final class DatabaseProvider implements Provider<Database> {
 
     boolean complete = false;
     try {
-      run.run(get());
+      run.run(this);
       complete = true;
     } catch (Exception e) {
       throw new DatabaseException("Exception during transaction", e);

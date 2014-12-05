@@ -16,6 +16,8 @@
 
 package com.github.susom.database;
 
+import javax.inject.Provider;
+
 /**
  * Abstract base class for a block of runnable code using a transacted Database.
  *
@@ -34,7 +36,7 @@ public abstract class DbRun {
    * <p>If a checked exception is thrown from this method, it will be caught, wrapped in
    * a DatabaseException, and then propagated.</p>
    */
-  public abstract void run(Database db) throws Exception;
+  public abstract void run(Provider<Database> db) throws Exception;
 
   public boolean isRollbackOnError() {
     return rollbackOnException;

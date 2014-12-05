@@ -298,6 +298,7 @@
             </executions>
             <configuration>
               <executable>${checker.dir}/checker/bin/javac</executable>
+              <classpathScope>test</classpathScope>
               <arguments>
                 <argument>-processor</argument>
                 <argument>org.checkerframework.checker.tainting.TaintingChecker</argument>
@@ -310,6 +311,7 @@
                 <argument>-d</argument>
                 <argument>${project.build.directory}</argument>
                 <argument>${basedir}/src/main/java/com/github/susom/database/*.java</argument>
+                <argument>${basedir}/src/test/java/com/github/susom/database/test/*.java</argument>
               </arguments>
             </configuration>
           </plugin>

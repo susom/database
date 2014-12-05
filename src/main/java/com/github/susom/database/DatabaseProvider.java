@@ -63,7 +63,18 @@ public final class DatabaseProvider implements Provider<Database> {
    */
   @CheckReturnValue
   public static Builder fromDriverManager(String url) {
-    return fromDriverManager(url, null, null, null);
+    return fromDriverManager(url, Flavor.fromJdbcUrl(url), null, null, null);
+  }
+
+  /**
+   * Builder method to create and initialize an instance of this class using
+   * the JDBC standard DriverManager method.
+   *
+   * @param flavor use this flavor rather than guessing based on the url
+   */
+  @CheckReturnValue
+  public static Builder fromDriverManager(String url, Flavor flavor) {
+    return fromDriverManager(url, flavor, null, null, null);
   }
 
   /**
@@ -73,7 +84,18 @@ public final class DatabaseProvider implements Provider<Database> {
    */
   @CheckReturnValue
   public static Builder fromDriverManager(String url, Properties info) {
-    return fromDriverManager(url, info, null, null);
+    return fromDriverManager(url, Flavor.fromJdbcUrl(url), info, null, null);
+  }
+
+  /**
+   * Builder method to create and initialize an instance of this class using
+   * the JDBC standard DriverManager method.
+   *
+   * @param flavor use this flavor rather than guessing based on the url
+   */
+  @CheckReturnValue
+  public static Builder fromDriverManager(String url, Flavor flavor, Properties info) {
+    return fromDriverManager(url, flavor, info, null, null);
   }
 
   /**
@@ -83,16 +105,23 @@ public final class DatabaseProvider implements Provider<Database> {
    */
   @CheckReturnValue
   public static Builder fromDriverManager(String url, String user, String password) {
-    return fromDriverManager(url, null, user, password);
+    return fromDriverManager(url, Flavor.fromJdbcUrl(url), null, user, password);
   }
 
-  private static Builder fromDriverManager(final String url, final Properties info, final String user, final String password) {
-    Flavor flavor = Flavor.fromJdbcUrl(url);
-    Options options = new OptionsDefault(flavor);
+  /**
+   * Builder method to create and initialize an instance of this class using
+   * the JDBC standard DriverManager method.
+   *
+   * @param flavor use this flavor rather than guessing based on the url
+   */
+  @CheckReturnValue
+  public static Builder fromDriverManager(String url, Flavor flavor, String user, String password) {
+    return fromDriverManager(url, flavor, null, user, password);
+  }
 
-    if (flavor == Flavor.generic) {
-      log.info("Couldn't determine database flavor from JDBC URL, defaulting to generic");
-    }
+  private static Builder fromDriverManager(final String url, Flavor flavor, final Properties info,
+                                           final String user, final String password) {
+    Options options = new OptionsDefault(flavor);
 
     return new BuilderImpl(new Provider<Connection>() {
       @Override

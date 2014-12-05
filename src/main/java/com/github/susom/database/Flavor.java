@@ -22,7 +22,6 @@ package com.github.susom.database;
  * @author garricko
  */
 public enum Flavor {
-  generic,
   derby {
     @Override
     public String sequenceNextVal(String sequenceName) {
@@ -238,7 +237,7 @@ public enum Flavor {
     } else if (url.startsWith("jdbc:derby:")) {
       return derby;
     } else {
-      return generic;
+      throw new DatabaseException("Cannot determine database flavor from url");
     }
   }
 

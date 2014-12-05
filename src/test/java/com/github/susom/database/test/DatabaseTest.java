@@ -54,7 +54,7 @@ public class DatabaseTest {
     log.info("Initialized log4j using file: " + log4jConfig);
   }
 
-  private OptionsDefault options = new OptionsDefault(Flavor.generic) {
+  private OptionsDefault options = new OptionsDefault(Flavor.postgresql) {
     int errors = 0;
 
     @Override
@@ -297,7 +297,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
         int errors = 0;
 
         @Override
@@ -323,7 +323,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
         int errors = 0;
 
         @Override
@@ -359,7 +359,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
         int errors = 0;
 
         @Override
@@ -533,7 +533,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
         int errors = 0;
 
         @Override
@@ -579,7 +579,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      Long value = new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
         int errors = 0;
 
         @Override
@@ -641,7 +641,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+    new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
       @Override
       public boolean allowTransactionControl() {
         return true;
@@ -663,7 +663,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
         @Override
         public boolean allowTransactionControl() {
           return true;
@@ -687,7 +687,7 @@ public class DatabaseTest {
 
     control.replay();
 
-    new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+    new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
       @Override
       public boolean allowTransactionControl() {
         return true;
@@ -709,7 +709,7 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseImpl(c, new OptionsDefault(Flavor.generic) {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.postgresql) {
         @Override
         public boolean allowTransactionControl() {
           return true;

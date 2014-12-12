@@ -127,6 +127,10 @@ public interface SqlSelect {
   @CheckReturnValue
   Long queryLongOrNull();
 
+  @Nullable
+  @CheckReturnValue
+  Long queryLongOrZero();
+
   /**
    * Shorthand for reading numbers from the first column of the result.
    *
@@ -139,6 +143,10 @@ public interface SqlSelect {
   @Nullable
   @CheckReturnValue
   Integer queryIntegerOrNull();
+
+  @Nullable
+  @CheckReturnValue
+  Integer queryIntegerOrZero();
 
   @NotNull
   @CheckReturnValue

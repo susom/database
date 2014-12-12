@@ -214,6 +214,20 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
+  @Override
+  @Nullable
+  public Long queryLongOrZero() {
+    return queryWithTimeout(new RowsHandler<Long>() {
+      @Override
+      public Long process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getLongOrZero(1);
+        }
+        return 0L;
+      }
+    });
+  }
+
   @NotNull
   @Override
   public List<Long> queryLongs() {
@@ -242,6 +256,20 @@ public class SqlSelectImpl implements SqlSelect {
           return rs.getIntegerOrNull(1);
         }
         return null;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public Integer queryIntegerOrZero() {
+    return queryWithTimeout(new RowsHandler<Integer>() {
+      @Override
+      public Integer process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getIntegerOrZero(1);
+        }
+        return 0;
       }
     });
   }

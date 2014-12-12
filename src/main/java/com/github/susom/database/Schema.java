@@ -460,7 +460,7 @@ public class Schema {
     StringBuilder script = new StringBuilder();
 
     for (Table table : tables) {
-      StringBuilder sql = new StringBuilder();
+      Sql sql = new Sql();
       sql.append("create table ").append(table.name).append(" (\n");
       boolean first = true;
       for (Column column : table.columns) {
@@ -511,31 +511,23 @@ public class Schema {
       if (table.primaryKey != null) {
         sql.append(",\n  constraint ");
         sql.append(rpad(table.primaryKey.name, 30));
-        sql.append(" primary key (");
+        sql.listStart(" primary key (");
         for (String name : table.primaryKey.columnNames) {
-          if (sql.charAt(sql.length() - 1) == '(') {
-            sql.append(name);
-          } else {
-            sql.append(", ");
-            sql.append(name);
-          }
+          sql.listSeparator(", ");
+          sql.append(name);
         }
-        sql.append(")");
+        sql.listEnd(")");
       }
 
       for (Unique u : table.uniques) {
         sql.append(",\n  constraint ");
         sql.append(rpad(u.name, 30));
-        sql.append(" unique (");
+        sql.listStart(" unique (");
         for (String name : u.columnNames) {
-          if (sql.charAt(sql.length() - 1) == '(') {
-            sql.append(name);
-          } else {
-            sql.append(", ");
-            sql.append(name);
-          }
+          sql.listSeparator(", ");
+          sql.append(name);
         }
-        sql.append(")");
+        sql.listEnd(")");
       }
 
       for (Check check : table.checks) {
@@ -551,6 +543,7 @@ public class Schema {
         sql.append(" ").append(table.customClause);
       }
       executeOrPrint(sql, db, script);
+      sql = new Sql();
 
       if (flavor == Flavor.oracle || flavor == Flavor.postgresql) {
         if (table.comment != null) {
@@ -560,6 +553,7 @@ public class Schema {
           sql.append(table.comment.replace("\'", "\'\'"));
           sql.append("'");
           executeOrPrint(sql, db, script);
+          sql = new Sql();
         }
 
         for (Column c : table.columns) {
@@ -572,59 +566,49 @@ public class Schema {
             sql.append(c.comment.replace("\'", "\'\'"));
             sql.append("'");
             executeOrPrint(sql, db, script);
+            sql = new Sql();
           }
         }
       }
     }
 
     for (Table table : tables) {
-      StringBuilder sql = new StringBuilder();
-
       for (ForeignKey fk : table.foreignKeys) {
+        Sql sql = new Sql();
         sql.append("alter table ");
         sql.append(table.name);
         sql.append(" add constraint ");
         sql.append(fk.name);
-        sql.append("\n  foreign key (");
+        sql.listStart("\n  foreign key (");
         for (String name : fk.columnNames) {
-          if (sql.charAt(sql.length() - 1) == '(') {
-            sql.append(name);
-          } else {
-            sql.append(", ");
-            sql.append(name);
-          }
+          sql.listSeparator(", ");
+          sql.append(name);
         }
-        sql.append(") references ");
+        sql.listEnd(") references ");
         sql.append(fk.foreignTable);
         executeOrPrint(sql, db, script);
       }
     }
 
     for (Table table : tables) {
-      StringBuilder sql = new StringBuilder();
-
       for (Index index : table.indexes) {
+        Sql sql = new Sql();
         sql.append("create index ");
         sql.append(index.name);
         sql.append(" on ");
         sql.append(table.name);
-        sql.append(" (");
+        sql.listStart(" (");
         for (String name : index.columnNames) {
-          if (sql.charAt(sql.length() - 1) == '(') {
-            sql.append(name);
-          } else {
-            sql.append(", ");
-            sql.append(name);
-          }
+          sql.listSeparator(", ");
+          sql.append(name);
         }
-        sql.append(")");
+        sql.listEnd(")");
         executeOrPrint(sql, db, script);
       }
     }
 
     for (Sequence sequence : sequences) {
-      StringBuilder sql = new StringBuilder();
-
+      Sql sql = new Sql();
       sql.append("create sequence ");
       sql.append(sequence.name);
       if (flavor == Flavor.derby) {
@@ -650,14 +634,13 @@ public class Schema {
     return null;
   }
 
-  private void executeOrPrint(StringBuilder sql, Database db, StringBuilder script) {
+  private void executeOrPrint(Sql sql, Database db, StringBuilder script) {
     if (db != null) {
       db.ddl(sql.toString()).execute();
     } else {
       script.append(sql.toString());
       script.append(";\n\n");
     }
-    sql.setLength(0);
   }
 
   private String toName(String name) {

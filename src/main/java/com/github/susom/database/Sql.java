@@ -22,11 +22,13 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import javax.annotation.Untainted;
+import java.util.Stack;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+/*>>>
+import org.checkerframework.checker.tainting.qual.Untainted;
+*/
 
 /**
  * This class is useful for dynamically generating SQL. It can "buffer" the
@@ -34,30 +36,67 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author garricko
  */
+/*@Untainted*/
 public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   private StringBuilder sql = new StringBuilder();
+  private Stack<Boolean> listFirstItem = new Stack<>();
   private String finalSql;
+  private List<Invocation> invocations = new ArrayList<>();
 
   public Sql() {
     // Nothing to do
   }
 
-  public Sql(@Untainted String sql) {
+  public Sql(/*@Untainted*/ String sql) {
     this.sql.append(sql);
   }
 
-  public Sql append(@Untainted String sql) {
+  public Sql append(/*@Untainted*/ String sql) {
     assert finalSql == null;
     this.sql.append(sql);
     return this;
   }
 
-  @Untainted
+  public Sql append(long sql) {
+    assert finalSql == null;
+    this.sql.append(sql);
+    return this;
+  }
+
+  public Sql listStart(/*@Untainted*/ String sql) {
+    listFirstItem.push(true);
+    return append(sql);
+  }
+
+  public Sql listSeparator(/*@Untainted*/ String sql) {
+    if (listFirstItem.peek()) {
+      listFirstItem.pop();
+      listFirstItem.push(false);
+      return this;
+    } else {
+      return append(sql);
+    }
+  }
+
+  public Sql listEnd(/*@Untainted*/ String sql) {
+    listFirstItem.pop();
+    return append(sql);
+  }
+
+  /*@Untainted*/
   public String sql() {
     if (finalSql == null) {
       finalSql = sql.toString();
     }
     return finalSql;
+  }
+
+  /**
+   * Same as sql(), provided for drop-in compatibility with StringBuilder.
+   */
+  /*@Untainted*/
+  public String toString() {
+    return sql();
   }
 
   public static enum ColumnType {
@@ -76,8 +115,6 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
       this.arg = arg;
     }
   }
-
-  private List<Invocation> invocations = new ArrayList<>();
 
   @NotNull
   public Sql argInteger(@Nullable Integer arg) {

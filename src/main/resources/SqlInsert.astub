@@ -1,0 +1,14 @@
+import org.checkerframework.checker.tainting.qual.Untainted;
+
+package com.github.susom.database;
+
+class SqlInsert {
+  Long insertReturningPkSeq(@Untainted String primaryKeyColumnName);
+
+  <T> T insertReturning(@Untainted String tableName, @Untainted String primaryKeyColumnName, RowsHandler<T> rowsHandler,
+                        @Untainted String...otherColumnNames);
+
+  SqlInsert argPkSeq(@Untainted @NotNull String sequenceName);
+
+  SqlInsert argPkSeq(@NotNull String argName, @Untainted @NotNull String sequenceName);
+}

@@ -1,0 +1,18 @@
+import org.checkerframework.checker.tainting.qual.Untainted;
+
+package com.github.susom.database;
+
+@Untainted
+class When {
+  When oracle(@Untainted String sql);
+
+  When derby(@Untainted String sql);
+
+  When postgres(@Untainted String sql);
+
+  @Untainted
+  String other(@Untainted String sql);
+
+  @Untainted
+  String toString();
+}

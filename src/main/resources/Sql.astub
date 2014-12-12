@@ -10,4 +10,7 @@ class Sql {
 
   @Untainted
   String sql();
+
+  @Untainted
+  String toString();
 }

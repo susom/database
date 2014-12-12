@@ -284,7 +284,20 @@
     <profile>
       <id>checker</id>
       <build>
+        <defaultGoal>generate-sources</defaultGoal>
         <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.3</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>properties</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
@@ -294,6 +307,7 @@
                 <goals>
                   <goal>exec</goal>
                 </goals>
+                <phase>generate-sources</phase>
               </execution>
             </executions>
             <configuration>
@@ -302,7 +316,7 @@
               <arguments>
                 <argument>-processor</argument>
                 <argument>org.checkerframework.checker.tainting.TaintingChecker</argument>
-                <argument>-Astubs=src/test/checker-stubs</argument>
+                <argument>-Astubs=src/main/resources</argument>
                 <argument>-AprintErrorStack</argument>
                 <argument>-Xmaxwarns</argument>
                 <argument>10000</argument>

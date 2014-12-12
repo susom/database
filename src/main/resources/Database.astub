@@ -13,11 +13,13 @@ class Database {
 
   SqlUpdate toDelete(@Untainted String sql);
 
+  Ddl ddl(@Untainted String sql);
+
   Long nextSequenceValue(@Untainted String sequenceName);
+
+  @Untainted When when();
 
   void dropSequenceQuietly(@Untainted String sequenceName);
 
   void dropTableQuietly(@Untainted String tableName);
-
-  @Untainted When when();
 }

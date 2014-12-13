@@ -21,6 +21,9 @@ import java.sql.Connection;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+/*>>>
+import org.checkerframework.checker.tainting.qual.Untainted;
+*/
 
 /**
  * Primary class for accessing a relational (SQL) database.
@@ -80,7 +83,7 @@ public class DatabaseImpl implements Database {
   }
 
   @Override
-  public Long nextSequenceValue(@NotNull String sequenceName) {
+  public Long nextSequenceValue(/*@Untainted*/ @NotNull String sequenceName) {
     return toSelect(flavor().sequenceSelectNextVal(sequenceName)).queryLongOrNull();
   }
 
@@ -141,12 +144,12 @@ public class DatabaseImpl implements Database {
   }
 
   @Override
-  public void dropSequenceQuietly(@NotNull String sequenceName) {
+  public void dropSequenceQuietly(/*@Untainted*/ @NotNull String sequenceName) {
     ddl(flavor().sequenceDrop(sequenceName)).executeQuietly();
   }
 
   @Override
-  public void dropTableQuietly(@NotNull String tableName) {
+  public void dropTableQuietly(/*@Untainted*/ @NotNull String tableName) {
     ddl("drop table " + tableName).executeQuietly();
   }
 }

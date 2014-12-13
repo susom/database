@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+  <!-- Send INFO and below to stdout and WARN and above to stderr. This can cause
+       the sequence of log messages to be slightly off, but allows IDEs to show
+       messages as black or red depending on priority. -->
+  <appender name="CONSOLE.OUT" class="org.apache.log4j.ConsoleAppender">
+    <param name="Target" value="System.out"/>
+    <param name="Threshold" value="ALL"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%t] %c %m%n"/>
+    </layout>
+    <filter class="org.apache.log4j.varia.LevelRangeFilter">
+        <param name="LevelMin" value="TRACE"/>
+        <param name="LevelMax" value="INFO"/>
+        <param name="AcceptOnMatch" value="false"/>
+    </filter>
+  </appender>
+  <appender name="CONSOLE.ERR" class="org.apache.log4j.ConsoleAppender">
+    <param name="Target" value="System.err"/>
+    <param name="Threshold" value="WARN"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%t] %c %m%n"/>
+    </layout>
+  </appender>
+  <category name="com.github.susom">
+    <priority value="DEBUG"/>
+  </category>
+  <root>
+    <appender-ref ref="CONSOLE.OUT"/>
+    <appender-ref ref="CONSOLE.ERR"/>
+  </root>
+</log4j:configuration>

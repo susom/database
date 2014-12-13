@@ -29,7 +29,7 @@ import com.github.susom.database.OptionsOverride;
 public class DerbyTest extends CommonTest {
   static {
     // We will put all Derby related files inside ./build to keep our working copy clean
-    File directory = new File("build").getAbsoluteFile();
+    File directory = new File("target").getAbsoluteFile();
     if (directory.exists() || directory.mkdirs()) {
       System.setProperty("derby.stream.error.file", new File(directory, "derby.log").getAbsolutePath());
     }
@@ -37,7 +37,7 @@ public class DerbyTest extends CommonTest {
 
   @Override
   protected DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception {
-    return DatabaseProvider.fromDriverManager("jdbc:derby:build/testdb;create=true")
+    return DatabaseProvider.fromDriverManager("jdbc:derby:target/testdb;create=true")
         .withSqlParameterLogging().withSqlInExceptionMessages().withOptions(options).create();
   }
 }

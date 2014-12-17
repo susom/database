@@ -6,7 +6,7 @@ import com.github.susom.database.Sql;
  * Demo of how to use the Sql helper class to dynamically build queries.
  */
 public class DynamicSql extends DerbyExample {
-  void example(String[] args, Database db) {
+  void example(Database db, String[] args) {
     // Drops in case we are running this multiple times
     db.dropTableQuietly("t");
 

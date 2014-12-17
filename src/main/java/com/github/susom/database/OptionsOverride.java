@@ -26,6 +26,20 @@ import java.util.Date;
 public class OptionsOverride implements Options {
   private Options parent;
 
+  /**
+   * Defer to OptionsDefault for anything that is not specified, and use postgresql flavor.
+   */
+  public OptionsOverride() {
+    parent = new OptionsDefault(Flavor.postgresql);
+  }
+
+  /**
+   * Defer to OptionsDefault for anything that is not specified, using the specified flavor.
+   */
+  public OptionsOverride(Flavor flavor) {
+    parent = new OptionsDefault(flavor);
+  }
+
   public void setParent(Options parent) {
     this.parent = parent;
   }

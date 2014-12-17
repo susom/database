@@ -43,6 +43,7 @@ import com.github.susom.database.MixedParameterSql.RewriteArg;
 public class SqlInsertImpl implements SqlInsert {
   private static final Logger log = LoggerFactory.getLogger(Database.class);
   private final Connection connection;
+  private final DatabaseMock mock;
   private final StatementAdaptor adaptor;
   private final String sql;
   private final Options options;
@@ -53,8 +54,9 @@ public class SqlInsertImpl implements SqlInsert {
   private String pkSeqName;
   private Long pkLong;
 
-  public SqlInsertImpl(Connection connection, String sql, Options options) {
+  public SqlInsertImpl(Connection connection, DatabaseMock mock, String sql, Options options) {
     this.connection = connection;
+    this.mock = mock;
     this.sql = sql;
     this.options = options;
     adaptor = new StatementAdaptor(options);
@@ -255,7 +257,10 @@ public class SqlInsertImpl implements SqlInsert {
       return updateInternal(1, primaryKeyColumnName);
     } else {
       // Simulate by issuing a select for the next sequence value, inserting, and returning it
-      Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLongOrNull();
+      Long pk = new SqlSelectImpl(connection, mock, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLongOrNull();
+      if (pk == null) {
+        throw new DatabaseException("Unable to retrieve next sequence value from " + pkSeqName);
+      }
       if (pkArgName != null) {
         namedArg(pkArgName, adaptor.nullNumeric(pk));
       } else {
@@ -277,8 +282,16 @@ public class SqlInsertImpl implements SqlInsert {
       return updateInternal(1, primaryKeyColumnName, handler, otherColumnNames);
     } else if (pkSeqName != null) {
       // Simulate by issuing a select for the next sequence value, inserting, and returning it
-      Long pk = new SqlSelectImpl(connection, options.flavor().sequenceSelectNextVal(pkSeqName), options).queryLongOrNull();
-      namedArg(pkArgName, adaptor.nullNumeric(pk));
+      Long pk = new SqlSelectImpl(connection, mock, options.flavor().sequenceSelectNextVal(pkSeqName), options)
+          .queryLongOrNull();
+      if (pk == null) {
+        throw new DatabaseException("Unable to retrieve next sequence value from " + pkSeqName);
+      }
+      if (pkArgName != null) {
+        namedArg(pkArgName, adaptor.nullNumeric(pk));
+      } else {
+        parameterList.set(pkPos, adaptor.nullNumeric(pk));
+      }
       updateInternal(1);
       StringBuilder sql = new StringBuilder();
       sql.append("select ").append(primaryKeyColumnName);
@@ -286,7 +299,7 @@ public class SqlInsertImpl implements SqlInsert {
         sql.append(", ").append(colName);
       }
       sql.append(" from ").append(tableName).append(" where ").append(primaryKeyColumnName).append("=?");
-      return new SqlSelectImpl(connection, sql.toString(), options).argLong(pk).query(handler);
+      return new SqlSelectImpl(connection, mock, sql.toString(), options).argLong(pk).query(handler);
     } else if (pkLong != null) {
       // Insert the value, then do a select based on the primary key
       updateInternal(1);
@@ -296,7 +309,7 @@ public class SqlInsertImpl implements SqlInsert {
         sql.append(", ").append(colName);
       }
       sql.append(" from ").append(tableName).append(" where ").append(primaryKeyColumnName).append("=?");
-      return new SqlSelectImpl(connection, sql.toString(), options).argLong(pkLong).query(handler);
+      return new SqlSelectImpl(connection, mock, sql.toString(), options).argLong(pkLong).query(handler);
     } else {
       // Should never happen if our safety checks worked
       throw new DatabaseException("Internal error");
@@ -365,20 +378,32 @@ public class SqlInsertImpl implements SqlInsert {
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 
-      ps = connection.prepareStatement(executeSql);
+      if (connection != null) {
+        ps = connection.prepareStatement(executeSql);
 
-      adaptor.addParameters(ps, parameters);
-      metric.checkpoint("prep");
-      int numAffectedRows = ps.executeUpdate();
-      metric.checkpoint("exec[" + numAffectedRows + "]");
-      if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
-        errorCode = options.generateErrorCode();
-        throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
-            + expectedNumAffectedRows + " were expected." + "\n"
-            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        adaptor.addParameters(ps, parameters);
+        metric.checkpoint("prep");
+        int numAffectedRows = ps.executeUpdate();
+        metric.checkpoint("exec[" + numAffectedRows + "]");
+        if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
+          errorCode = options.generateErrorCode();
+          throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
+              + expectedNumAffectedRows + " were expected." + "\n"
+              + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        }
+        isSuccess = true;
+        return numAffectedRows;
+      } else {
+        Integer numAffectedRows = mock.insert(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        if (numAffectedRows == null) {
+          // No mock behavior provided, be nice and assume the expected value
+          log.debug("Setting numAffectedRows to expected");
+          numAffectedRows = expectedNumAffectedRows;
+        }
+        metric.checkpoint("stub[" + numAffectedRows + "]");
+        isSuccess = true;
+        return numAffectedRows;
       }
-      isSuccess = true;
-      return numAffectedRows;
     } catch (WrongNumberOfRowsException e) {
       throw e;
     } catch (Exception e) {
@@ -412,25 +437,38 @@ public class SqlInsertImpl implements SqlInsert {
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 
-      ps = connection.prepareStatement(executeSql, new String[] { pkToReturn });
+      if (connection != null) {
+        ps = connection.prepareStatement(executeSql, new String[] { pkToReturn });
 
-      adaptor.addParameters(ps, parameters);
-      metric.checkpoint("prep");
-      int numAffectedRows = ps.executeUpdate();
-      metric.checkpoint("exec[" + numAffectedRows + "]");
-      if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
-        errorCode = options.generateErrorCode();
-        throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
-            + expectedNumAffectedRows + " were expected." + "\n"
-            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        adaptor.addParameters(ps, parameters);
+        metric.checkpoint("prep");
+        int numAffectedRows = ps.executeUpdate();
+        metric.checkpoint("exec[" + numAffectedRows + "]");
+        if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
+          errorCode = options.generateErrorCode();
+          throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
+              + expectedNumAffectedRows + " were expected." + "\n"
+              + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        }
+        rs = ps.getGeneratedKeys();
+        Long pk = null;
+        if (rs != null && rs.next()) {
+          pk = rs.getLong(1);
+        }
+        isSuccess = true;
+        return pk;
+      } else {
+        String debugSql = DebugSql.printDebugOnlySqlString(executeSql, parameters);
+        Long pk = mock.insertReturningPk(executeSql, debugSql);
+        if (pk == null) {
+          // No mock behavior provided, default to something that could conceivably work
+          log.debug("Setting pk to hash of debugSql");
+          pk = (long) debugSql.hashCode();
+        }
+        metric.checkpoint("stub");
+        isSuccess = true;
+        return pk;
       }
-      rs = ps.getGeneratedKeys();
-      Long pk = null;
-      if (rs != null && rs.next()) {
-        pk = rs.getLong(1);
-      }
-      isSuccess = true;
-      return pk;
     } catch (WrongNumberOfRowsException e) {
       throw e;
     } catch (Exception e) {
@@ -469,24 +507,37 @@ public class SqlInsertImpl implements SqlInsert {
       String[] returnCols = new String[otherCols.length + 1];
       returnCols[0] = pkToReturn;
       System.arraycopy(otherCols, 0, returnCols, 1, otherCols.length);
-      ps = connection.prepareStatement(executeSql, returnCols);
 
-      adaptor.addParameters(ps, parameters);
-      metric.checkpoint("prep");
-      int numAffectedRows = ps.executeUpdate();
-      metric.checkpoint("exec[" + numAffectedRows + "]");
-      if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
-        errorCode = options.generateErrorCode();
-        throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
-            + expectedNumAffectedRows + " were expected." + "\n"
-            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+      if (connection != null) {
+        ps = connection.prepareStatement(executeSql, returnCols);
+
+        adaptor.addParameters(ps, parameters);
+        metric.checkpoint("prep");
+        int numAffectedRows = ps.executeUpdate();
+        metric.checkpoint("exec[" + numAffectedRows + "]");
+        if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
+          errorCode = options.generateErrorCode();
+          throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
+              + expectedNumAffectedRows + " were expected." + "\n"
+              + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        }
+        rs = ps.getGeneratedKeys();
+        final ResultSet finalRs = rs;
+        T result = handler.process(new RowsAdaptor(finalRs));
+        metric.checkpoint("read");
+        isSuccess = true;
+        return result;
+      } else {
+        RowStub stub = mock.insertReturning(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        if (stub == null) {
+          stub = new RowStub();
+        }
+        metric.checkpoint("stub");
+        T result = handler.process(stub.toRows());
+        metric.checkpoint("read");
+        isSuccess = true;
+        return result;
       }
-      rs = ps.getGeneratedKeys();
-      final ResultSet finalRs = rs;
-      T result = handler.process(new RowsAdaptor(finalRs));
-      metric.checkpoint("read");
-      isSuccess = true;
-      return result;
     } catch (WrongNumberOfRowsException e) {
       throw e;
     } catch (Exception e) {

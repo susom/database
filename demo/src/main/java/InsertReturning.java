@@ -1,21 +1,11 @@
-import java.io.File;
-
-import javax.inject.Provider;
-
-import org.apache.log4j.Logger;
-import org.apache.log4j.xml.DOMConfigurator;
-
 import com.github.susom.database.Database;
-import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbRun;
 import com.github.susom.database.Schema;
 
 /**
  * Demo of using some com.github.susom.database classes with Derby.
  */
-public class InsertReturning {
-
-  private static void theInterestingBit(Database db) {
+public class InsertReturning extends DerbyExample {
+  void example(Database db, String[] args) {
     // Drops in case we are running this multiple times
     db.dropTableQuietly("t");
     db.dropSequenceQuietly("pk_seq");
@@ -44,29 +34,6 @@ public class InsertReturning {
   }
 
   public static void main(String[] args) {
-    try {
-      // Initialize logging
-      String log4jConfig = new File("log4j.xml").getAbsolutePath();
-      DOMConfigurator.configure(log4jConfig);
-      Logger log = Logger.getLogger(InsertReturning.class);
-      log.info("Initialized log4j using file: " + log4jConfig);
-
-      // Put all Derby related files inside ./build to keep our working copy clean
-      File directory = new File("target").getAbsoluteFile();
-      if (directory.exists() || directory.mkdirs()) {
-        System.setProperty("derby.stream.error.file", new File(directory, "derby.log").getAbsolutePath());
-      }
-
-      String url = "jdbc:derby:target/testdb;create=true";
-      DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
-        @Override
-        public void run(Provider<Database> db) {
-          theInterestingBit(db.get());
-        }
-      });
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.exit(1);
-    }
+    new InsertReturning().launch(args);
   }
 }

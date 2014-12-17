@@ -17,6 +17,7 @@
 package com.github.susom.database;
 
 import java.sql.Connection;
+import java.util.Date;
 
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -33,10 +34,22 @@ import org.checkerframework.checker.tainting.qual.Untainted;
 public class DatabaseImpl implements Database {
   private static final Logger log = LoggerFactory.getLogger(Database.class);
   private final Connection connection;
+  private final DatabaseMock mock;
   private final Options options;
 
   public DatabaseImpl(@NotNull Connection connection, @NotNull Options options) {
     this.connection = connection;
+    this.mock = null;
+    this.options = options;
+  }
+
+  public DatabaseImpl(@NotNull DatabaseMock mock, Flavor flavor) {
+    this(mock, new OptionsDefault(flavor));
+  }
+
+  public DatabaseImpl(@NotNull DatabaseMock mock, @NotNull Options options) {
+    this.connection = null;
+    this.mock = mock;
     this.options = options;
   }
 
@@ -49,31 +62,31 @@ public class DatabaseImpl implements Database {
   @Override
   @NotNull
   public SqlInsert toInsert(@NotNull String sql) {
-    return new SqlInsertImpl(connection, sql, options);
+    return new SqlInsertImpl(connection, mock, sql, options);
   }
 
   @Override
   @NotNull
   public SqlSelect toSelect(@NotNull String sql) {
-    return new SqlSelectImpl(connection, sql, options);
+    return new SqlSelectImpl(connection, mock, sql, options);
   }
 
   @NotNull
   @Override
   public SqlSelect toSelect(@NotNull Sql sql) {
-    return new SqlSelectImpl(connection, sql.sql(), options).apply(sql);
+    return new SqlSelectImpl(connection, mock, sql.sql(), options).apply(sql);
   }
 
   @Override
   @NotNull
   public SqlUpdate toUpdate(@NotNull String sql) {
-    return new SqlUpdateImpl(connection, sql, options);
+    return new SqlUpdateImpl(connection, mock, sql, options);
   }
 
   @Override
   @NotNull
   public SqlUpdate toDelete(@NotNull String sql) {
-    return new SqlUpdateImpl(connection, sql, options);
+    return new SqlUpdateImpl(connection, mock, sql, options);
   }
 
   @Override
@@ -85,6 +98,11 @@ public class DatabaseImpl implements Database {
   @Override
   public Long nextSequenceValue(/*@Untainted*/ @NotNull String sequenceName) {
     return toSelect(flavor().sequenceSelectNextVal(sequenceName)).queryLongOrNull();
+  }
+
+  @Override
+  public Date nowPerApp() {
+    return options.currentDate();
   }
 
   public void commitNow() {

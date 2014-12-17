@@ -17,6 +17,7 @@
 package com.github.susom.database;
 
 import java.sql.Connection;
+import java.util.Date;
 
 import javax.annotation.CheckReturnValue;
 import javax.inject.Provider;
@@ -115,6 +116,11 @@ public interface Database extends Provider<Database> {
    */
   @CheckReturnValue
   Long nextSequenceValue(@NotNull String sequenceName);
+
+  /**
+   * Get the value that would be used if you specify an argNowPerApp() parameter.
+   */
+  Date nowPerApp();
 
   /**
    * Cause the underlying connection to commit its transaction immediately. This

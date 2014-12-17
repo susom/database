@@ -31,7 +31,18 @@ import org.slf4j.Logger;
  * @author garricko
  */
 public class DebugSql {
+  public static String printDebugOnlySqlString(String sql, Object[] args) {
+    StringBuilder buf = new StringBuilder();
+    printSql(buf, sql, args, false, true);
+    return buf.toString();
+  }
+
   public static void printSql(StringBuilder buf, String sql, Object[] args, Options options) {
+    printSql(buf, sql, args, true, options.isLogParameters());
+  }
+
+  public static void printSql(StringBuilder buf, String sql, Object[] args, boolean includeExecSql,
+                              boolean includeParameters) {
     Object[] argsToPrint = args;
     if (argsToPrint == null) {
       argsToPrint = new Object[0];
@@ -48,17 +59,21 @@ public class DebugSql {
       buf.append(sql);
       if (args != null) {
         buf.append(" args: ");
-        if (options.isLogParameters()) {
+        if (includeParameters) {
           buf.append(Arrays.toString(argsToPrint));
         } else {
           buf.append(argsToPrint.length);
         }
       }
     } else {
-      buf.append(sql);
-      if (options.isLogParameters() && argsToPrint.length > 0) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        buf.append('|');
+      if (includeExecSql) {
+        buf.append(sql);
+      }
+      if (includeParameters && argsToPrint.length > 0) {
+        SimpleDateFormat sdf = null;
+        if (includeExecSql) {
+          buf.append('|');
+        }
         for (int i = 0; i < argsToPrint.length; i++) {
           buf.append(sqlParts[i]);
           if (argsToPrint[i] instanceof String) {
@@ -68,6 +83,9 @@ public class DebugSql {
           } else if (argsToPrint[i] instanceof StatementAdaptor.SqlNull) {
             buf.append("null");
           } else if (argsToPrint[i] instanceof Date) {
+            if (sdf == null) {
+              sdf = new SimpleDateFormat("yyyy-MM-dd");
+            }
             buf.append("to_date('");
             buf.append(sdf.format((Date) argsToPrint[i]));
             buf.append("', 'YYYY-MM-DD')");

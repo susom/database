@@ -42,14 +42,16 @@ import com.github.susom.database.MixedParameterSql.RewriteArg;
 public class SqlUpdateImpl implements SqlUpdate {
   private static final Logger log = LoggerFactory.getLogger(Database.class);
   private final Connection connection;
+  private final DatabaseMock mock;
   private final StatementAdaptor adaptor;
   private final String sql;
   private final Options options;
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
 
-  public SqlUpdateImpl(@NotNull Connection connection, @NotNull String sql, Options options) {
+  public SqlUpdateImpl(Connection connection, DatabaseMock mock, @NotNull String sql, Options options) {
     this.connection = connection;
+    this.mock = mock;
     this.sql = sql;
     this.options = options;
     adaptor = new StatementAdaptor(options);
@@ -255,20 +257,27 @@ public class SqlUpdateImpl implements SqlUpdate {
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 
-      ps = connection.prepareStatement(executeSql);
+      if (connection != null) {
+        ps = connection.prepareStatement(executeSql);
 
-      adaptor.addParameters(ps, parameters);
-      metric.checkpoint("prep");
-      int numAffectedRows = ps.executeUpdate();
-      metric.checkpoint("exec[" + numAffectedRows + "]");
-      if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
-        errorCode = options.generateErrorCode();
-        throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
-            + expectedNumAffectedRows + " were expected." + "\n"
-            + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        adaptor.addParameters(ps, parameters);
+        metric.checkpoint("prep");
+        int numAffectedRows = ps.executeUpdate();
+        metric.checkpoint("exec[" + numAffectedRows + "]");
+        if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
+          errorCode = options.generateErrorCode();
+          throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
+              + expectedNumAffectedRows + " were expected." + "\n"
+              + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        }
+        isSuccess = true;
+        return numAffectedRows;
+      } else {
+        int numAffectedRows = mock.update(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        metric.checkpoint("stub[" + numAffectedRows + "]");
+        isSuccess = true;
+        return numAffectedRows;
       }
-      isSuccess = true;
-      return numAffectedRows;
     } catch (WrongNumberOfRowsException e) {
       throw e;
     } catch (Exception e) {

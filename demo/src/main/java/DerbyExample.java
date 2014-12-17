@@ -9,10 +9,8 @@ import com.github.susom.database.DbRun;
 /**
  * Demo of using some com.github.susom.database classes with Derby.
  */
-public class DerbyExample {
-  void example(String[] args, Database db) {
-    // Just here for subclasses
-  }
+public abstract class DerbyExample {
+  abstract void example(Database db, String[] args);
 
   final void launch(final String[] args) {
     try {
@@ -26,7 +24,7 @@ public class DerbyExample {
       DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
         @Override
         public void run(Provider<Database> db) {
-          example(args, db.get());
+          example(db.get(), args);
         }
       });
     } catch (Exception e) {

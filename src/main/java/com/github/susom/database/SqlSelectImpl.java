@@ -42,6 +42,7 @@ import com.github.susom.database.MixedParameterSql.RewriteArg;
 public class SqlSelectImpl implements SqlSelect {
   private static final Logger log = LoggerFactory.getLogger(Database.class);
   private final Connection connection;
+  private final DatabaseMock mock;
   private final StatementAdaptor adaptor;
   private PreparedStatement ps; // hold reference to support cancel from another thread
   private final Object cancelLock = new Object();
@@ -52,8 +53,9 @@ public class SqlSelectImpl implements SqlSelect {
   private int timeoutSeconds = -1; // -1 ==> no timeout
   private int maxRows = -1; // -1 ==> unlimited
 
-  public SqlSelectImpl(Connection connection, String sql, Options options) {
+  public SqlSelectImpl(Connection connection, DatabaseMock mock, String sql, Options options) {
     this.connection = connection;
+    this.mock = mock;
     this.sql = sql;
     this.options = options;
     adaptor = new StatementAdaptor(options);
@@ -280,7 +282,7 @@ public class SqlSelectImpl implements SqlSelect {
     return queryWithTimeout(new RowsHandler<List<Integer>>() {
       @Override
       public List<Integer> process(Rows rs) throws Exception {
-        List<Integer> result = new ArrayList<Integer>();
+        List<Integer> result = new ArrayList<>();
         while (rs.next()) {
           Integer value = rs.getIntegerOrNull(1);
           if (value != null) {
@@ -410,27 +412,39 @@ public class SqlSelectImpl implements SqlSelect {
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 
-      synchronized (cancelLock) {
-        ps = connection.prepareStatement(executeSql);
-      }
+      if (connection != null) {
+        synchronized (cancelLock) {
+          ps = connection.prepareStatement(executeSql);
+        }
 
-      if (timeoutSeconds >= 0) {
-        ps.setQueryTimeout(timeoutSeconds);
-      }
+        if (timeoutSeconds >= 0) {
+          ps.setQueryTimeout(timeoutSeconds);
+        }
 
-      if (maxRows > 0) {
-        ps.setMaxRows(maxRows);
-      }
+        if (maxRows > 0) {
+          ps.setMaxRows(maxRows);
+        }
 
-      adaptor.addParameters(ps, parameters);
-      metric.checkpoint("prep");
-      rs = ps.executeQuery();
-      metric.checkpoint("exec");
-      final ResultSet finalRs = rs;
-      T result = handler.process(new RowsAdaptor(finalRs));
-      metric.checkpoint("read");
-      isSuccess = true;
-      return result;
+        adaptor.addParameters(ps, parameters);
+        metric.checkpoint("prep");
+        rs = ps.executeQuery();
+        metric.checkpoint("exec");
+        final ResultSet finalRs = rs;
+        T result = handler.process(new RowsAdaptor(finalRs));
+        metric.checkpoint("read");
+        isSuccess = true;
+        return result;
+      } else {
+        RowStub stub = mock.query(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        if (stub == null) {
+          stub = new RowStub();
+        }
+        metric.checkpoint("stub");
+        T result = handler.process(stub.toRows());
+        metric.checkpoint("read");
+        isSuccess = true;
+        return result;
+      }
     } catch (SQLException e) {
       if (e.getErrorCode() == 1013) {
         isWarn = true;

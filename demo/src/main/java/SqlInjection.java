@@ -9,7 +9,7 @@ import com.github.susom.database.Sql;
  * <p>mvn -Pchecker -Dchecker.dir=/checker/install/dir</p>
  */
 public class SqlInjection extends DerbyExample {
-  void example(String[] args, Database db) {
+  void example(Database db, String[] args) {
     String tainted = args[0];
 
     // Checker will flag each of these as a type error
@@ -37,6 +37,6 @@ public class SqlInjection extends DerbyExample {
   }
 
   public static void main(String[] args) {
-    new DynamicSql().launch(args);
+    new SqlInjection().launch(args);
   }
 }

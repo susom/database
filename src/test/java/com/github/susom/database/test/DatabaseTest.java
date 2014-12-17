@@ -34,6 +34,7 @@ import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
+import com.github.susom.database.OptionsOverride;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -140,6 +141,25 @@ public class DatabaseTest {
     db.rollbackNow();
 
     verify(c);
+  }
+
+  @Test
+  public void underlyingConnection() {
+    Connection c = createNiceMock(Connection.class);
+
+    try {
+      new DatabaseImpl(c, new OptionsDefault(Flavor.derby)).underlyingConnection();
+      fail("Should have thrown an exception");
+    } catch (DatabaseException e) {
+      assertEquals("Calls to underlyingConnection() are not allowed", e.getMessage());
+    }
+
+    assertTrue(c == new DatabaseImpl(c, new OptionsOverride() {
+      @Override
+      public boolean allowConnectionAccess() {
+        return true;
+      }
+    }).underlyingConnection());
   }
 
   @Test

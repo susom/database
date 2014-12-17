@@ -21,9 +21,9 @@ public class DynamicSql extends DerbyExample {
         .argLong(2L).argString("Hi").insert(1);
 
     // Construct various dynamic queries and execute them
-    System.out.println("Rows with none: " + countByPkOrS(db, null, null));
-    System.out.println("Rows with pk=1: " + countByPkOrS(db, 1L, null));
-    System.out.println("Rows with s=Hi: " + countByPkOrS(db, null, "Hi"));
+    println("Rows with none: " + countByPkOrS(db, null, null));
+    println("Rows with pk=1: " + countByPkOrS(db, 1L, null));
+    println("Rows with s=Hi: " + countByPkOrS(db, null, "Hi"));
   }
 
   Long countByPkOrS(Database db, Long pk, String s) {

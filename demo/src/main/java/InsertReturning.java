@@ -30,7 +30,7 @@ public class InsertReturning extends DerbyExample {
         .argString("Hi")
         .insertReturningPkSeq("pk");
 
-    System.out.println("Inserted row with pk=" + pk);
+    println("Inserted row with pk=" + pk);
   }
 
   public static void main(String[] args) {

@@ -12,6 +12,10 @@ import com.github.susom.database.DbRun;
 public abstract class DerbyExample {
   abstract void example(Database db, String[] args);
 
+  public void println(String s) {
+    System.out.println(s);
+  }
+
   final void launch(final String[] args) {
     try {
       // Put all Derby related files inside ./build to keep our working copy clean

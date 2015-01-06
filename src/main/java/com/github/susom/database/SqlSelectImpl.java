@@ -294,6 +294,144 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
+  @Nullable
+  @Override
+  public Float queryFloatOrNull() {
+    return queryWithTimeout(new RowsHandler<Float>() {
+      @Override
+      public Float process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getFloatOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public Float queryFloatOrZero() {
+    return queryWithTimeout(new RowsHandler<Float>() {
+      @Override
+      public Float process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getFloatOrZero(1);
+        }
+        return 0f;
+      }
+    });
+  }
+
+  @NotNull
+  @Override
+  public List<Float> queryFloats() {
+    return queryWithTimeout(new RowsHandler<List<Float>>() {
+      @Override
+      public List<Float> process(Rows rs) throws Exception {
+        List<Float> result = new ArrayList<>();
+        while (rs.next()) {
+          Float value = rs.getFloatOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
+        }
+        return result;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public Double queryDoubleOrNull() {
+    return queryWithTimeout(new RowsHandler<Double>() {
+      @Override
+      public Double process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getDoubleOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public Double queryDoubleOrZero() {
+    return queryWithTimeout(new RowsHandler<Double>() {
+      @Override
+      public Double process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getDoubleOrZero(1);
+        }
+        return 0d;
+      }
+    });
+  }
+
+  @NotNull
+  @Override
+  public List<Double> queryDoubles() {
+    return queryWithTimeout(new RowsHandler<List<Double>>() {
+      @Override
+      public List<Double> process(Rows rs) throws Exception {
+        List<Double> result = new ArrayList<>();
+        while (rs.next()) {
+          Double value = rs.getDoubleOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
+        }
+        return result;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public BigDecimal queryBigDecimalOrNull() {
+    return queryWithTimeout(new RowsHandler<BigDecimal>() {
+      @Override
+      public BigDecimal process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getBigDecimalOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public BigDecimal queryBigDecimalOrZero() {
+    return queryWithTimeout(new RowsHandler<BigDecimal>() {
+      @Override
+      public BigDecimal process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getBigDecimalOrZero(1);
+        }
+        return new BigDecimal(0);
+      }
+    });
+  }
+
+  @NotNull
+  @Override
+  public List<BigDecimal> queryBigDecimals() {
+    return queryWithTimeout(new RowsHandler<List<BigDecimal>>() {
+      @Override
+      public List<BigDecimal> process(Rows rs) throws Exception {
+        List<BigDecimal> result = new ArrayList<>();
+        while (rs.next()) {
+          BigDecimal value = rs.getBigDecimalOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
+        }
+        return result;
+      }
+    });
+  }
+
   @Override
   public String queryStringOrNull() {
     return queryWithTimeout(new RowsHandler<String>() {

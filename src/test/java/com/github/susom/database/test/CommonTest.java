@@ -70,6 +70,7 @@ public abstract class CommonTest {
       }
     });
     db = dbp.get();
+    db.dropTableQuietly("dbtest");
   }
 
   protected abstract DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception;
@@ -83,8 +84,6 @@ public abstract class CommonTest {
 
   @Test
   public void selectNewTable() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
           .addColumn("nbr_integer").asInteger().primaryKey().table()
@@ -259,8 +258,6 @@ public abstract class CommonTest {
 
   @Test
   public void updatePositionalArgs() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
         .addColumn("pk").primaryKey().table()
@@ -385,8 +382,6 @@ public abstract class CommonTest {
 
   @Test
   public void updateNamedArgs() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
         .addColumn("pk").primaryKey().table()
@@ -504,8 +499,6 @@ public abstract class CommonTest {
 
   @Test
   public void nullValues() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
         .addColumn("pk").primaryKey().table()
@@ -574,8 +567,6 @@ public abstract class CommonTest {
 
   @Test
   public void metadataColumnNames() {
-    db.dropTableQuietly("dbtest");
-
     new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
 
     db.toSelect("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
@@ -590,8 +581,6 @@ public abstract class CommonTest {
 
   @Test
   public void bigClob() {
-    db.dropTableQuietly("dbtest");
-
     new Schema().addTable("dbtest").addColumn("str_lob").asClob().schema().execute(db);
 
     StringBuilder buf = new StringBuilder();
@@ -644,8 +633,6 @@ public abstract class CommonTest {
 
   @Test
   public void bigBlob() {
-    db.dropTableQuietly("dbtest");
-
     new Schema().addTable("dbtest").addColumn("bin_blob").asBlob().schema().execute(db);
 
     StringBuilder buf = new StringBuilder();
@@ -696,6 +683,179 @@ public abstract class CommonTest {
   }
 
   @Test
+  public void argIntegerMinMax() {
+    new Schema().addTable("dbtest").addColumn("i").asInteger().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argInteger(Integer.MIN_VALUE).insert(1);
+    assertEquals(new Integer(Integer.MIN_VALUE),
+        db.toSelect("select i from dbtest where i=?").argInteger(Integer.MIN_VALUE).queryIntegerOrNull());
+
+    db.toInsert("insert into dbtest (i) values (?)").argInteger(Integer.MAX_VALUE).insert(1);
+    assertEquals(new Integer(Integer.MAX_VALUE),
+        db.toSelect("select i from dbtest where i=?").argInteger(Integer.MAX_VALUE).queryIntegerOrNull());
+  }
+
+  @Test
+  public void argLongMinMax() {
+    new Schema().addTable("dbtest").addColumn("i").asLong().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argLong(Long.MIN_VALUE).insert(1);
+    assertEquals(new Long(Long.MIN_VALUE),
+        db.toSelect("select i from dbtest where i=?").argLong(Long.MIN_VALUE).queryLongOrNull());
+
+    db.toInsert("insert into dbtest (i) values (?)").argLong(Long.MAX_VALUE).insert(1);
+    assertEquals(new Long(Long.MAX_VALUE),
+        db.toSelect("select i from dbtest where i=?").argLong(Long.MAX_VALUE).queryLongOrNull());
+  }
+
+  @Test
+  public void argFloatMinMax() {
+    new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.MIN_VALUE).insert(1);
+    assertEquals(new Float(Float.MIN_VALUE),
+        db.toSelect("select i from dbtest where i=?").argFloat(Float.MIN_VALUE).queryFloatOrNull());
+
+    db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.MAX_VALUE).insert(1);
+    assertEquals(new Float(Float.MAX_VALUE),
+        db.toSelect("select i from dbtest where i=?").argFloat(Float.MAX_VALUE).queryFloatOrNull());
+  }
+
+  @Test
+  public void argFloatNaN() {
+    new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.NaN).insert(1);
+    assertEquals(new Float(Float.NaN),
+        db.toSelect("select i from dbtest where i=?").argFloat(Float.NaN).queryFloatOrNull());
+  }
+
+  @Test
+  public void argFloatInfinity() {
+    new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.NEGATIVE_INFINITY).insert(1);
+    assertEquals(new Float(Float.NEGATIVE_INFINITY),
+        db.toSelect("select i from dbtest where i=?").argFloat(Float.NEGATIVE_INFINITY).queryFloatOrNull());
+
+    db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.POSITIVE_INFINITY).insert(1);
+    assertEquals(new Float(Float.POSITIVE_INFINITY),
+        db.toSelect("select i from dbtest where i=?").argFloat(Float.POSITIVE_INFINITY).queryFloatOrNull());
+  }
+
+  @Test
+  public void argFloatZero() {
+    new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argFloat(0f).insert(1);
+    assertEquals(new Float(0f),
+        db.toSelect("select i from dbtest where i=?").argFloat(0f).queryFloatOrNull());
+  }
+
+  @Test
+  public void argFloatNegativeZero() {
+    new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argFloat(-0f).insert(1);
+    assertEquals(new Float(-0f),
+        db.toSelect("select i from dbtest where i=?").argFloat(-0f).queryFloatOrNull());
+  }
+
+  @Test
+  public void argDoubleMinMax() {
+    new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.MIN_VALUE).insert(1);
+    assertEquals(new Double(Double.MIN_VALUE),
+        db.toSelect("select i from dbtest where i=?").argDouble(Double.MIN_VALUE).queryDoubleOrNull());
+
+    db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.MAX_VALUE).insert(1);
+    assertEquals(new Double(Double.MAX_VALUE),
+        db.toSelect("select i from dbtest where i=?").argDouble(Double.MAX_VALUE).queryDoubleOrNull());
+  }
+
+  @Test
+  public void argDoubleNaN() {
+    new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.NaN).insert(1);
+    assertEquals(new Double(Double.NaN),
+        db.toSelect("select i from dbtest where i=?").argDouble(Double.NaN).queryDoubleOrNull());
+  }
+
+  @Test
+  public void argDoubleInfinity() {
+    new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.NEGATIVE_INFINITY).insert(1);
+    assertEquals(new Double(Double.NEGATIVE_INFINITY),
+        db.toSelect("select i from dbtest where i=?").argDouble(Double.NEGATIVE_INFINITY).queryDoubleOrNull());
+
+    db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.POSITIVE_INFINITY).insert(1);
+    assertEquals(new Double(Double.POSITIVE_INFINITY),
+        db.toSelect("select i from dbtest where i=?").argDouble(Double.POSITIVE_INFINITY).queryDoubleOrNull());
+  }
+
+  @Test
+  public void argDoubleZero() {
+    new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argDouble(0d).insert(1);
+    assertEquals(new Double(0d),
+        db.toSelect("select i from dbtest where i=?").argDouble(0d).queryDoubleOrNull());
+  }
+
+  @Test
+  public void argDoubleNegativeZero() {
+    new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
+
+    db.toInsert("insert into dbtest (i) values (?)").argDouble(-0d).insert(1);
+    assertEquals(new Double(-0d),
+        db.toSelect("select i from dbtest where i=?").argDouble(-0d).queryDoubleOrNull());
+  }
+
+  @Test
+  public void argBigDecimal38Precision0() {
+    new Schema().addTable("dbtest").addColumn("i").asBigDecimal(38, 0).schema().execute(db);
+
+    BigDecimal value = new BigDecimal("99999999999999999999999999999999999999"); // 38 digits
+    db.toInsert("insert into dbtest (i) values (?)").argBigDecimal(value).insert(1);
+    assertEquals(value,
+        db.toSelect("select i from dbtest where i=?").argBigDecimal(value).queryBigDecimalOrNull());
+  }
+
+  @Test
+  public void argBigDecimal38Precision1() {
+    new Schema().addTable("dbtest").addColumn("i").asBigDecimal(38, 1).schema().execute(db);
+
+    BigDecimal value = new BigDecimal("9999999999999999999999999999999999999.9"); // 38 digits
+    db.toInsert("insert into dbtest (i) values (?)").argBigDecimal(value).insert(1);
+    assertEquals(value,
+        db.toSelect("select i from dbtest where i=?").argBigDecimal(value).queryBigDecimalOrNull());
+  }
+
+  @Test
+  public void argBigDecimal38Precision37() {
+    new Schema().addTable("dbtest").addColumn("i").asBigDecimal(38, 37).schema().execute(db);
+
+    BigDecimal value = new BigDecimal("9.9999999999999999999999999999999999999"); // 38 digits
+    db.toInsert("insert into dbtest (i) values (?)").argBigDecimal(value).insert(1);
+    assertEquals(value,
+        db.toSelect("select i from dbtest where i=?").argBigDecimal(value).queryBigDecimalOrNull());
+  }
+
+  @Test
+  public void argBigDecimal38Precision38() {
+    new Schema().addTable("dbtest").addColumn("i").asBigDecimal(38, 38).schema().execute(db);
+
+    BigDecimal value = new BigDecimal("0.99999999999999999999999999999999999999"); // 38 digits
+    db.toInsert("insert into dbtest (i) values (?)").argBigDecimal(value).insert(1);
+    System.out.println(db.toSelect("select i from dbtest").queryBigDecimalOrNull());
+    assertEquals(value,
+        db.toSelect("select i from dbtest where i=?").argBigDecimal(value).queryBigDecimalOrNull());
+  }
+
+  @Test
   public void dropTableQuietly() {
     db.dropTableQuietly("dbtest");
     // Verify the quietly part really kicks in, since the table might have existed above
@@ -711,7 +871,6 @@ public abstract class CommonTest {
 
   @Test
   public void insertReturningPkSeq() {
-    db.dropTableQuietly("dbtest");
     db.dropSequenceQuietly("dbtest_seq");
 
     db.ddl("create table dbtest (pk numeric)").execute();
@@ -725,7 +884,6 @@ public abstract class CommonTest {
 
   @Test
   public void insertReturningAppDate() {
-    db.dropTableQuietly("dbtest");
     db.dropSequenceQuietly("dbtest_seq");
 
     new Schema()
@@ -753,8 +911,6 @@ public abstract class CommonTest {
 
   @Test
   public void quickQueries() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
         .addColumn("pk").primaryKey().table()
@@ -819,7 +975,6 @@ public abstract class CommonTest {
 
   @Test
   public void insertReturningDbDate() {
-    db.dropTableQuietly("dbtest");
     db.dropSequenceQuietly("dbtest_seq");
 
     new Schema()
@@ -860,8 +1015,6 @@ public abstract class CommonTest {
    */
   @Test @Retry
   public void dbDateMillis() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
         .addColumn("d").asDate().table().schema()
@@ -877,8 +1030,6 @@ public abstract class CommonTest {
 
   @Test
   public void dbDateRoundTrip() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
         .addColumn("d1").asDate().table()
@@ -905,8 +1056,6 @@ public abstract class CommonTest {
 
   @Test
   public void mixPositionalAndNamedParameters() {
-    db.dropTableQuietly("dbtest");
-
     new Schema()
         .addTable("dbtest")
         .addColumn("pk").primaryKey().table()

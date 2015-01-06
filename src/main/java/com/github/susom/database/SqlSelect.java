@@ -154,6 +154,42 @@ public interface SqlSelect {
 
   @Nullable
   @CheckReturnValue
+  Float queryFloatOrNull();
+
+  @Nullable
+  @CheckReturnValue
+  Float queryFloatOrZero();
+
+  @NotNull
+  @CheckReturnValue
+  List<Float> queryFloats();
+
+  @Nullable
+  @CheckReturnValue
+  Double queryDoubleOrNull();
+
+  @Nullable
+  @CheckReturnValue
+  Double queryDoubleOrZero();
+
+  @NotNull
+  @CheckReturnValue
+  List<Double> queryDoubles();
+
+  @Nullable
+  @CheckReturnValue
+  BigDecimal queryBigDecimalOrNull();
+
+  @Nullable
+  @CheckReturnValue
+  BigDecimal queryBigDecimalOrZero();
+
+  @NotNull
+  @CheckReturnValue
+  List<BigDecimal> queryBigDecimals();
+
+  @Nullable
+  @CheckReturnValue
   String queryStringOrNull();
 
   @NotNull

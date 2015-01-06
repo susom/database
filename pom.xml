@@ -109,6 +109,25 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <excludes>
+                <exclude>oracle/**</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>2.2.1</version>
         <executions>
@@ -117,6 +136,11 @@
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
+            <configuration>
+              <includes>
+                <include>com/github/susom/**/*</include>
+              </includes>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -130,6 +154,9 @@
             <goals>
               <goal>jar</goal>
             </goals>
+            <configuration>
+              <excludePackageNames>oracle.*</excludePackageNames>
+            </configuration>
           </execution>
         </executions>
       </plugin>

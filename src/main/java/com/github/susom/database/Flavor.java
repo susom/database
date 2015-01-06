@@ -65,6 +65,11 @@ public enum Flavor {
     }
 
     @Override
+    public String typeInteger() {
+      return "numeric(10)";
+    }
+
+    @Override
     public String typeLong() {
       return "numeric(19)";
     }
@@ -107,7 +112,7 @@ public enum Flavor {
   postgresql {
     @Override
     public String typeDouble() {
-      return "numeric(19,9)";
+      return "double precision";
     }
 
     @Override

@@ -33,6 +33,8 @@ import java.util.Scanner;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import oracle.jdbc.OraclePreparedStatement;
+
 /**
  * Deal with mapping parameters into prepared statements.
  *
@@ -83,6 +85,22 @@ public class StatementAdaptor {
           ps.setBytes(i + 1, streamToBytes((InputStream) parameters[i]));
         } else {
           ps.setBinaryStream(i + 1, (InputStream) parameters[i]);
+        }
+      } else if (parameters[i] instanceof Float) {
+        if (options.flavor() == Flavor.oracle && ps.isWrapperFor(OraclePreparedStatement.class)) {
+          // The Oracle 11 driver setDouble() first converts the double to NUMBER, causing underflow
+          // for small values so we need to use the proprietary mechanism
+          ps.unwrap(OraclePreparedStatement.class).setBinaryFloat(i + 1, (Float) parameters[i]);
+        } else {
+          ps.setFloat(i + 1, (Float) parameters[i]);
+        }
+      } else if (parameters[i] instanceof Double) {
+        if (options.flavor() == Flavor.oracle && ps.isWrapperFor(OraclePreparedStatement.class)) {
+          // The Oracle 11 driver setDouble() first converts the double to NUMBER, causing underflow
+          // for small values so we need to use the proprietary mechanism
+          ps.unwrap(OraclePreparedStatement.class).setBinaryDouble(i + 1, (Double) parameters[i]);
+        } else {
+          ps.setDouble(i + 1, (Double) parameters[i]);
         }
       } else {
         ps.setObject(i + 1, parameters[i]);

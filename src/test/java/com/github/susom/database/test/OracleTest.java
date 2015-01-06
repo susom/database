@@ -19,6 +19,9 @@ package com.github.susom.database.test;
 import java.io.FileReader;
 import java.util.Properties;
 
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.OptionsOverride;
 
@@ -42,5 +45,17 @@ public class OracleTest extends CommonTest {
         System.getProperty("database.user", properties.getProperty("database.user")),
         System.getProperty("database.password", properties.getProperty("database.password"))
     ).withSqlParameterLogging().withSqlInExceptionMessages().withOptions(options).create();
+  }
+
+  @Ignore("Current Oracle behavior is to convert -0f to 0f")
+  @Test
+  public void argFloatNegativeZero() {
+    super.argFloatNegativeZero();
+  }
+
+  @Ignore("Current Oracle behavior is to convert -0d to 0d")
+  @Test
+  public void argDoubleNegativeZero() {
+    super.argDoubleNegativeZero();
   }
 }

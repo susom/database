@@ -186,11 +186,14 @@ public interface SqlInsert {
    * first issuing a select to read the sequence, then an insert.
    */
   @NotNull
+  @CheckReturnValue
   SqlInsert argPkSeq(@NotNull String argName, @NotNull String sequenceName);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argPkLong(Long pkValue);
 
   @NotNull
+  @CheckReturnValue
   SqlInsert argPkLong(String argName, Long pkValue);
 }

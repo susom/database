@@ -151,6 +151,12 @@ public class DatabaseImpl implements Database {
 
   @NotNull
   @Override
+  public Options options() {
+    return options;
+  }
+
+  @NotNull
+  @Override
   public Flavor flavor() {
     return options.flavor();
   }

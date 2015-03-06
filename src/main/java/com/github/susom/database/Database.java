@@ -149,6 +149,9 @@ public interface Database extends Provider<Database> {
   @NotNull
   Connection underlyingConnection();
 
+  @NotNull
+  Options options();
+
   /**
    * Access information about what kind of database we are dealing with.
    */

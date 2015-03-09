@@ -17,6 +17,7 @@
 package com.github.susom.database;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -221,11 +222,11 @@ public final class DatabaseProvider implements Provider<Database> {
     }
 
     if (user != null && password == null) {
-      System.out.print("Enter database password: ");
+      System.out.println("Enter database password for user " + user + ":");
       byte[] input = new byte[256];
       try {
         int bytesRead = System.in.read(input);
-        password = new String(input, 0, bytesRead-1);
+        password = new String(input, 0, bytesRead-1, Charset.defaultCharset());
       } catch (IOException e) {
         throw new DatabaseException("Error reading password from standard input", e);
       }

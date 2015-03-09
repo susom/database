@@ -16,6 +16,7 @@
 
 package com.github.susom.database;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -165,6 +166,100 @@ public final class DatabaseProvider implements Provider<Database> {
         }
       }
     }, options);
+  }
+
+  /**
+   * Configure the database from up to four system properties:
+   * <br/>
+   * <pre>
+   *   -Ddatabase.url=...      Database connect string (required)
+   *   -Ddatabase.user=...     Authenticate as this user (optional if provided in url)
+   *   -Ddatabase.password=... User password (optional if user and password provided in
+   *                           url; prompted on standard input if user is provided and
+   *                           password is not)
+   *   -Ddatabase.flavor=...   What kind of database it is (optional, will guess based
+   *                           on the url if this is not provided)
+   *   -Ddatabase.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                           guess based on the flavor if this is not provided)
+   * </pre>
+   */
+  @CheckReturnValue
+  public static Builder fromSystemProperties() {
+    return fromSystemProperties("");
+  }
+
+  /**
+   * Configure the database from up to four system properties:
+   * <br/>
+   * <pre>
+   *   -D{prefix}database.url=...      Database connect string (required)
+   *   -D{prefix}database.user=...     Authenticate as this user (optional if provided in url)
+   *   -D{prefix}database.password=... User password (optional if user and password provided in
+   *                                   url; prompted on standard input if user is provided and
+   *                                   password is not)
+   *   -D{prefix}database.flavor=...   What kind of database it is (optional, will guess based
+   *                                   on the url if this is not provided)
+   *   -D{prefix}database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                                   guess based on the flavor if this is not provided)
+   * </pre>
+   * @param propertyPrefix a prefix to attach to each system property - be sure to include the
+   *                       dot if desired (e.g. "mydb." for properties like -Dmydb.database.url)
+   */
+  @CheckReturnValue
+  public static Builder fromSystemProperties(String propertyPrefix) {
+    if (propertyPrefix == null) {
+      propertyPrefix = "";
+    }
+    String driver = System.getProperty(propertyPrefix + "database.driver");
+    String flavorStr = System.getProperty(propertyPrefix + "database.flavor");
+    String url = System.getProperty(propertyPrefix + "database.url");
+    String user = System.getProperty(propertyPrefix + "database.user");
+    String password = System.getProperty(propertyPrefix + "database.password");
+
+    if (url == null) {
+      throw new DatabaseException("You must use -D" + propertyPrefix + "database.url=...");
+    }
+
+    if (user != null && password == null) {
+      System.out.print("Enter database password: ");
+      byte[] input = new byte[256];
+      try {
+        int bytesRead = System.in.read(input);
+        password = new String(input, 0, bytesRead-1);
+      } catch (IOException e) {
+        throw new DatabaseException("Error reading password from standard input", e);
+      }
+    }
+
+    Flavor flavor;
+    if (flavorStr != null) {
+      flavor = Flavor.valueOf(flavorStr);
+    } else {
+      flavor = Flavor.fromJdbcUrl(url);
+    }
+
+    if (driver == null) {
+      if (flavor == Flavor.oracle) {
+        driver = "oracle.jdbc.OracleDriver";
+      } else if (flavor == Flavor.postgresql) {
+        driver = "org.postgresql.Driver";
+      } else if (flavor == Flavor.derby) {
+        driver = "org.apache.derby.jdbc.EmbeddedDriver";
+      }
+    }
+    if (driver != null) {
+      try {
+        Class.forName(driver).newInstance();
+      } catch (Exception e) {
+        throw new DatabaseException("Unable to load JDBC driver: " + driver, e);
+      }
+    }
+
+    if (user == null) {
+      return fromDriverManager(url, flavor);
+    } else {
+      return fromDriverManager(url, flavor, user, password);
+    }
   }
 
   /**

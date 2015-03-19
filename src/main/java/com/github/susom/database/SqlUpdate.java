@@ -160,8 +160,10 @@ public interface SqlUpdate {
   int update();
 
   /**
-   * Execute the SQL update and check that the expected number of rows was updated. A
-   * DatabaseException will be thrown
+   * Execute the SQL update and check that the expected number of rows was updated.
+   *
+   * @throws WrongNumberOfRowsException if the number of rows updated did not match
+   *         the value provided
    */
   void update(int expectedRowsUpdated);
 }

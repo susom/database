@@ -16,6 +16,8 @@
 
 package com.github.susom.database;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.sql.Connection;
@@ -170,7 +172,185 @@ public final class DatabaseProvider implements Provider<Database> {
   }
 
   /**
-   * Configure the database from up to four system properties:
+   * Configure the database from up to five properties read from a file:
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param filename path to the properties file we will attempt to read
+   * @throws DatabaseException if the property file could not be read for any reason
+   */
+  public static Builder fromPropertyFile(String filename) {
+    Properties properties = new Properties();
+    if (filename != null && filename.length() > 0) {
+      try {
+        properties.load(new FileReader(filename));
+      } catch (Exception e) {
+        throw new DatabaseException("Unable to read properties file: " + filename, e);
+      }
+    }
+    return fromProperties(properties, "", true);
+  }
+
+  /**
+   * Configure the database from up to five properties read from a file:
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param filename path to the properties file we will attempt to read
+   * @param propertyPrefix if this is null or empty the properties above will be read;
+   *                       if a value is provided it will be prefixed to each property
+   *                       (exactly, so if you want to use "my.database.url" you must
+   *                       pass "my." as the prefix)
+   * @throws DatabaseException if the property file could not be read for any reason
+   */
+  public static Builder fromPropertyFile(String filename, String propertyPrefix) {
+    Properties properties = new Properties();
+    if (filename != null && filename.length() > 0) {
+      try {
+        properties.load(new FileReader(filename));
+      } catch (Exception e) {
+        throw new DatabaseException("Unable to read properties file: " + filename, e);
+      }
+    }
+    return fromProperties(properties, propertyPrefix, true);
+  }
+
+  /**
+   * Configure the database from up to five properties read from the provided properties:
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param properties properties will be read from here
+   * @throws DatabaseException if the property file could not be read for any reason
+   */
+  public static Builder fromProperties(Properties properties) {
+    return fromProperties(properties, "", false);
+  }
+
+  /**
+   * Configure the database from up to five properties read from the provided properties:
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param properties properties will be read from here
+   * @param propertyPrefix if this is null or empty the properties above will be read;
+   *                       if a value is provided it will be prefixed to each property
+   *                       (exactly, so if you want to use "my.database.url" you must
+   *                       pass "my." as the prefix)
+   * @throws DatabaseException if the property file could not be read for any reason
+   */
+  public static Builder fromProperties(Properties properties, String propertyPrefix) {
+    return fromProperties(properties, propertyPrefix, false);
+  }
+
+  /**
+   * Configure the database from up to five properties read from the specified
+   * properties file, or from the system properties (system properties will take
+   * precedence over the file):
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param filename path to the properties file we will attempt to read; if the file
+   *                 cannot be read for any reason (e.g. does not exist) a debug level
+   *                 log entry will be entered, but it will attempt to proceed using
+   *                 solely the system properties
+   */
+  public static Builder fromPropertyFileOrSystemProperties(String filename) {
+    Properties properties = new Properties();
+    if (filename != null && filename.length() > 0) {
+      try {
+        properties.load(new FileReader(filename));
+      } catch (Exception e) {
+        log.debug("Trying system properties - unable to read properties file: " + filename);
+      }
+    }
+    return fromProperties(properties, "", true);
+  }
+
+  /**
+   * Configure the database from up to five properties read from the specified
+   * properties file, or from the system properties (system properties will take
+   * precedence over the file):
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param filename path to the properties file we will attempt to read; if the file
+   *                 cannot be read for any reason (e.g. does not exist) a debug level
+   *                 log entry will be entered, but it will attempt to proceed using
+   *                 solely the system properties
+   * @param propertyPrefix if this is null or empty the properties above will be read;
+   *                       if a value is provided it will be prefixed to each property
+   *                       (exactly, so if you want to use "my.database.url" you must
+   *                       pass "my." as the prefix)
+   */
+  public static Builder fromPropertyFileOrSystemProperties(String filename, String propertyPrefix) {
+    Properties properties = new Properties();
+    if (filename != null && filename.length() > 0) {
+      try {
+        properties.load(new FileReader(filename));
+      } catch (Exception e) {
+        log.debug("Trying system properties - unable to read properties file: " + filename);
+      }
+    }
+    return fromProperties(properties, propertyPrefix, true);
+  }
+
+  /**
+   * Configure the database from up to five system properties:
    * <br/>
    * <pre>
    *   -Ddatabase.url=...      Database connect string (required)
@@ -186,11 +366,11 @@ public final class DatabaseProvider implements Provider<Database> {
    */
   @CheckReturnValue
   public static Builder fromSystemProperties() {
-    return fromSystemProperties("");
+    return fromProperties(null, "", true);
   }
 
   /**
-   * Configure the database from up to four system properties:
+   * Configure the database from up to five system properties:
    * <br/>
    * <pre>
    *   -D{prefix}database.url=...      Database connect string (required)
@@ -208,14 +388,43 @@ public final class DatabaseProvider implements Provider<Database> {
    */
   @CheckReturnValue
   public static Builder fromSystemProperties(String propertyPrefix) {
+    return fromProperties(null, propertyPrefix, true);
+  }
+
+  private static Builder fromProperties(Properties properties, String propertyPrefix, boolean useSystemProperties) {
     if (propertyPrefix == null) {
       propertyPrefix = "";
     }
-    String driver = System.getProperty(propertyPrefix + "database.driver");
-    String flavorStr = System.getProperty(propertyPrefix + "database.flavor");
-    String url = System.getProperty(propertyPrefix + "database.url");
-    String user = System.getProperty(propertyPrefix + "database.user");
-    String password = System.getProperty(propertyPrefix + "database.password");
+
+    String driver;
+    String flavorStr;
+    String url;
+    String user;
+    String password;
+    if (useSystemProperties) {
+      if (properties == null) {
+        properties = new Properties();
+      }
+      driver = System.getProperty(propertyPrefix + "database.driver",
+          properties.getProperty(propertyPrefix + "database.driver"));
+      flavorStr = System.getProperty(propertyPrefix + "database.flavor",
+          properties.getProperty(propertyPrefix + "database.flavor"));
+      url = System.getProperty(propertyPrefix + "database.url",
+          properties.getProperty(propertyPrefix + "database.url"));
+      user = System.getProperty(propertyPrefix + "database.user",
+          properties.getProperty(propertyPrefix + "database.user"));
+      password = System.getProperty(propertyPrefix + "database.password",
+          properties.getProperty(propertyPrefix + "database.password"));
+    } else {
+      if (properties == null) {
+        throw new DatabaseException("No properties were provided");
+      }
+      driver = properties.getProperty(propertyPrefix + "database.driver");
+      flavorStr = properties.getProperty(propertyPrefix + "database.flavor");
+      url = properties.getProperty(propertyPrefix + "database.url");
+      user = properties.getProperty(propertyPrefix + "database.user");
+      password = properties.getProperty(propertyPrefix + "database.password");
+    }
 
     if (url == null) {
       throw new DatabaseException("You must use -D" + propertyPrefix + "database.url=...");

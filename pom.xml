@@ -115,10 +115,11 @@
           </excludes>
         </configuration>
       </plugin>
+      <!-- Commenting temporarily for release because it relies on a snapshot
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
-        <!-- Need bugfix SUREFIRE-855 -->
+        <!- - Need bugfix SUREFIRE-855 - ->
         <version>2.19-SNAPSHOT</version>
         <executions>
           <execution>
@@ -132,6 +133,7 @@
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
       </plugin>
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

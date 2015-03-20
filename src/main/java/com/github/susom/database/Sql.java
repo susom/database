@@ -57,10 +57,98 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
     return this;
   }
 
-  public Sql append(long sql) {
+  public Sql append(boolean value) {
     assert finalSql == null;
-    this.sql.append(sql);
+    this.sql.append(value);
     return this;
+  }
+
+  public Sql append(int value) {
+    assert finalSql == null;
+    this.sql.append(value);
+    return this;
+  }
+
+  public Sql append(long value) {
+    assert finalSql == null;
+    this.sql.append(value);
+    return this;
+  }
+
+  public Sql append(float value) {
+    assert finalSql == null;
+    this.sql.append(value);
+    return this;
+  }
+
+  public Sql append(double value) {
+    assert finalSql == null;
+    this.sql.append(value);
+    return this;
+  }
+
+  public Sql deleteCharAt(int index) {
+    assert finalSql == null;
+    this.sql.deleteCharAt(index);
+    return this;
+  }
+
+  public Sql replace(int start, int end, /*@Untainted*/ String str) {
+    assert finalSql == null;
+    this.sql.replace(start, end, str);
+    return this;
+  }
+
+  public Sql insert(int offset, /*@Untainted*/ String str) {
+    assert finalSql == null;
+    this.sql.insert(offset, str);
+    return this;
+  }
+
+  public Sql insert(int offset, boolean value) {
+    assert finalSql == null;
+    this.sql.insert(offset, value);
+    return this;
+  }
+
+  public Sql insert(int offset, int value) {
+    assert finalSql == null;
+    this.sql.insert(offset, value);
+    return this;
+  }
+
+  public Sql insert(int offset, long value) {
+    assert finalSql == null;
+    this.sql.insert(offset, value);
+    return this;
+  }
+
+  public Sql insert(int offset, double value) {
+    assert finalSql == null;
+    this.sql.insert(offset, value);
+    return this;
+  }
+
+  public Sql insert(int offset, float value) {
+    assert finalSql == null;
+    this.sql.insert(offset, value);
+    return this;
+  }
+
+  public int indexOf(String str) {
+    return this.sql.indexOf(str);
+  }
+
+  public int indexOf(String str, int fromIndex) {
+    return this.sql.indexOf(str, fromIndex);
+  }
+
+  public int lastIndexOf(String str) {
+    return this.sql.lastIndexOf(str);
+  }
+
+  public int lastIndexOf(String str, int fromIndex) {
+    return this.sql.lastIndexOf(str, fromIndex);
   }
 
   public Sql listStart(/*@Untainted*/ String sql) {

@@ -8,6 +8,16 @@ class Sql {
 
   Sql append(@Untainted String sql);
 
+  Sql replace(int start, int end, @Untainted String sql);
+
+  Sql insert(int offset, @Untainted String sql);
+
+  Sql listStart(@Untainted String sql);
+
+  Sql listSeparator(@Untainted String sql);
+
+  Sql listEnd(@Untainted String sql);
+
   @Untainted
   String sql();
 

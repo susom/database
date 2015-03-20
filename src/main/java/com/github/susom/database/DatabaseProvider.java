@@ -16,10 +16,12 @@
 
 package com.github.susom.database;
 
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -185,14 +187,37 @@ public final class DatabaseProvider implements Provider<Database> {
    *   database.driver=...   The Java class of the JDBC driver to load (optional, will
    *                         guess based on the flavor if this is not provided)
    * </pre>
+   * <p>This will use the JVM default character encoding to read the property file.</p>
    * @param filename path to the properties file we will attempt to read
    * @throws DatabaseException if the property file could not be read for any reason
    */
   public static Builder fromPropertyFile(String filename) {
+    return fromPropertyFile(filename, Charset.defaultCharset().newDecoder());
+  }
+
+  /**
+   * Configure the database from up to five properties read from a file:
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param filename path to the properties file we will attempt to read
+   * @param decoder  character encoding to use when reading the property file
+   * @throws DatabaseException if the property file could not be read for any reason
+   */
+  public static Builder fromPropertyFile(String filename, CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
       try {
-        properties.load(new FileReader(filename));
+        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
       } catch (Exception e) {
         throw new DatabaseException("Unable to read properties file: " + filename, e);
       }
@@ -214,6 +239,7 @@ public final class DatabaseProvider implements Provider<Database> {
    *   database.driver=...   The Java class of the JDBC driver to load (optional, will
    *                         guess based on the flavor if this is not provided)
    * </pre>
+   * <p>This will use the JVM default character encoding to read the property file.</p>
    * @param filename path to the properties file we will attempt to read
    * @param propertyPrefix if this is null or empty the properties above will be read;
    *                       if a value is provided it will be prefixed to each property
@@ -222,10 +248,36 @@ public final class DatabaseProvider implements Provider<Database> {
    * @throws DatabaseException if the property file could not be read for any reason
    */
   public static Builder fromPropertyFile(String filename, String propertyPrefix) {
+    return fromPropertyFile(filename, propertyPrefix, Charset.defaultCharset().newDecoder());
+  }
+
+  /**
+   * Configure the database from up to five properties read from a file:
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param filename path to the properties file we will attempt to read
+   * @param propertyPrefix if this is null or empty the properties above will be read;
+   *                       if a value is provided it will be prefixed to each property
+   *                       (exactly, so if you want to use "my.database.url" you must
+   *                       pass "my." as the prefix)
+   * @param decoder  character encoding to use when reading the property file
+   * @throws DatabaseException if the property file could not be read for any reason
+   */
+  public static Builder fromPropertyFile(String filename, String propertyPrefix, CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
       try {
-        properties.load(new FileReader(filename));
+        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
       } catch (Exception e) {
         throw new DatabaseException("Unable to read properties file: " + filename, e);
       }
@@ -295,21 +347,78 @@ public final class DatabaseProvider implements Provider<Database> {
    *   database.driver=...   The Java class of the JDBC driver to load (optional, will
    *                         guess based on the flavor if this is not provided)
    * </pre>
+   * <p>This will use the JVM default character encoding to read the property file.</p>
    * @param filename path to the properties file we will attempt to read; if the file
    *                 cannot be read for any reason (e.g. does not exist) a debug level
    *                 log entry will be entered, but it will attempt to proceed using
    *                 solely the system properties
    */
   public static Builder fromPropertyFileOrSystemProperties(String filename) {
+    return fromPropertyFileOrSystemProperties(filename, Charset.defaultCharset().newDecoder());
+  }
+
+  /**
+   * Configure the database from up to five properties read from the specified
+   * properties file, or from the system properties (system properties will take
+   * precedence over the file):
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * @param filename path to the properties file we will attempt to read; if the file
+   *                 cannot be read for any reason (e.g. does not exist) a debug level
+   *                 log entry will be entered, but it will attempt to proceed using
+   *                 solely the system properties
+   * @param decoder  character encoding to use when reading the property file
+   */
+  public static Builder fromPropertyFileOrSystemProperties(String filename, CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
       try {
-        properties.load(new FileReader(filename));
+        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
       } catch (Exception e) {
         log.debug("Trying system properties - unable to read properties file: " + filename);
       }
     }
     return fromProperties(properties, "", true);
+  }
+
+  /**
+   * Configure the database from up to five properties read from the specified
+   * properties file, or from the system properties (system properties will take
+   * precedence over the file):
+   * <br/>
+   * <pre>
+   *   database.url=...      Database connect string (required)
+   *   database.user=...     Authenticate as this user (optional if provided in url)
+   *   database.password=... User password (optional if user and password provided in
+   *                         url; prompted on standard input if user is provided and
+   *                         password is not)
+   *   database.flavor=...   What kind of database it is (optional, will guess based
+   *                         on the url if this is not provided)
+   *   database.driver=...   The Java class of the JDBC driver to load (optional, will
+   *                         guess based on the flavor if this is not provided)
+   * </pre>
+   * <p>This will use the JVM default character encoding to read the property file.</p>
+   * @param filename path to the properties file we will attempt to read; if the file
+   *                 cannot be read for any reason (e.g. does not exist) a debug level
+   *                 log entry will be entered, but it will attempt to proceed using
+   *                 solely the system properties
+   * @param propertyPrefix if this is null or empty the properties above will be read;
+   *                       if a value is provided it will be prefixed to each property
+   *                       (exactly, so if you want to use "my.database.url" you must
+   *                       pass "my." as the prefix)
+   */
+  public static Builder fromPropertyFileOrSystemProperties(String filename, String propertyPrefix) {
+    return fromPropertyFileOrSystemProperties(filename, propertyPrefix, Charset.defaultCharset().newDecoder());
   }
 
   /**
@@ -336,12 +445,14 @@ public final class DatabaseProvider implements Provider<Database> {
    *                       if a value is provided it will be prefixed to each property
    *                       (exactly, so if you want to use "my.database.url" you must
    *                       pass "my." as the prefix)
+   * @param decoder  character encoding to use when reading the property file
    */
-  public static Builder fromPropertyFileOrSystemProperties(String filename, String propertyPrefix) {
+  public static Builder fromPropertyFileOrSystemProperties(String filename, String propertyPrefix,
+                                                           CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
       try {
-        properties.load(new FileReader(filename));
+        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
       } catch (Exception e) {
         log.debug("Trying system properties - unable to read properties file: " + filename);
       }

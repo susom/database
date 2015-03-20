@@ -189,7 +189,7 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
 
   public static enum ColumnType {
     Integer, Long, Float, Double, BigDecimal, String, ClobString, ClobStream,
-    BlobBytes, BlobStream, Date, DateNowPerApp, DateNowPerDb
+    BlobBytes, BlobStream, Date, DateNowPerApp, DateNowPerDb, Boolean
   }
 
   private static class Invocation {
@@ -202,6 +202,18 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
       this.argName = argName;
       this.arg = arg;
     }
+  }
+
+  @NotNull
+  public Sql argBoolean(@Nullable Boolean arg) {
+    invocations.add(new Invocation(ColumnType.Boolean, null, arg));
+    return this;
+  }
+
+  @NotNull
+  public Sql argBoolean(@NotNull String argName, @Nullable Boolean arg) {
+    invocations.add(new Invocation(ColumnType.Boolean, argName, arg));
+    return this;
   }
 
   @NotNull
@@ -365,6 +377,13 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   public void apply(SqlSelect select) {
     for (Invocation i : invocations) {
       switch (i.columnType) {
+      case Boolean:
+        if (i.argName == null) {
+          select.argBoolean((Boolean) i.arg);
+        } else {
+          select.argBoolean(i.argName, (Boolean) i.arg);
+        }
+        break;
       case Integer:
         if (i.argName == null) {
           select.argInteger((Integer) i.arg);
@@ -450,6 +469,13 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   public void apply(SqlInsert insert) {
     for (Invocation i : invocations) {
       switch (i.columnType) {
+      case Boolean:
+        if (i.argName == null) {
+          insert.argBoolean((Boolean) i.arg);
+        } else {
+          insert.argBoolean(i.argName, (Boolean) i.arg);
+        }
+        break;
       case Integer:
         if (i.argName == null) {
           insert.argInteger((Integer) i.arg);
@@ -550,6 +576,13 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   public void apply(SqlUpdate update) {
     for (Invocation i : invocations) {
       switch (i.columnType) {
+      case Boolean:
+        if (i.argName == null) {
+          update.argBoolean((Boolean) i.arg);
+        } else {
+          update.argBoolean(i.argName, (Boolean) i.arg);
+        }
+        break;
       case Integer:
         if (i.argName == null) {
           update.argInteger((Integer) i.arg);

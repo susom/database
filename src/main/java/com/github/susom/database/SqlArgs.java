@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   public static enum ColumnType {
     Integer, Long, Float, Double, BigDecimal, String, ClobString, ClobStream,
-    BlobBytes, BlobStream, Date, DateNowPerApp, DateNowPerDb
+    BlobBytes, BlobStream, Date, DateNowPerApp, DateNowPerDb, Boolean
   }
 
   private static class Invocation {
@@ -51,6 +51,18 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   }
 
   private List<Invocation> invocations = new ArrayList<>();
+
+  @NotNull
+  public SqlArgs argBoolean(@Nullable Boolean arg) {
+    invocations.add(new Invocation(ColumnType.Boolean, null, arg));
+    return this;
+  }
+
+  @NotNull
+  public SqlArgs argBoolean(@NotNull String argName, @Nullable Boolean arg) {
+    invocations.add(new Invocation(ColumnType.Boolean, argName, arg));
+    return this;
+  }
 
   @NotNull
   public SqlArgs argInteger(@Nullable Integer arg) {
@@ -213,6 +225,13 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   public void apply(SqlSelect select) {
     for (Invocation i : invocations) {
       switch (i.columnType) {
+      case Boolean:
+        if (i.argName == null) {
+          select.argBoolean((Boolean) i.arg);
+        } else {
+          select.argBoolean(i.argName, (Boolean) i.arg);
+        }
+        break;
       case Integer:
         if (i.argName == null) {
           select.argInteger((Integer) i.arg);
@@ -298,6 +317,13 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   public void apply(SqlInsert insert) {
     for (Invocation i : invocations) {
       switch (i.columnType) {
+      case Boolean:
+        if (i.argName == null) {
+          insert.argBoolean((Boolean) i.arg);
+        } else {
+          insert.argBoolean(i.argName, (Boolean) i.arg);
+        }
+        break;
       case Integer:
         if (i.argName == null) {
           insert.argInteger((Integer) i.arg);
@@ -398,6 +424,13 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   public void apply(SqlUpdate update) {
     for (Invocation i : invocations) {
       switch (i.columnType) {
+      case Boolean:
+        if (i.argName == null) {
+          update.argBoolean((Boolean) i.arg);
+        } else {
+          update.argBoolean(i.argName, (Boolean) i.arg);
+        }
+        break;
       case Integer:
         if (i.argName == null) {
           update.argInteger((Integer) i.arg);

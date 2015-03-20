@@ -170,6 +170,10 @@ public enum Flavor {
     return "integer";
   }
 
+  public String typeBoolean() {
+    return "char(1)";
+  }
+
   public String typeLong() {
     return "bigint";
   }

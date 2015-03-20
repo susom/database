@@ -63,6 +63,18 @@ public class SqlSelectImpl implements SqlSelect {
 
   @NotNull
   @Override
+  public SqlSelect argBoolean(Boolean arg) {
+    return positionalArg(adaptor.nullString(booleanToString(arg)));
+  }
+
+  @NotNull
+  @Override
+  public SqlSelect argBoolean(@NotNull String argName, Boolean arg) {
+    return namedArg(argName, adaptor.nullString(booleanToString(arg)));
+  }
+
+  @NotNull
+  @Override
   public SqlSelect argInteger(Integer arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
@@ -200,6 +212,34 @@ public class SqlSelectImpl implements SqlSelect {
   public SqlSelect apply(Apply apply) {
     apply.apply(this);
     return this;
+  }
+
+  @Nullable
+  @Override
+  public Boolean queryBooleanOrNull() {
+    return queryWithTimeout(new RowsHandler<Boolean>() {
+      @Override
+      public Boolean process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getBooleanOrNull();
+        }
+        return null;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public boolean queryBooleanOrFalse() {
+    Boolean result = queryBooleanOrNull();
+    return result == null ? false : result;
+  }
+
+  @Nullable
+  @Override
+  public boolean queryBooleanOrTrue() {
+    Boolean result = queryBooleanOrNull();
+    return result == null ? true : result;
   }
 
   @Override
@@ -531,6 +571,10 @@ public class SqlSelectImpl implements SqlSelect {
     }
     parameterMap.put(argName, arg);
     return this;
+  }
+
+  private String booleanToString(Boolean b) {
+    return b == null ? null : b ? "Y" : "N";
   }
 
   private <T> T queryWithTimeout(RowsHandler<T> handler) {

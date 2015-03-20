@@ -70,6 +70,78 @@ class RowsAdaptor implements Rows {
 
   @Nullable
   @Override
+  public Boolean getBooleanOrNull() {
+    return getBooleanOrNull(column++);
+  }
+
+  @Nullable
+  @Override
+  public Boolean getBooleanOrNull(int columnOneBased) {
+    try {
+      return toBoolean(rs, columnOneBased);
+    } catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
+
+  @Nullable
+  @Override
+  public Boolean getBooleanOrNull(String columnName) {
+    try {
+      return toBoolean(rs, columnName);
+    } catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
+
+  @Override
+  public boolean getBooleanOrFalse() {
+    return getBooleanOrFalse(column++);
+  }
+
+  @Override
+  public boolean getBooleanOrFalse(int columnOneBased) {
+    Boolean result = getBooleanOrNull(columnOneBased);
+    if (result == null) {
+      result = Boolean.FALSE;
+    }
+    return result;
+  }
+
+  @Override
+  public boolean getBooleanOrFalse(String columnName) {
+    Boolean result = getBooleanOrNull(columnName);
+    if (result == null) {
+      result = Boolean.FALSE;
+    }
+    return result;
+  }
+
+  @Override
+  public boolean getBooleanOrTrue() {
+    return getBooleanOrTrue(column++);
+  }
+
+  @Override
+  public boolean getBooleanOrTrue(int columnOneBased) {
+    Boolean result = getBooleanOrNull(columnOneBased);
+    if (result == null) {
+      result = Boolean.TRUE;
+    }
+    return result;
+  }
+
+  @Override
+  public boolean getBooleanOrTrue(String columnName) {
+    Boolean result = getBooleanOrNull(columnName);
+    if (result == null) {
+      result = Boolean.TRUE;
+    }
+    return result;
+  }
+
+  @Nullable
+  @Override
   public Integer getIntegerOrNull() {
     return getIntegerOrNull(column++);
   }
@@ -614,6 +686,32 @@ class RowsAdaptor implements Rows {
   private Date toDate(ResultSet rs, String col) throws SQLException {
     Timestamp val = rs.getTimestamp(col);
     return val == null ? null : timestampToDate(val);
+  }
+
+  private Boolean toBoolean(ResultSet rs, int col) throws SQLException {
+    String val = rs.getString(col);
+    if (val == null) {
+      return null;
+    } else if (val.equals("Y")) {
+      return Boolean.TRUE;
+    } else if (val.equals("N")) {
+      return Boolean.FALSE;
+    } else {
+      throw new DatabaseException("Reading boolean from column " + col + " but the value was not 'Y' or 'N'");
+    }
+  }
+
+  private Boolean toBoolean(ResultSet rs, String col) throws SQLException {
+    String val = rs.getString(col);
+    if (val == null) {
+      return null;
+    } else if (val.equals("Y")) {
+      return Boolean.TRUE;
+    } else if (val.equals("N")) {
+      return Boolean.FALSE;
+    } else {
+      throw new DatabaseException("Reading boolean from column \"" + col + "\" but the value was not 'Y' or 'N'");
+    }
   }
 
   private Integer toInteger(ResultSet rs, int col) throws SQLException {

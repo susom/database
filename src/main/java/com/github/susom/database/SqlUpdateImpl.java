@@ -57,6 +57,18 @@ public class SqlUpdateImpl implements SqlUpdate {
     adaptor = new StatementAdaptor(options);
   }
 
+  @NotNull
+  @Override
+  public SqlUpdate argBoolean(Boolean arg) {
+    return positionalArg(adaptor.nullString(booleanToString(arg)));
+  }
+
+  @NotNull
+  @Override
+  public SqlUpdate argBoolean(@NotNull String argName, Boolean arg) {
+    return namedArg(argName, adaptor.nullString(booleanToString(arg)));
+  }
+
   @Override
   @NotNull
   public SqlUpdate argInteger(@Nullable Integer arg) {
@@ -314,5 +326,9 @@ public class SqlUpdateImpl implements SqlUpdate {
     }
     parameterMap.put(argName, arg);
     return this;
+  }
+
+  private String booleanToString(Boolean b) {
+    return b == null ? null : b ? "Y" : "N";
   }
 }

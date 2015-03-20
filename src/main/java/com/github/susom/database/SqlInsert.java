@@ -33,6 +33,14 @@ import org.jetbrains.annotations.NotNull;
 public interface SqlInsert {
   @NotNull
   @CheckReturnValue
+  SqlInsert argBoolean(Boolean arg);
+
+  @NotNull
+  @CheckReturnValue
+  SqlInsert argBoolean(@NotNull String argName, Boolean arg);
+
+  @NotNull
+  @CheckReturnValue
   SqlInsert argInteger(Integer arg);
 
   @NotNull

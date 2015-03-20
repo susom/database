@@ -41,7 +41,7 @@ public class Schema {
   }
 
   public static enum ColumnType {
-    Integer, Long, Float, Double, BigDecimal, StringVar, StringFixed, Clob, Blob, Date
+    Integer, Long, Float, Double, BigDecimal, StringVar, StringFixed, Clob, Blob, Date, Boolean
   }
 
   public void validate() {
@@ -349,6 +349,10 @@ public class Schema {
         this.name = toName(name);
       }
 
+      public Column asBoolean() {
+        return asType(ColumnType.Boolean);
+      }
+
       public Column asInteger() {
         return asType(ColumnType.Integer);
       }
@@ -472,6 +476,9 @@ public class Schema {
         }
         sql.append(rpad(column.name, 30)).append(" ");
         switch (column.type) {
+          case Boolean:
+            sql.append(flavor.typeBoolean());
+            break;
           case Integer:
             sql.append(flavor.typeInteger());
             break;

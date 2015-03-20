@@ -52,6 +52,60 @@ public class RowStub {
 
       @Nullable
       @Override
+      public Boolean getBooleanOrNull() {
+        return toBoolean(rows.get(row)[++col]);
+      }
+
+      @Nullable
+      @Override
+      public Boolean getBooleanOrNull(int columnOneBased) {
+        return toBoolean(rows.get(row)[columnOneBased - 1]);
+      }
+
+      @Nullable
+      @Override
+      public Boolean getBooleanOrNull(String columnName) {
+        return toBoolean(rows.get(row)[columnIndexByName(columnName)]);
+      }
+
+      @Override
+      public boolean getBooleanOrFalse() {
+        Boolean i = getBooleanOrNull();
+        return i == null ? false : i;
+      }
+
+      @Override
+      public boolean getBooleanOrFalse(int columnOneBased) {
+        Boolean i = getBooleanOrNull(columnOneBased);
+        return i == null ? false : i;
+      }
+
+      @Override
+      public boolean getBooleanOrFalse(String columnName) {
+        Boolean i = getBooleanOrNull(columnName);
+        return i == null ? false : i;
+      }
+
+      @Override
+      public boolean getBooleanOrTrue() {
+        Boolean i = getBooleanOrNull();
+        return i == null ? true : i;
+      }
+
+      @Override
+      public boolean getBooleanOrTrue(int columnOneBased) {
+        Boolean i = getBooleanOrNull(columnOneBased);
+        return i == null ? true : i;
+      }
+
+      @Override
+      public boolean getBooleanOrTrue(String columnName) {
+        Boolean i = getBooleanOrNull(columnName);
+        return i == null ? true : i;
+      }
+
+      @Nullable
+      @Override
       public Integer getIntegerOrNull() {
         return toInteger(rows.get(row)[++col]);
       }
@@ -457,6 +511,19 @@ public class RowStub {
           }
         }
         throw new DatabaseException("Column name '" + columnName + "' not found");
+      }
+
+      private Boolean toBoolean(Object o) {
+        if (o instanceof String) {
+          if ("Y".equals(o)) {
+            return Boolean.TRUE;
+          } else if ("N".equals(o)) {
+            return Boolean.FALSE;
+          } else {
+            throw new DatabaseException("Value returned for boolean was not 'Y' or 'N'");
+          }
+        }
+        return (Boolean) o;
       }
 
       private Integer toInteger(Object o) {

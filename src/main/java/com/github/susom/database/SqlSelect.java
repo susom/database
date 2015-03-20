@@ -33,6 +33,14 @@ import org.jetbrains.annotations.Nullable;
 public interface SqlSelect {
   @NotNull
   @CheckReturnValue
+  SqlSelect argBoolean(Boolean arg);
+
+  @NotNull
+  @CheckReturnValue
+  SqlSelect argBoolean(@NotNull String argName, Boolean arg);
+
+  @NotNull
+  @CheckReturnValue
   SqlSelect argInteger(Integer arg);
 
   @NotNull
@@ -122,6 +130,18 @@ public interface SqlSelect {
   @NotNull
   @CheckReturnValue
   SqlSelect apply(Apply apply);
+
+  @Nullable
+  @CheckReturnValue
+  Boolean queryBooleanOrNull();
+
+  @Nullable
+  @CheckReturnValue
+  boolean queryBooleanOrFalse();
+
+  @Nullable
+  @CheckReturnValue
+  boolean queryBooleanOrTrue();
 
   @Nullable
   @CheckReturnValue

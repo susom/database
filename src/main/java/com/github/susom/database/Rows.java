@@ -45,6 +45,126 @@ public interface Rows {
   @NotNull
   String[] getColumnNames();
 
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to {@code Boolean} or {@code null} as appropriate.
+   *
+   * <p>This is a short-hand method that reads columns in order, starting
+   * with the first, and automatically incrementing the column index.</p>
+   *
+   * @return true if the value was "Y", false if it was "N", or null
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  @Nullable
+  Boolean getBooleanOrNull();
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to {@code Boolean} or {@code null} as appropriate.
+   *
+   * @param columnOneBased column number to read (1 is the first column)
+   * @return true if the value was "Y", false if it was "N", or null
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  @Nullable
+  Boolean getBooleanOrNull(int columnOneBased);
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to {@code Boolean} or {@code null} as appropriate.
+   *
+   * @param columnName SQL alias of the column to read (use all lowercase)
+   * @return true if the value was "Y", false if it was "N", or null
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  @Nullable
+  Boolean getBooleanOrNull(String columnName);
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to a {@code boolean}. If the value is {@code null}, it will be converted to {@code false}.
+   *
+   * <p>This is a short-hand method that reads columns in order, starting
+   * with the first, and automatically incrementing the column index.</p>
+   *
+   * @return true if the value was "Y", false if it was either "N" or null
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  boolean getBooleanOrFalse();
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to a {@code boolean}. If the value is {@code null}, it will be converted to {@code false}.
+   *
+   * <p>This is a short-hand method that reads columns in order, starting
+   * with the first, and automatically incrementing the column index.</p>
+   *
+   * @param columnOneBased column number to read (1 is the first column)
+   * @return true if the value was "Y", false if it was either "N" or null
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  boolean getBooleanOrFalse(int columnOneBased);
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to a {@code boolean}. If the value is {@code null}, it will be converted to {@code false}.
+   *
+   * <p>This is a short-hand method that reads columns in order, starting
+   * with the first, and automatically incrementing the column index.</p>
+   *
+   * @param columnName SQL alias of the column to read (use all lowercase)
+   * @return true if the value was "Y", false if it was either "N" or null
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  boolean getBooleanOrFalse(String columnName);
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to a {@code boolean}. If the value is {@code null}, it will be converted to {@code true}.
+   *
+   * <p>This is a short-hand method that reads columns in order, starting
+   * with the first, and automatically incrementing the column index.</p>
+   *
+   * @return true if the value was either "Y" or null, false if it was "N"
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  boolean getBooleanOrTrue();
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to a {@code boolean}. If the value is {@code null}, it will be converted to {@code true}.
+   *
+   * <p>This is a short-hand method that reads columns in order, starting
+   * with the first, and automatically incrementing the column index.</p>
+   *
+   * @param columnOneBased column number to read (1 is the first column)
+   * @return true if the value was either "Y" or null, false if it was "N"
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  boolean getBooleanOrTrue(int columnOneBased);
+
+  /**
+   * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,
+   * typically in a {@code CHAR(1)} column. This reads the value and converts it
+   * to a {@code boolean}. If the value is {@code null}, it will be converted to {@code true}.
+   *
+   * <p>This is a short-hand method that reads columns in order, starting
+   * with the first, and automatically incrementing the column index.</p>
+   *
+   * @param columnName SQL alias of the column to read (use all lowercase)
+   * @return true if the value was either "Y" or null, false if it was "N"
+   * @throws DatabaseException if the value was something other than Y, N, or null
+   */
+  boolean getBooleanOrTrue(String columnName);
+
   @Nullable
   Integer getIntegerOrNull();
 

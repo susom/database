@@ -62,6 +62,18 @@ public class SqlInsertImpl implements SqlInsert {
     adaptor = new StatementAdaptor(options);
   }
 
+  @NotNull
+  @Override
+  public SqlInsert argBoolean(Boolean arg) {
+    return positionalArg(adaptor.nullString(booleanToString(arg)));
+  }
+
+  @NotNull
+  @Override
+  public SqlInsert argBoolean(@NotNull String argName, Boolean arg) {
+    return namedArg(argName, adaptor.nullString(booleanToString(arg)));
+  }
+
   @Override
   @NotNull
   public SqlInsert argInteger(Integer arg) {
@@ -573,5 +585,9 @@ public class SqlInsertImpl implements SqlInsert {
     }
     parameterMap.put(argName, arg);
     return this;
+  }
+
+  private String booleanToString(Boolean b) {
+    return b == null ? null : b ? "Y" : "N";
   }
 }

@@ -580,6 +580,93 @@ public abstract class CommonTest {
   }
 
   @Test
+  public void booleanColumn() {
+    new Schema().addTable("dbtest")
+        .addColumn("t").asBoolean().table()
+        .addColumn("f").asBoolean().table()
+        .addColumn("n").asBoolean().schema().execute(db);
+
+    db.toInsert("insert into dbtest (t,f,n) values (?,:f,?)")
+        .argBoolean(true).argBoolean("f", false).argBoolean(null).insert(1);
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertTrue(rs.getBooleanOrNull() == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrNull() == Boolean.FALSE);
+            assertNull(rs.getBooleanOrNull());
+            return null;
+          }
+        });
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertTrue(rs.getBooleanOrFalse() == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrFalse() == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrFalse() == Boolean.FALSE);
+            return null;
+          }
+        });
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertTrue(rs.getBooleanOrTrue() == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrTrue() == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrTrue() == Boolean.TRUE);
+            return null;
+          }
+        });
+    db.toDelete("delete from dbtest where t=? and f=?")
+        .argBoolean(true).argBoolean(false).update(1);
+    // Really should do this, but it seems Derby and PostgreSQL don't support it
+//    db.toDelete("delete from dbtest where t=? and f=? and n=?")
+//    .argBoolean(true).argBoolean(false).argBoolean(null).update(1);
+
+    db.toInsert("insert into dbtest (t,f,n) values (:t,:f,:n)")
+        .argBoolean("t", true).argBoolean("f", false).argBoolean("n", null).insert(1);
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertTrue(rs.getBooleanOrNull(1) == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrNull(2) == Boolean.FALSE);
+            assertNull(rs.getBooleanOrNull(3));
+            assertTrue(rs.getBooleanOrFalse(1) == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrFalse(2) == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrFalse(3) == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrTrue(1) == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrTrue(2) == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrTrue(3) == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrNull("t") == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrNull("f") == Boolean.FALSE);
+            assertNull(rs.getBooleanOrNull("n"));
+            assertTrue(rs.getBooleanOrFalse("t") == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrFalse("f") == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrFalse("n") == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrTrue("t") == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrTrue("f") == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrTrue("n") == Boolean.TRUE);
+            return null;
+          }
+        });
+    assertTrue(db.toSelect("select t from dbtest").queryBooleanOrNull() == Boolean.TRUE);
+    assertTrue(db.toSelect("select t from dbtest").queryBooleanOrFalse());
+    assertTrue(db.toSelect("select t from dbtest").queryBooleanOrTrue());
+    assertTrue(db.toSelect("select f from dbtest").queryBooleanOrNull() == Boolean.FALSE);
+    assertFalse(db.toSelect("select f from dbtest").queryBooleanOrFalse());
+    assertFalse(db.toSelect("select f from dbtest").queryBooleanOrTrue());
+    assertNull(db.toSelect("select n from dbtest").queryBooleanOrNull());
+    assertFalse(db.toSelect("select n from dbtest").queryBooleanOrFalse());
+    assertTrue(db.toSelect("select n from dbtest").queryBooleanOrTrue());
+  }
+
+  @Test
   public void bigClob() {
     new Schema().addTable("dbtest").addColumn("str_lob").asClob().schema().execute(db);
 

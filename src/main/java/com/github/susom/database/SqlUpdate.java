@@ -34,6 +34,14 @@ import org.jetbrains.annotations.Nullable;
 public interface SqlUpdate {
   @NotNull
   @CheckReturnValue
+  SqlUpdate argBoolean(Boolean arg);
+
+  @NotNull
+  @CheckReturnValue
+  SqlUpdate argBoolean(@NotNull String argName, Boolean arg);
+
+  @NotNull
+  @CheckReturnValue
   SqlUpdate argInteger(@Nullable Integer arg);
 
   @NotNull

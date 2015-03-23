@@ -658,6 +658,14 @@ public final class DatabaseProvider implements Provider<Database> {
     Builder withTransactionControlSilentlyIgnored();
 
     /**
+     * Allow direct access to the underlying database connection. Normally this is
+     * not allowed, and is a bad idea, but it can be helpful when migrating from
+     * legacy code that works with raw JDBC.
+     */
+    @CheckReturnValue
+    Builder withConnectionAccess();
+
+    /**
      * Note that if you use this method you are responsible for managing
      * the transaction and commit/rollback/close.
      */
@@ -731,6 +739,16 @@ public final class DatabaseProvider implements Provider<Database> {
       return new BuilderImpl(connectionProvider, new OptionsOverride() {
         @Override
         public boolean ignoreTransactionControl() {
+          return true;
+        }
+      }.withParent(this.options));
+    }
+
+    @Override
+    public Builder withConnectionAccess() {
+      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+        @Override
+        public boolean allowConnectionAccess() {
           return true;
         }
       }.withParent(this.options));
@@ -822,6 +840,11 @@ public final class DatabaseProvider implements Provider<Database> {
 
       @Override
       public Builder withTransactionControlSilentlyIgnored() {
+        return this;
+      }
+
+      @Override
+      public Builder withConnectionAccess() {
         return this;
       }
 

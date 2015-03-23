@@ -60,18 +60,17 @@ parameters can be mixed anywhere among the positional ones.
 Parameter setting can also be deferred for convenient dynamic SQL generation:
 
 ```java
-  StringBuilder sql = new StringBuilder();
-  SqlArgs args = new SqlArgs();
+  Sql sql = new Sql();
 
   sql.append("select a from b where c=?");
-  args.argInteger(1);
+  sql.argInteger(1);
 
   if (d) {
     sql.append(" and d=?");
-    args.argString("foo");
+    sql.argString("foo");
   }
 
-  db.toSelect(sql).withArgs(args).query(...);
+  db.toSelect(sql).query(...);
 ```
 
 #### Correct handling of java.util.Date
@@ -214,7 +213,8 @@ Basic example including setup:
   String url = "jdbc:derby:testdb;create=true";
   DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
     @Override
-    public void run(Database db) {
+    public void run(Provider<Database> dbp) {
+      Database db = dbp.get();
       db.ddl("drop table t").executeQuietly();
       db.ddl("create table t (a numeric)").execute();
       db.toInsert("insert into t (a) values (?)").argInteger(32).insert(1);
@@ -302,7 +302,7 @@ The library is available in the public Maven repository:
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
-  <version>1.2</version>
+  <version>1.3</version>
 </dependency>
 ```
 

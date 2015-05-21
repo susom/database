@@ -24,45 +24,74 @@ import javax.inject.Provider;
  * @author garricko
  */
 public abstract class DbRun {
-  private boolean rollbackOnException;
+  private boolean rollbackOnError;
   private boolean rollbackOnly;
 
   /**
    * Implement this method to provide a block of code that uses the provided database
-   * and is transacted. By default the transaction will be committed after calling this
-   * method, regardless of whether it returns or throws an exception. This behavior can
-   * be controlled by calling the appropriate set*() methods on this class.
+   * and is transacted. Whether the transaction will commit or rollback is typically
+   * controlled by the code that invokes this method. This behavior can sometimes be
+   * altered by calling the appropriate set*() methods on this class.
    *
-   * <p>If a checked exception is thrown from this method, it will be caught, wrapped in
-   * a DatabaseException, and then propagated.</p>
+   * <p>If a {@link Throwable} is thrown from this method, it will be caught, wrapped in
+   * a DatabaseException (if it is not already one), and then propagated.</p>
    */
   public abstract void run(Provider<Database> db) throws Exception;
 
+  /**
+   * @return whether this code block has requested rollback upon a {@link Throwable}
+   *         being thrown from the {@link #run(Provider)} method - this only
+   *         reflects what was requested by calling {@link #setRollbackOnError(boolean)},
+   *         which is not necessarily what will actually happen
+   */
   public boolean isRollbackOnError() {
-    return rollbackOnException;
+    return rollbackOnError;
   }
 
   /**
-   * By default the transaction will commit after run() regardless of whether an
-   * exception was thrown. This method allows you to change that behavior so the
-   * transaction will be rolled back.
-   *
-   * @param rollbackOnException true to rollback after exceptions; false otherwise
+   * @deprecated use setRollbackOnError() instead
    */
-  public void setRollbackOnException(boolean rollbackOnException) {
-    this.rollbackOnException = rollbackOnException;
+  public void setRollbackOnException(boolean rollbackOnError) {
+    this.rollbackOnError = rollbackOnError;
   }
 
+  /**
+   * By default the transaction behavior (whether commit() or rollback() is called)
+   * after run() is specified by how this code block is invoked. For example, see
+   * {@link DatabaseProvider#transactCommitOnly(DbRun)}, {@link DatabaseProvider#transactRollbackOnly(DbRun)},
+   * and {@link DatabaseProvider#transactRollbackOnError(DbRun)}. Depending on the
+   * context, you may be able to request different behavior using this method. See
+   * documentation of these transact*() methods for details.
+   *
+   * @param rollbackOnError true to rollback after errors; false to commit or rollback based on
+   *                        the other settings
+   */
+  public void setRollbackOnError(boolean rollbackOnError) {
+    this.rollbackOnError = rollbackOnError;
+  }
+
+  /**
+   * @return whether this code block has requested unconditional rollback - this only
+   *         reflects what was requested by calling {@link #setRollbackOnly(boolean)},
+   *         which is not necessarily what will actually happen
+   */
   public boolean isRollbackOnly() {
     return rollbackOnly;
   }
 
   /**
-   * If your code inside run() decides for some reason the transaction should rollback
-   * rather than commit, use this method.
+   * <p>If your code inside run() decides for some reason the transaction should rollback
+   * rather than commit, use this method.</p>
    *
-   * @param rollbackOnly true to force a rollback; false to commit or rollback based on
-   *                     the other settings (default of commit, or setRollbackOnException())
+   * <p>By default the transaction behavior (whether commit() or rollback() is called)
+   * after run() is specified by how this code block is invoked. For example, see
+   * {@link DatabaseProvider#transactCommitOnly(DbRun)}, {@link DatabaseProvider#transactRollbackOnly(DbRun)},
+   * and {@link DatabaseProvider#transactRollbackOnError(DbRun)}. Depending on the
+   * context, you may be able to request different behavior using this method. See
+   * documentation of these transact*() methods for details.</p>
+   *
+   * @param rollbackOnly true to request an unconditional rollback; false to commit or rollback based on
+   *                     the other settings
    */
   public void setRollbackOnly(boolean rollbackOnly) {
     this.rollbackOnly = rollbackOnly;

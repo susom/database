@@ -23,6 +23,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import javax.inject.Provider;
+
 import org.apache.log4j.xml.DOMConfigurator;
 import org.easymock.IMocksControl;
 import org.junit.Test;
@@ -32,6 +34,8 @@ import org.junit.runners.JUnit4;
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
+import com.github.susom.database.DatabaseProvider;
+import com.github.susom.database.DbRun;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.OptionsOverride;
@@ -739,6 +743,222 @@ public class DatabaseTest {
     } catch (DatabaseException e) {
       assertEquals("Unable to rollback transaction", e.getMessage());
     }
+
+    control.verify();
+  }
+
+  @Test
+  public void transactCommitOnlyWithNoError() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    final Connection c = control.createMock(Connection.class);
+
+    c.setAutoCommit(false);
+    c.commit();
+    c.close();
+
+    control.replay();
+
+    new DatabaseProvider(new Provider<Connection>() {
+      @Override
+      public Connection get() {
+        return c;
+      }
+    }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+      @Override
+      public void run(Provider<Database> db) throws Exception {
+        db.get();
+      }
+    });
+
+    control.verify();
+  }
+
+
+  @Test
+  public void transactCommitOnlyWithError() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    final Connection c = control.createMock(Connection.class);
+
+    c.setAutoCommit(false);
+    c.commit();
+    c.close();
+
+    control.replay();
+
+    try {
+      new DatabaseProvider(new Provider<Connection>() {
+        @Override
+        public Connection get() {
+          return c;
+        }
+      }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+        @Override
+        public void run(Provider<Database> db) throws Exception {
+          db.get();
+          throw new Error("Oops");
+        }
+      });
+      fail("Should have thrown an exception");
+    } catch (Exception e) {
+      assertEquals("Error during transaction", e.getMessage());
+    }
+
+    control.verify();
+  }
+
+  @Test
+  public void transactCommitOnlyOverrideWithError() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    final Connection c = control.createMock(Connection.class);
+
+    c.setAutoCommit(false);
+    c.rollback();
+    c.close();
+
+    control.replay();
+
+    try {
+      new DatabaseProvider(new Provider<Connection>() {
+        @Override
+        public Connection get() {
+          return c;
+        }
+      }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+        @Override
+        public void run(Provider<Database> db) throws Exception {
+          db.get();
+          setRollbackOnError(true);
+          throw new DatabaseException("Oops");
+        }
+      });
+      fail("Should have thrown an exception");
+    } catch (Exception e) {
+      assertEquals("Oops", e.getMessage());
+    }
+
+    control.verify();
+  }
+
+  @Test
+  public void transactCommitOnlyOverrideWithError2() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    final Connection c = control.createMock(Connection.class);
+
+    c.setAutoCommit(false);
+    c.rollback();
+    c.close();
+
+    control.replay();
+
+    try {
+      new DatabaseProvider(new Provider<Connection>() {
+        @Override
+        public Connection get() {
+          return c;
+        }
+      }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+        @Override
+        public void run(Provider<Database> db) throws Exception {
+          db.get();
+          setRollbackOnly(true);
+          throw new DatabaseException("Oops");
+        }
+      });
+      fail("Should have thrown an exception");
+    } catch (Exception e) {
+      assertEquals("Oops", e.getMessage());
+    }
+
+    control.verify();
+  }
+
+  @Test
+  public void transactRollbackOnly() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    final Connection c = control.createMock(Connection.class);
+
+    c.setAutoCommit(false);
+    c.rollback();
+    c.close();
+
+    control.replay();
+
+    new DatabaseProvider(new Provider<Connection>() {
+      @Override
+      public Connection get() {
+        return c;
+      }
+    }, new OptionsDefault(Flavor.postgresql)).transactRollbackOnly(new DbRun() {
+      @Override
+      public void run(Provider<Database> db) throws Exception {
+        db.get();
+      }
+    });
+
+    control.verify();
+  }
+
+  @Test
+  public void transactRollbackOnErrorWithError() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    final Connection c = control.createMock(Connection.class);
+
+    c.setAutoCommit(false);
+    c.rollback();
+    c.close();
+
+    control.replay();
+
+    try {
+      new DatabaseProvider(new Provider<Connection>() {
+        @Override
+        public Connection get() {
+          return c;
+        }
+      }, new OptionsDefault(Flavor.postgresql)).transactRollbackOnError(new DbRun() {
+        @Override
+        public void run(Provider<Database> db) throws Exception {
+          db.get();
+          throw new Exception("Oops");
+        }
+      });
+      fail("Should have thrown an exception");
+    } catch (Exception e) {
+      assertEquals("Error during transaction", e.getMessage());
+    }
+
+    control.verify();
+  }
+
+  @Test
+  public void transactRollbackOnErrorWithNoError() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    final Connection c = control.createMock(Connection.class);
+
+    c.setAutoCommit(false);
+    c.commit();
+    c.close();
+
+    control.replay();
+
+    new DatabaseProvider(new Provider<Connection>() {
+      @Override
+      public Connection get() {
+        return c;
+      }
+    }, new OptionsDefault(Flavor.postgresql)).transactRollbackOnError(new DbRun() {
+      @Override
+      public void run(Provider<Database> db) throws Exception {
+        db.get();
+      }
+    });
 
     control.verify();
   }

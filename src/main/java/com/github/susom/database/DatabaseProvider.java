@@ -17,7 +17,6 @@
 package com.github.susom.database;
 
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -584,14 +583,25 @@ public final class DatabaseProvider implements Provider<Database> {
   }
 
   /**
+   * @deprecated use the equivalent method {@link #transactCommitOnly(DbRun)}
+   */
+  public void transact(DbRun run) {
+    transactCommitOnly(run);
+  }
+
+  /**
    * This is a convenience method to eliminate the need for explicitly
-   * managing the resources (and error handling) for this class.
+   * managing the resources (and error handling) for this class. After
+   * the run block is complete commit() will be called unless either the
+   * {@link DbRun#run(Provider)} method threw a {@link Throwable}, or
+   * {@link DbRun#isRollbackOnly()} returns a true value. The value of
+   * {@link DbRun#isRollbackOnError()} has no affect in this case.
    *
    * @param run the code you want to run as a transaction with a Database
    */
-  public void transact(DbRun run) {
+  public void transactRollbackOnError(DbRun run) {
     if (delegateTo != null) {
-      delegateTo.transact(run);
+      delegateTo.transactRollbackOnError(run);
       return;
     }
 
@@ -599,8 +609,71 @@ public final class DatabaseProvider implements Provider<Database> {
     try {
       run.run(this);
       complete = true;
-    } catch (Exception e) {
-      throw new DatabaseException("Exception during transaction", e);
+    } catch (ThreadDeath|DatabaseException t) {
+      throw t;
+    } catch (Throwable t) {
+      throw new DatabaseException("Error during transaction", t);
+    } finally {
+      if (!complete || run.isRollbackOnly()) {
+        rollbackAndClose();
+      } else {
+        commitAndClose();
+      }
+    }
+  }
+
+  /**
+   * This is a convenience method to eliminate the need for explicitly
+   * managing the resources (and error handling) for this class. After
+   * the run block is complete rollback() will be called regardless of
+   * whether {@link DbRun#run(Provider)} completes successfully. The
+   * values of {@link DbRun#isRollbackOnly()} and {@link DbRun#isRollbackOnError()}
+   * have no affect in this case.
+   *
+   * @param run the code you want to run as a transaction with a Database
+   */
+  public void transactRollbackOnly(DbRun run) {
+    if (delegateTo != null) {
+      delegateTo.transactRollbackOnError(run);
+      return;
+    }
+
+    try {
+      run.run(this);
+    } catch (ThreadDeath|DatabaseException t) {
+      throw t;
+    } catch (Throwable t) {
+      throw new DatabaseException("Error during transaction", t);
+    } finally {
+      rollbackAndClose();
+    }
+  }
+
+  /**
+   * This is a convenience method to eliminate the need for explicitly
+   * managing the resources (and error handling) for this class. After
+   * the run block is complete commit() will be called on the database
+   * connection. If {@link DbRun#isRollbackOnly()} returns true or
+   * {@link DbRun#isRollbackOnError()} returns true, this default behavior
+   * will be replaced with the appropriate conditional behavior (a
+   * rollback or rollback on error respectively).
+   *
+   * @param run the code you want to run as a transaction with a Database
+   */
+  public void transactCommitOnly(DbRun run) {
+    if (delegateTo != null) {
+      delegateTo.transactCommitOnly(run);
+      return;
+    }
+
+    boolean complete = false;
+    try {
+      run.run(this);
+      complete = true;
+    } catch (ThreadDeath|DatabaseException t) {
+      throw t;
+    } catch (Throwable t) {
+      throw new DatabaseException("Error during transaction", t);
     } finally {
       if (run.isRollbackOnly() || (run.isRollbackOnError() && !complete)) {
         rollbackAndClose();
@@ -673,11 +746,46 @@ public final class DatabaseProvider implements Provider<Database> {
     DatabaseProvider create();
 
     /**
-     * Use this method to have resource management handled for you.
+     * @deprecated use the equivalent method {@link #transactCommitOnly(DbRun)}
+     */
+    void transact(DbRun run);
+
+    /**
+     * This is a convenience method to eliminate the need for explicitly
+     * managing the resources (and error handling) for this class. After
+     * the run block is complete commit() will be called unless either the
+     * {@link DbRun#run(Provider)} method threw a {@link Throwable}, or
+     * {@link DbRun#isRollbackOnly()} returns a true value. The value of
+     * {@link DbRun#isRollbackOnError()} has no affect in this case.
      *
      * @param run the code you want to run as a transaction with a Database
      */
-    void transact(DbRun run);
+    void transactRollbackOnError(DbRun run);
+
+    /**
+     * This is a convenience method to eliminate the need for explicitly
+     * managing the resources (and error handling) for this class. After
+     * the run block is complete rollback() will be called regardless of
+     * whether {@link DbRun#run(Provider)} completes successfully. The
+     * values of {@link DbRun#isRollbackOnly()} and {@link DbRun#isRollbackOnError()}
+     * have no affect in this case.
+     *
+     * @param run the code you want to run as a transaction with a Database
+     */
+    void transactRollbackOnly(DbRun run);
+
+    /**
+     * This is a convenience method to eliminate the need for explicitly
+     * managing the resources (and error handling) for this class. After
+     * the run block is complete commit() will be called on the database
+     * connection. If {@link DbRun#isRollbackOnly()} returns true or
+     * {@link DbRun#isRollbackOnError()} returns true, this default behavior
+     * will be replaced with the appropriate conditional behavior (a
+     * rollback or rollback on error respectively).
+     *
+     * @param run the code you want to run as a transaction with a Database
+     */
+    void transactCommitOnly(DbRun run);
   }
 
   private static class BuilderImpl implements Builder {
@@ -754,12 +862,29 @@ public final class DatabaseProvider implements Provider<Database> {
       }.withParent(this.options));
     }
 
+    @Override
     public DatabaseProvider create() {
       return new DatabaseProvider(connectionProvider, options);
     }
 
+    @Override
     public void transact(DbRun run) {
       create().transact(run);
+    }
+
+    @Override
+    public void transactRollbackOnError(DbRun run) {
+      create().transactRollbackOnError(run);
+    }
+
+    @Override
+    public void transactRollbackOnly(DbRun run) {
+      create().transactRollbackOnly(run);
+    }
+
+    @Override
+    public void transactCommitOnly(DbRun run) {
+      create().transactCommitOnly(run);
     }
   }
 
@@ -856,6 +981,21 @@ public final class DatabaseProvider implements Provider<Database> {
       @Override
       public void transact(DbRun dbRun) {
         create().transact(dbRun);
+      }
+
+      @Override
+      public void transactRollbackOnError(DbRun run) {
+        create().transactRollbackOnError(run);
+      }
+
+      @Override
+      public void transactRollbackOnly(DbRun run) {
+        create().transactRollbackOnly(run);
+      }
+
+      @Override
+      public void transactCommitOnly(DbRun run) {
+        create().transactCommitOnly(run);
       }
     };
   }

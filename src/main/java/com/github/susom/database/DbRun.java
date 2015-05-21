@@ -51,6 +51,7 @@ public abstract class DbRun {
   /**
    * @deprecated use setRollbackOnError() instead
    */
+  @Deprecated
   public void setRollbackOnException(boolean rollbackOnError) {
     this.rollbackOnError = rollbackOnError;
   }

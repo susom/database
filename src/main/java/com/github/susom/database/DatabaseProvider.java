@@ -585,6 +585,7 @@ public final class DatabaseProvider implements Provider<Database> {
   /**
    * @deprecated use the equivalent method {@link #transactCommitOnly(DbRun)}
    */
+  @Deprecated
   public void transact(DbRun run) {
     transactCommitOnly(run);
   }
@@ -748,6 +749,7 @@ public final class DatabaseProvider implements Provider<Database> {
     /**
      * @deprecated use the equivalent method {@link #transactCommitOnly(DbRun)}
      */
+    @Deprecated
     void transact(DbRun run);
 
     /**

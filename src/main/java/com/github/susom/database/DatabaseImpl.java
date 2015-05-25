@@ -65,6 +65,12 @@ public class DatabaseImpl implements Database {
     return new SqlInsertImpl(connection, mock, sql, options);
   }
 
+  @NotNull
+  @Override
+  public SqlInsert toInsert(@NotNull Sql sql) {
+    return new SqlInsertImpl(connection, mock, sql.sql(), options).apply(sql);
+  }
+
   @Override
   @NotNull
   public SqlSelect toSelect(@NotNull String sql) {
@@ -83,10 +89,22 @@ public class DatabaseImpl implements Database {
     return new SqlUpdateImpl(connection, mock, sql, options);
   }
 
+  @NotNull
+  @Override
+  public SqlUpdate toUpdate(@NotNull Sql sql) {
+    return new SqlUpdateImpl(connection, mock, sql.sql(), options).apply(sql);
+  }
+
   @Override
   @NotNull
   public SqlUpdate toDelete(@NotNull String sql) {
     return new SqlUpdateImpl(connection, mock, sql, options);
+  }
+
+  @NotNull
+  @Override
+  public SqlUpdate toDelete(@NotNull Sql sql) {
+    return new SqlUpdateImpl(connection, mock, sql.sql(), options).apply(sql);
   }
 
   @Override

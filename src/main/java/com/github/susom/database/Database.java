@@ -46,6 +46,10 @@ public interface Database extends Provider<Database> {
   @CheckReturnValue
   SqlInsert toInsert(@Language("SQL") @NotNull String sql);
 
+  @NotNull
+  @CheckReturnValue
+  SqlInsert toInsert(@NotNull Sql sql);
+
   /**
    * Create a SQL "select" statement for further manipulation and execution.
    * Note this call does not actually execute the SQL.
@@ -80,6 +84,10 @@ public interface Database extends Provider<Database> {
   @CheckReturnValue
   SqlUpdate toUpdate(@Language("SQL") @NotNull String sql);
 
+  @NotNull
+  @CheckReturnValue
+  SqlUpdate toUpdate(@NotNull Sql sql);
+
   /**
    * Create a SQL "delete" statement for further manipulation and execution.
    * Note this call does not actually execute the SQL.
@@ -94,6 +102,10 @@ public interface Database extends Provider<Database> {
   @NotNull
   @CheckReturnValue
   SqlUpdate toDelete(@Language("SQL") @NotNull String sql);
+
+  @NotNull
+  @CheckReturnValue
+  SqlUpdate toDelete(@NotNull Sql sql);
 
   /**
    * Create a DDL (schema modifying) statement for further manipulation and execution.

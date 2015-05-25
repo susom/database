@@ -51,6 +51,23 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
     this.sql.append(sql);
   }
 
+  public int argCount() {
+    return invocations.size();
+  }
+
+  public Sql appendQuestionMarks(int howMany) {
+    boolean first = true;
+    for (int i = 0; i < howMany; i++) {
+      if (first) {
+        first = false;
+        append("?");
+      } else {
+        append(",?");
+      }
+    }
+    return this;
+  }
+
   public Sql append(/*@Untainted*/ String sql) {
     assert finalSql == null;
     this.sql.append(sql);

@@ -1014,9 +1014,9 @@ public abstract class CommonTest {
     assertEquals(new Long(1L), db.toSelect("select pk from dbtest").queryLongOrNull());
     assertNull(db.toSelect("select pk from dbtest where 1=0").queryLongOrNull());
     assertNull(db.toSelect("select i from dbtest").queryLongOrNull());
-    assertEquals(new Long(1L), db.toSelect("select pk from dbtest").queryLongOrZero());
-    assertEquals(new Long(0L), db.toSelect("select pk from dbtest where 1=0").queryLongOrZero());
-    assertEquals(new Long(0L), db.toSelect("select i from dbtest").queryLongOrZero());
+    assertEquals(1L, db.toSelect("select pk from dbtest").queryLongOrZero());
+    assertEquals(0L, db.toSelect("select pk from dbtest where 1=0").queryLongOrZero());
+    assertEquals(0L, db.toSelect("select i from dbtest").queryLongOrZero());
     assertTrue(db.toSelect("select pk from dbtest").queryLongs().get(0) == 1L);
     assertTrue(db.toSelect("select pk from dbtest where 1=0").queryLongs().isEmpty());
     assertTrue(db.toSelect("select i from dbtest").queryLongs().isEmpty());
@@ -1024,9 +1024,9 @@ public abstract class CommonTest {
     assertEquals(new Integer(1), db.toSelect("select pk from dbtest").queryIntegerOrNull());
     assertNull(db.toSelect("select pk from dbtest where 1=0").queryIntegerOrNull());
     assertNull(db.toSelect("select i from dbtest").queryIntegerOrNull());
-    assertEquals(new Integer(1), db.toSelect("select pk from dbtest").queryIntegerOrZero());
-    assertEquals(new Integer(0), db.toSelect("select pk from dbtest where 1=0").queryIntegerOrZero());
-    assertEquals(new Integer(0), db.toSelect("select i from dbtest").queryIntegerOrZero());
+    assertEquals(1, db.toSelect("select pk from dbtest").queryIntegerOrZero());
+    assertEquals(0, db.toSelect("select pk from dbtest where 1=0").queryIntegerOrZero());
+    assertEquals(0, db.toSelect("select i from dbtest").queryIntegerOrZero());
     assertTrue(db.toSelect("select pk from dbtest").queryIntegers().get(0) == 1L);
     assertTrue(db.toSelect("select pk from dbtest where 1=0").queryIntegers().isEmpty());
     assertTrue(db.toSelect("select i from dbtest").queryIntegers().isEmpty());

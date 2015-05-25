@@ -228,14 +228,12 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @Nullable
   @Override
   public boolean queryBooleanOrFalse() {
     Boolean result = queryBooleanOrNull();
     return result == null ? false : result;
   }
 
-  @Nullable
   @Override
   public boolean queryBooleanOrTrue() {
     Boolean result = queryBooleanOrNull();
@@ -257,8 +255,7 @@ public class SqlSelectImpl implements SqlSelect {
   }
 
   @Override
-  @Nullable
-  public Long queryLongOrZero() {
+  public long queryLongOrZero() {
     return queryWithTimeout(new RowsHandler<Long>() {
       @Override
       public Long process(Rows rs) throws Exception {
@@ -302,9 +299,8 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @Nullable
   @Override
-  public Integer queryIntegerOrZero() {
+  public int queryIntegerOrZero() {
     return queryWithTimeout(new RowsHandler<Integer>() {
       @Override
       public Integer process(Rows rs) throws Exception {
@@ -348,9 +344,8 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @Nullable
   @Override
-  public Float queryFloatOrZero() {
+  public float queryFloatOrZero() {
     return queryWithTimeout(new RowsHandler<Float>() {
       @Override
       public Float process(Rows rs) throws Exception {
@@ -394,9 +389,8 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @Nullable
   @Override
-  public Double queryDoubleOrZero() {
+  public double queryDoubleOrZero() {
     return queryWithTimeout(new RowsHandler<Double>() {
       @Override
       public Double process(Rows rs) throws Exception {
@@ -440,7 +434,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @Nullable
+  @NotNull
   @Override
   public BigDecimal queryBigDecimalOrZero() {
     return queryWithTimeout(new RowsHandler<BigDecimal>() {

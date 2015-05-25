@@ -135,11 +135,9 @@ public interface SqlSelect {
   @CheckReturnValue
   Boolean queryBooleanOrNull();
 
-  @Nullable
   @CheckReturnValue
   boolean queryBooleanOrFalse();
 
-  @Nullable
   @CheckReturnValue
   boolean queryBooleanOrTrue();
 
@@ -147,9 +145,8 @@ public interface SqlSelect {
   @CheckReturnValue
   Long queryLongOrNull();
 
-  @Nullable
   @CheckReturnValue
-  Long queryLongOrZero();
+  long queryLongOrZero();
 
   /**
    * Shorthand for reading numbers from the first column of the result.
@@ -164,9 +161,8 @@ public interface SqlSelect {
   @CheckReturnValue
   Integer queryIntegerOrNull();
 
-  @Nullable
   @CheckReturnValue
-  Integer queryIntegerOrZero();
+  int queryIntegerOrZero();
 
   @NotNull
   @CheckReturnValue
@@ -176,9 +172,8 @@ public interface SqlSelect {
   @CheckReturnValue
   Float queryFloatOrNull();
 
-  @Nullable
   @CheckReturnValue
-  Float queryFloatOrZero();
+  float queryFloatOrZero();
 
   @NotNull
   @CheckReturnValue
@@ -188,9 +183,8 @@ public interface SqlSelect {
   @CheckReturnValue
   Double queryDoubleOrNull();
 
-  @Nullable
   @CheckReturnValue
-  Double queryDoubleOrZero();
+  double queryDoubleOrZero();
 
   @NotNull
   @CheckReturnValue
@@ -200,7 +194,7 @@ public interface SqlSelect {
   @CheckReturnValue
   BigDecimal queryBigDecimalOrNull();
 
-  @Nullable
+  @NotNull
   @CheckReturnValue
   BigDecimal queryBigDecimalOrZero();
 

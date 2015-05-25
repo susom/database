@@ -295,7 +295,7 @@ public class SqlUpdateImpl implements SqlUpdate {
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
       logEx = e;
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(ps, log);
       metric.done("close");

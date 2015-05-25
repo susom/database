@@ -421,7 +421,7 @@ public class SqlInsertImpl implements SqlInsert {
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
       logEx = e;
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(ps, log);
       metric.done("close");
@@ -486,7 +486,7 @@ public class SqlInsertImpl implements SqlInsert {
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
       logEx = e;
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(rs, log);
       adaptor.closeQuietly(ps, log);
@@ -555,7 +555,7 @@ public class SqlInsertImpl implements SqlInsert {
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
       logEx = e;
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(rs, log);
       adaptor.closeQuietly(ps, log);

@@ -34,4 +34,20 @@ public class DatabaseException extends RuntimeException {
   public DatabaseException(String message, Throwable cause) {
     super(message, cause);
   }
+
+  /**
+   * Wrap an exception with a DatabaseException, taking into account all known
+   * subtypes such that we wrap subtypes in a matching type (so we don't obscure
+   * the type available to catch clauses).
+   *
+   * @param message the new wrapping exception will have this message
+   * @param cause the exception to be wrapped
+   * @return the exception you should throw
+   */
+  public static DatabaseException wrap(String message, Throwable cause) {
+    if (cause instanceof ConstraintViolationException) {
+      return new ConstraintViolationException(message, cause);
+    }
+    return new DatabaseException(message, cause);
+  }
 }

@@ -17,10 +17,10 @@
 package com.github.susom.database;
 
 /**
- * Interface for reading results from a database query.
+ * Type-safe callback to read query results.
  *
  * @author garricko
  */
-public interface Rows extends Row {
-  boolean next();
+public interface RowHandler<T> {
+  T process(Row r) throws Exception;
 }

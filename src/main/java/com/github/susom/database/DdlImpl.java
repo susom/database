@@ -58,7 +58,7 @@ public class DdlImpl implements Ddl {
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
       logEx = e;
-      throw new DatabaseException(DebugSql.exceptionMessage(sql, null, errorCode, options), e);
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(sql, null, errorCode, options), e);
     } finally {
       close(ps);
       metric.checkpoint("close");

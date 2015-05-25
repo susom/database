@@ -227,5 +227,65 @@ public interface SqlSelect {
   @CheckReturnValue
   List<Date> queryDates();
 
+  /**
+   * This is the most generic and low-level way to iterate the query results.
+   * Consider using one of the other methods that can handle the iteration for you.
+   *
+   * @param rowsHandler the process() method of this handler will be called once
+   *                    and it will be responsible for iterating the results
+   */
   <T> T query(RowsHandler<T> rowsHandler);
+
+  /**
+   * Query zero or one row. If zero rows are available a null will be returned.
+   * If more than one row is available a {@link ConstraintViolationException}
+   * will be thrown.
+   *
+   * @param rowHandler the process() method of this handler will be called once
+   *                   if there are results, or will not be called if there are
+   *                   no results
+   */
+  <T> T queryOneOrNull(RowHandler<T> rowHandler);
+
+  /**
+   * Query exactly one row. If zero rows are available or more than one row is
+   * available a {@link ConstraintViolationException} will be thrown.
+   *
+   * @param rowHandler the process() method of this handler will be called once
+   *                   if there are results, or will not be called if there are
+   *                   no results
+   */
+  <T> T queryOneOrThrow(RowHandler<T> rowHandler);
+
+  /**
+   * Query zero or one row. If zero rows are available a null will be returned.
+   * If more than one row is available the first row will be returned.
+   *
+   * @param rowHandler the process() method of this handler will be called once
+   *                   if there are results (for the first row), or will not be
+   *                   called if there are no results
+   */
+  <T> T queryFirstOrNull(RowHandler<T> rowHandler);
+
+  /**
+   * Query zero or one row. If zero rows are available a {@link ConstraintViolationException}
+   * will be thrown. If more than one row is available the first row will be returned.
+   *
+   * @param rowHandler the process() method of this handler will be called once
+   *                   if there are results (for the first row), or will not be
+   *                   called if there are no results
+   */
+  <T> T queryFirstOrThrow(RowHandler<T> rowHandler);
+
+  /**
+   * Query zero or more rows. If zero rows are available an empty list will be returned.
+   * If one or more rows are available each row will be read and added to a list, which
+   * is returned.
+   *
+   * @param rowHandler the process() method of this handler will be called once
+   *                   for each row in the result, or will not be called if there are
+   *                   no results. Only non-null values returned will be added to the
+   *                   result list.
+   */
+  <T> List<T> queryMany(RowHandler<T> rowHandler);
 }

@@ -33,9 +33,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.github.susom.database.ConstraintViolationException;
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.OptionsOverride;
+import com.github.susom.database.Row;
+import com.github.susom.database.RowHandler;
 import com.github.susom.database.Rows;
 import com.github.susom.database.RowsHandler;
 import com.github.susom.database.Schema;
@@ -1047,6 +1050,52 @@ public abstract class CommonTest {
     assertTrue(db.toSelect("select d from dbtest").queryDates().get(0).equals(now));
     assertTrue(db.toSelect("select d from dbtest where 1=0").queryDates().isEmpty());
     assertTrue(db.toSelect("select d2 from dbtest").queryDates().isEmpty());
+  }
+
+  @Test
+  public void rowHandlerQueries() {
+    new Schema()
+        .addTable("dbtest")
+        .addColumn("pk").primaryKey().schema()
+        .execute(db);
+
+    db.toInsert("insert into dbtest (pk) values (?)").argLong(1L).insert(1);
+    db.toInsert("insert into dbtest (pk) values (?)").argLong(2L).insert(1);
+
+    RowHandler<Long> rowHandler = new RowHandler<Long>() {
+      @Override
+      public Long process(Row r) throws Exception {
+        return r.getLongOrNull();
+      }
+    };
+
+    List<Long> many = db.toSelect("select pk from dbtest").queryMany(rowHandler);
+    assertEquals(2, many.size());
+
+    assertEquals(new Long(1), db.toSelect("select pk from dbtest where pk=1").queryOneOrNull(rowHandler));
+    assertNull(db.toSelect("select pk from dbtest where pk=9").queryOneOrNull(rowHandler));
+    try {
+      db.toSelect("select pk from dbtest").queryOneOrNull(rowHandler);
+      fail("Should have thrown an exception");
+    } catch (ConstraintViolationException e) {
+      assertEquals("Expected exactly one row to be returned but found multiple", e.getCause().getMessage());
+    }
+    try {
+      db.toSelect("select pk from dbtest where pk=9").queryOneOrThrow(rowHandler);
+      fail("Should have thrown an exception");
+    } catch (ConstraintViolationException e) {
+      assertEquals("Expected exactly one row to be returned but found none", e.getMessage());
+    }
+
+    assertEquals(new Long(1), db.toSelect("select pk from dbtest where pk=1").queryFirstOrNull(rowHandler));
+    assertEquals(new Long(1), db.toSelect("select pk from dbtest order by 1").queryFirstOrNull(rowHandler));
+    assertNull(db.toSelect("select pk from dbtest where pk=9").queryFirstOrNull(rowHandler));
+    try {
+      db.toSelect("select pk from dbtest where pk=9").queryFirstOrThrow(rowHandler);
+      fail("Should have thrown an exception");
+    } catch (ConstraintViolationException e) {
+      assertEquals("Expected one or more rows to be returned but found none", e.getMessage());
+    }
   }
 
   @Test

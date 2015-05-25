@@ -548,6 +548,73 @@ public class SqlSelectImpl implements SqlSelect {
     return queryWithTimeout(rowsHandler);
   }
 
+  @Override
+  public <T> T queryOneOrNull(final RowHandler<T> rowHandler) {
+    return queryWithTimeout(new RowsHandler<T>() {
+      @Override
+      public T process(Rows rs) throws Exception {
+        if (rs.next()) {
+          T result = rowHandler.process(rs);
+          if (rs.next()) {
+            throw new ConstraintViolationException("Expected exactly one row to be returned but found multiple");
+          }
+          return result;
+        }
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public <T> T queryOneOrThrow(RowHandler<T> rowHandler) {
+    T result = queryOneOrNull(rowHandler);
+    if (result == null) {
+      throw new ConstraintViolationException("Expected exactly one row to be returned but found none");
+    }
+    return result;
+  }
+
+  @Override
+  public <T> T queryFirstOrNull(final RowHandler<T> rowHandler) {
+    return queryWithTimeout(new RowsHandler<T>() {
+      @Override
+      public T process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rowHandler.process(rs);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public <T> T queryFirstOrThrow(RowHandler<T> rowHandler) {
+    T result = queryFirstOrNull(rowHandler);
+    if (result == null) {
+      throw new ConstraintViolationException("Expected one or more rows to be returned but found none");
+    }
+    return result;
+  }
+
+  @Override
+  public <T> List<T> queryMany(final RowHandler<T> rowHandler) {
+    return queryWithTimeout(new RowsHandler<List<T>>() {
+      @Override
+      public List<T> process(Rows rs) throws Exception {
+        List<T> result = new ArrayList<>();
+
+        while (rs.next()) {
+          T row = rowHandler.process(rs);
+          if (row != null) {
+            result.add(row);
+          }
+        }
+
+        return result;
+      }
+    });
+  }
+
   private SqlSelect positionalArg(Object arg) {
     if (parameterList == null) {
       parameterList = new ArrayList<>();
@@ -629,11 +696,11 @@ public class SqlSelectImpl implements SqlSelect {
       }
       errorCode = options.generateErrorCode();
       logEx = e;
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } catch (Exception e) {
       errorCode = options.generateErrorCode();
       logEx = e;
-      throw new DatabaseException(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
     } finally {
       adaptor.closeQuietly(rs, log);
       adaptor.closeQuietly(ps, log);

@@ -929,7 +929,7 @@ public final class DatabaseProvider implements Provider<Database> {
     } finally {
       metric.done();
       if (log.isDebugEnabled()) {
-        StringBuilder buf = new StringBuilder("Get database: ");
+        StringBuilder buf = new StringBuilder("Get ").append(options.flavor()).append(" database: ");
         metric.printMessage(buf);
         log.debug(buf.toString());
       }

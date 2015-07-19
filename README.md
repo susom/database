@@ -1,9 +1,9 @@
-## Easier, Safer JDBC
+## Easier, Safer Database Access
 
 [![Build Status](https://travis-ci.org/susom/database.svg?branch=master)](https://travis-ci.org/susom/database)
 
 The point of this project is to provide a simplified way of accessing databases. It is a
-wrapper around the JDBC driver, and tries to hide some of the more error-prone and unsafe
+wrapper around the JDBC driver, and tries to hide some of the more error-prone, unsafe, and non-portable
 parts of the standard API. It uses standard Java types for all operations (as opposed to java.sql.*),
 and acts as a compatibility layer in making every attempt to behave consistently
 with all supported databases.
@@ -62,12 +62,10 @@ Parameter setting can also be deferred for convenient dynamic SQL generation:
 ```java
   Sql sql = new Sql();
 
-  sql.append("select a from b where c=?");
-  sql.argInteger(1);
+  sql.append("select a from b where c=?").argInteger(1);
 
   if (d) {
-    sql.append(" and d=?");
-    sql.argString("foo");
+    sql.append(" and d=?").argString("foo");
   }
 
   db.toSelect(sql).query(...);

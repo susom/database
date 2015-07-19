@@ -59,12 +59,14 @@ public class RowStub {
       @Nullable
       @Override
       public Boolean getBooleanOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toBoolean(rows.get(row)[columnOneBased - 1]);
       }
 
       @Nullable
       @Override
       public Boolean getBooleanOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toBoolean(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -94,6 +96,7 @@ public class RowStub {
 
       @Override
       public boolean getBooleanOrTrue(int columnOneBased) {
+        col = columnOneBased;
         Boolean i = getBooleanOrNull(columnOneBased);
         return i == null ? true : i;
       }
@@ -113,12 +116,14 @@ public class RowStub {
       @Nullable
       @Override
       public Integer getIntegerOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toInteger(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public Integer getIntegerOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toInteger(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -149,12 +154,14 @@ public class RowStub {
       @Nullable
       @Override
       public Long getLongOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toLong(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public Long getLongOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toLong(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -185,12 +192,14 @@ public class RowStub {
       @Nullable
       @Override
       public Float getFloatOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toFloat(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public Float getFloatOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toFloat(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -221,12 +230,14 @@ public class RowStub {
       @Nullable
       @Override
       public Double getDoubleOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toDouble(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public Double getDoubleOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toDouble(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -257,12 +268,14 @@ public class RowStub {
       @Nullable
       @Override
       public BigDecimal getBigDecimalOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toBigDecimal(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public BigDecimal getBigDecimalOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toBigDecimal(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -296,12 +309,14 @@ public class RowStub {
       @Nullable
       @Override
       public String getStringOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toString(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public String getStringOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toString(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -410,12 +425,14 @@ public class RowStub {
       @Nullable
       @Override
       public byte[] getBlobBytesOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toBytes(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public byte[] getBlobBytesOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toBytes(rows.get(row)[columnIndexByName(columnName)]);
       }
 
@@ -488,12 +505,14 @@ public class RowStub {
       @Nullable
       @Override
       public Date getDateOrNull(int columnOneBased) {
+        col = columnOneBased;
         return toDate(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
       public Date getDateOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
         return toDate(rows.get(row)[columnIndexByName(columnName)]);
       }
 

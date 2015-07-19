@@ -78,6 +78,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Boolean getBooleanOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return toBoolean(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -88,6 +89,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Boolean getBooleanOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return toBoolean(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -149,6 +151,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Integer getIntegerOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return toInteger(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -158,6 +161,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Integer getIntegerOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return toInteger(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -194,8 +198,9 @@ class RowsAdaptor implements Rows {
   }
 
   @Override
-  public Long getLongOrNull(int column) {
+  public Long getLongOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return toLong(rs, column);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -205,6 +210,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Long getLongOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return toLong(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -243,6 +249,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Float getFloatOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return toFloat(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -252,6 +259,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Float getFloatOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return toFloat(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -290,6 +298,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Double getDoubleOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return toDouble(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -299,6 +308,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Double getDoubleOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return toDouble(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -337,6 +347,7 @@ class RowsAdaptor implements Rows {
   @Override
   public BigDecimal getBigDecimalOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return toBigDecimal(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -346,6 +357,7 @@ class RowsAdaptor implements Rows {
   @Override
   public BigDecimal getBigDecimalOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return toBigDecimal(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -387,6 +399,7 @@ class RowsAdaptor implements Rows {
   @Override
   public String getStringOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       String result = rs.getString(columnOneBased);
       if (result != null && result.length() == 0) {
         result = null;
@@ -400,6 +413,7 @@ class RowsAdaptor implements Rows {
   @Override
   public String getStringOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       String result = rs.getString(columnName);
       if (result != null && result.length() == 0) {
         result = null;
@@ -445,6 +459,7 @@ class RowsAdaptor implements Rows {
   @Override
   public String getClobStringOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       String result = rs.getString(columnOneBased);
       if (result != null && result.length() == 0) {
         result = null;
@@ -458,6 +473,7 @@ class RowsAdaptor implements Rows {
   @Override
   public String getClobStringOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       String result = rs.getString(columnName);
       if (result != null && result.length() == 0) {
         result = null;
@@ -503,6 +519,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Reader getClobReaderOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return rs.getCharacterStream(columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -512,6 +529,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Reader getClobReaderOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return rs.getCharacterStream(columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -553,6 +571,7 @@ class RowsAdaptor implements Rows {
   @Override
   public byte[] getBlobBytesOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return rs.getBytes(columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -562,6 +581,7 @@ class RowsAdaptor implements Rows {
   @Override
   public byte[] getBlobBytesOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return rs.getBytes(columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -603,6 +623,7 @@ class RowsAdaptor implements Rows {
   @Override
   public InputStream getBlobInputStreamOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return rs.getBinaryStream(columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -612,6 +633,7 @@ class RowsAdaptor implements Rows {
   @Override
   public InputStream getBlobInputStreamOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return rs.getBinaryStream(columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -653,6 +675,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Date getDateOrNull(int columnOneBased) {
     try {
+      column = columnOneBased + 1;
       return toDate(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
@@ -662,6 +685,7 @@ class RowsAdaptor implements Rows {
   @Override
   public Date getDateOrNull(String columnName) {
     try {
+      column = rs.findColumn(columnName) + 1;
       return toDate(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);

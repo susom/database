@@ -602,14 +602,27 @@ public abstract class CommonTest {
             return null;
           }
         });
+    // Verify use of getBooleanOrNull(int) followed by default getBooleanOrNull() tracks
+    // the current column index correctly (picks up where the explicit one left off)
     db.toSelect("select t,f,n from dbtest")
         .query(new RowsHandler<Object>() {
           @Override
           public Object process(Rows rs) throws Exception {
             assertTrue(rs.next());
-            assertTrue(rs.getBooleanOrFalse() == Boolean.TRUE);
-            assertTrue(rs.getBooleanOrFalse() == Boolean.FALSE);
-            assertTrue(rs.getBooleanOrFalse() == Boolean.FALSE);
+            assertTrue(rs.getBooleanOrNull(2) == Boolean.FALSE);
+            assertNull(rs.getBooleanOrNull());
+            return null;
+          }
+        });
+    // Verify use of getBooleanOrNull(String) followed by default getBooleanOrNull() tracks
+    // the current column index correctly (picks up where the explicit one left off)
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertTrue(rs.getBooleanOrNull("f") == Boolean.FALSE);
+            assertNull(rs.getBooleanOrNull());
             return null;
           }
         });
@@ -618,9 +631,68 @@ public abstract class CommonTest {
           @Override
           public Object process(Rows rs) throws Exception {
             assertTrue(rs.next());
-            assertTrue(rs.getBooleanOrTrue() == Boolean.TRUE);
-            assertTrue(rs.getBooleanOrTrue() == Boolean.FALSE);
-            assertTrue(rs.getBooleanOrTrue() == Boolean.TRUE);
+            assertTrue(rs.getBooleanOrFalse());
+            assertFalse(rs.getBooleanOrFalse());
+            assertFalse(rs.getBooleanOrFalse());
+            return null;
+          }
+        });
+    // Verify use of getBooleanOrFalse(int) followed by default getBooleanOrFalse() tracks
+    // the current column index correctly (picks up where the explicit one left off)
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertFalse(rs.getBooleanOrFalse(2));
+            assertFalse(rs.getBooleanOrFalse());
+            return null;
+          }
+        });
+    // Verify use of getBooleanOrFalse(String) followed by default getBooleanOrFalse() tracks
+    // the current column index correctly (picks up where the explicit one left off)
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertFalse(rs.getBooleanOrFalse("f"));
+            assertFalse(rs.getBooleanOrFalse());
+            return null;
+          }
+        });
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertTrue(rs.getBooleanOrTrue());
+            assertFalse(rs.getBooleanOrTrue());
+            assertTrue(rs.getBooleanOrTrue());
+            return null;
+          }
+        });
+    // Verify use of getBooleanOrTrue(int) followed by default getBooleanOrTrue() tracks
+    // the current column index correctly (picks up where the explicit one left off)
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertFalse(rs.getBooleanOrTrue(2));
+            assertTrue(rs.getBooleanOrTrue());
+            return null;
+          }
+        });
+    // Verify use of getBooleanOrTrue(String) followed by default getBooleanOrTrue() tracks
+    // the current column index correctly (picks up where the explicit one left off)
+    db.toSelect("select t,f,n from dbtest")
+        .query(new RowsHandler<Object>() {
+          @Override
+          public Object process(Rows rs) throws Exception {
+            assertTrue(rs.next());
+            assertFalse(rs.getBooleanOrTrue("f"));
+            assertTrue(rs.getBooleanOrTrue());
             return null;
           }
         });

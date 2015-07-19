@@ -201,7 +201,7 @@ class RowsAdaptor implements Rows {
   public Long getLongOrNull(int columnOneBased) {
     try {
       column = columnOneBased + 1;
-      return toLong(rs, column);
+      return toLong(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
     }

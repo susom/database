@@ -51,6 +51,16 @@ public interface Row {
    * <p>This is a short-hand method that reads columns in order, starting
    * with the first, and automatically incrementing the column index.</p>
    *
+   * <p>If you call one of the methods using an explicit column index or column name before
+   * calling this method, it will pick up at the next column following the explicit one.
+   * For example:</p>
+   *
+   * <pre>
+   * getX();  // column 1
+   * getX(5); // or getX("foo") if foo is column 5
+   * getX();  // column 6
+   * </pre>
+   *
    * @return true if the value was "Y", false if it was "N", or null
    * @throws DatabaseException if the value was something other than Y, N, or null
    */
@@ -88,6 +98,16 @@ public interface Row {
    *
    * <p>This is a short-hand method that reads columns in order, starting
    * with the first, and automatically incrementing the column index.</p>
+   *
+   * <p>If you call one of the methods using an explicit column index or column name before
+   * calling this method, it will pick up at the next column following the explicit one.
+   * For example:</p>
+   *
+   * <pre>
+   * getX();  // column 1
+   * getX(5); // or getX("foo") if foo is column 5
+   * getX();  // column 6
+   * </pre>
    *
    * @return true if the value was "Y", false if it was either "N" or null
    * @throws DatabaseException if the value was something other than Y, N, or null
@@ -129,6 +149,16 @@ public interface Row {
    *
    * <p>This is a short-hand method that reads columns in order, starting
    * with the first, and automatically incrementing the column index.</p>
+   *
+   * <p>If you call one of the methods using an explicit column index or column name before
+   * calling this method, it will pick up at the next column following the explicit one.
+   * For example:</p>
+   *
+   * <pre>
+   * getX();  // column 1
+   * getX(5); // or getX("foo") if foo is column 5
+   * getX();  // column 6
+   * </pre>
    *
    * @return true if the value was either "Y" or null, false if it was "N"
    * @throws DatabaseException if the value was something other than Y, N, or null

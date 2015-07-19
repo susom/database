@@ -39,7 +39,7 @@ public class PostgreSqlTest extends CommonTest {
   protected DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception {
     Properties properties = new Properties();
     try {
-      properties.load(new FileReader(System.getProperty("build.properties", "../build.properties")));
+      properties.load(new FileReader(System.getProperty("local.properties", "local.properties")));
     } catch (Exception e) {
       // Don't care, fallback to system properties
     }

@@ -569,6 +569,11 @@ public abstract class CommonTest {
   }
 
   @Test
+  public void fromAny() {
+    assertEquals(db.toSelect("select 1" + db.flavor().fromAny()).queryIntegerOrZero(), 1);
+  }
+
+  @Test
   public void metadataColumnNames() {
     new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
 

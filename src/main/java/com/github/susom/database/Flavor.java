@@ -52,6 +52,11 @@ public enum Flavor {
     public String dbTimeMillis() {
       return "current_timestamp";
     }
+
+    @Override
+    public String fromAny() {
+      return " from sysibm.sysdummy1";
+    }
   },
   oracle {
     @Override

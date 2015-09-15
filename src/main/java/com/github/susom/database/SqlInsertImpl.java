@@ -406,7 +406,7 @@ public class SqlInsertImpl implements SqlInsert {
         isSuccess = true;
         return numAffectedRows;
       } else {
-        Integer numAffectedRows = mock.insert(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        Integer numAffectedRows = mock.insert(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters, options));
         if (numAffectedRows == null) {
           // No mock behavior provided, be nice and assume the expected value
           log.debug("Setting numAffectedRows to expected");
@@ -470,7 +470,7 @@ public class SqlInsertImpl implements SqlInsert {
         isSuccess = true;
         return pk;
       } else {
-        String debugSql = DebugSql.printDebugOnlySqlString(executeSql, parameters);
+        String debugSql = DebugSql.printDebugOnlySqlString(executeSql, parameters, options);
         Long pk = mock.insertReturningPk(executeSql, debugSql);
         if (pk == null) {
           // No mock behavior provided, default to something that could conceivably work
@@ -540,7 +540,7 @@ public class SqlInsertImpl implements SqlInsert {
         isSuccess = true;
         return result;
       } else {
-        RowStub stub = mock.insertReturning(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        RowStub stub = mock.insertReturning(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters, options));
         if (stub == null) {
           stub = new RowStub();
         }

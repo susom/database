@@ -285,7 +285,7 @@ public class SqlUpdateImpl implements SqlUpdate {
         isSuccess = true;
         return numAffectedRows;
       } else {
-        int numAffectedRows = mock.update(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        int numAffectedRows = mock.update(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters, options));
         metric.checkpoint("stub[" + numAffectedRows + "]");
         isSuccess = true;
         return numAffectedRows;

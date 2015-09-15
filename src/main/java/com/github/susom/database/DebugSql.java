@@ -16,7 +16,6 @@
 
 package com.github.susom.database;
 
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -31,18 +30,18 @@ import org.slf4j.Logger;
  * @author garricko
  */
 public class DebugSql {
-  public static String printDebugOnlySqlString(String sql, Object[] args) {
+  public static String printDebugOnlySqlString(String sql, Object[] args, Options options) {
     StringBuilder buf = new StringBuilder();
-    printSql(buf, sql, args, false, true);
+    printSql(buf, sql, args, false, true, options.flavor());
     return buf.toString();
   }
 
   public static void printSql(StringBuilder buf, String sql, Object[] args, Options options) {
-    printSql(buf, sql, args, true, options.isLogParameters());
+    printSql(buf, sql, args, true, options.isLogParameters(), options.flavor());
   }
 
   public static void printSql(StringBuilder buf, String sql, Object[] args, boolean includeExecSql,
-                              boolean includeParameters) {
+                              boolean includeParameters, Flavor flavor) {
     Object[] argsToPrint = args;
     if (argsToPrint == null) {
       argsToPrint = new Object[0];
@@ -82,7 +81,7 @@ public class DebugSql {
           } else if (argsToPrint[i] instanceof StatementAdaptor.SqlNull) {
             buf.append("null");
           } else if (argsToPrint[i] instanceof Date) {
-            buf.append(Flavor.derby.dateAsSqlFunction((Date) argsToPrint[i]));
+            buf.append(flavor.dateAsSqlFunction((Date) argsToPrint[i]));
           } else {
             buf.append(argsToPrint[i]);
           }

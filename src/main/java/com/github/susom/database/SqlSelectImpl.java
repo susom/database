@@ -678,7 +678,7 @@ public class SqlSelectImpl implements SqlSelect {
         isSuccess = true;
         return result;
       } else {
-        RowStub stub = mock.query(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters));
+        RowStub stub = mock.query(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters, options));
         if (stub == null) {
           stub = new RowStub();
         }

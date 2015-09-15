@@ -21,7 +21,7 @@ import com.github.susom.database.DbRun;
  */
 public class HelloAny {
   public void run() {
-    DatabaseProvider.fromSystemProperties().transact(new DbRun() {
+    DatabaseProvider.fromSystemProperties().transactRollbackOnError(new DbRun() {
       @Override
       public void run(Provider<Database> dbp) {
         Database db = dbp.get();

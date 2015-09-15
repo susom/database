@@ -25,7 +25,7 @@ public abstract class DerbyExample {
       }
 
       String url = "jdbc:derby:target/testdb;create=true";
-      DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
+      DatabaseProvider.fromDriverManager(url).transactRollbackOnError(new DbRun() {
         @Override
         public void run(Provider<Database> db) {
           example(db.get(), args);

@@ -23,7 +23,7 @@ public class HelloDerby {
     }
 
     String url = "jdbc:derby:target/testdb;create=true";
-    DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
+    DatabaseProvider.fromDriverManager(url).transactRollbackOnError(new DbRun() {
       @Override
       public void run(Provider<Database> dbp) {
         Database db = dbp.get();

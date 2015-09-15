@@ -70,7 +70,6 @@ public class DebugSql {
         buf.append(sql);
       }
       if (includeParameters && argsToPrint.length > 0) {
-        SimpleDateFormat sdf = null;
         if (includeExecSql) {
           buf.append('|');
         }
@@ -83,12 +82,7 @@ public class DebugSql {
           } else if (argsToPrint[i] instanceof StatementAdaptor.SqlNull) {
             buf.append("null");
           } else if (argsToPrint[i] instanceof Date) {
-            if (sdf == null) {
-              sdf = new SimpleDateFormat("yyyy-MM-dd");
-            }
-            buf.append("to_date('");
-            buf.append(sdf.format((Date) argsToPrint[i]));
-            buf.append("', 'YYYY-MM-DD')");
+            buf.append(Flavor.derby.dateAsSqlFunction((Date) argsToPrint[i]));
           } else {
             buf.append(argsToPrint[i]);
           }

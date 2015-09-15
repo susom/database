@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -1265,6 +1266,28 @@ public abstract class CommonTest {
 //    System.err.println("***** d2: " + db.select("select to_char(d2) from dbtest").queryStringOrNull());
 
     assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());
+  }
+
+  /**
+   * Verify the appropriate database flavor can correctly convert a {@code Date}
+   * into a SQL function representing a conversion from string to timestamp. This
+   * function is used to write debug SQL to the log in a way that could be manually
+   * executed if desired.
+   */
+  @Test
+  public void stringDateFunctions() {
+    db.dropTableQuietly("dbtest");
+
+    new Schema()
+        .addTable("dbtest")
+        .addColumn("d").asDate().schema().execute(db);
+
+    db.toInsert("insert into dbtest (d) values ("
+        + db.flavor().dateAsSqlFunction(new Date(123456789L)).replace(":", "::") + ")")
+        .insert(1);
+
+    assertEquals("1970-01-02 02:17:36.789000", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(
+        db.toSelect("select d from dbtest").queryDateOrNull()));
   }
 
   @Test

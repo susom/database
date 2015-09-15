@@ -16,6 +16,9 @@
 
 package com.github.susom.database;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Enumeration of supported databases with various compatibility settings.
  *
@@ -56,6 +59,11 @@ public enum Flavor {
     @Override
     public String fromAny() {
       return " from sysibm.sysdummy1";
+    }
+
+    @Override
+    public String dateAsSqlFunction(Date date) {
+      return "timestamp('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(date) + "')";
     }
   },
   oracle {
@@ -113,6 +121,12 @@ public enum Flavor {
     public String fromAny() {
       return " from dual";
     }
+
+    @Override
+    public String dateAsSqlFunction(Date date) {
+      return "to_timestamp('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(date)
+          + "', 'YYYY-MM-DD HH24:MI:SS.FF6')";
+    }
   },
   postgresql {
     @Override
@@ -168,6 +182,12 @@ public enum Flavor {
     @Override
     public String dbTimeMillis() {
       return "date_trunc('milliseconds',localtimestamp)";
+    }
+
+    @Override
+    public String dateAsSqlFunction(Date date) {
+      return "to_timestamp('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(date)
+          + "', 'YYYY-MM-DD HH24:MI:SS.US')";
     }
   };
 
@@ -267,7 +287,18 @@ public enum Flavor {
     return cycle ? " cycle" : " no cycle";
   }
 
+  /**
+   * Indicate what should follow a constant select statement. For example, "select 1"
+   * works on some databases, while Oracle requires "select 1 from dual". For Oracle
+   * this function should return " from dual" (including the leading space).
+   */
   public String fromAny() {
     return "";
   }
+
+  /**
+   * Return a SQL function representing the specified date. For example, in Oracle this
+   * looks like "to_timestamp('1970-01-02 02:17:36.789000', 'YYYY-MM-DD HH24:MI:SS.FF6')".
+   */
+  public abstract String dateAsSqlFunction(Date date);
 }

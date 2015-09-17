@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.After;
@@ -1268,6 +1269,32 @@ public abstract class CommonTest {
     assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());
   }
 
+  @Test
+  public void dbDateRoundTripTimezones() {
+    new Schema()
+        .addTable("dbtest")
+        .addColumn("d").asDate().table().schema()
+        .execute(db);
+
+    Date date = new Date(166656789L);
+
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT-4:00"));
+
+    db.toInsert("insert into dbtest (d) values (?)").argDate(date).insert(1);
+    assertEquals(date, db.toSelect("select d from dbtest").queryDateOrNull());
+    assertEquals("1970-01-02 18:17:36.789000-0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
+        db.toSelect("select d from dbtest").queryDateOrNull()));
+    db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
+
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT+4:00"));
+
+    db.toInsert("insert into dbtest (d) values (?)").argDate(date).insert(1);
+    assertEquals(date, db.toSelect("select d from dbtest").queryDateOrNull());
+    assertEquals("1970-01-03 02:17:36.789000+0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
+        db.toSelect("select d from dbtest").queryDateOrNull()));
+    db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
+  }
+
   /**
    * Verify the appropriate database flavor can correctly convert a {@code Date}
    * into a SQL function representing a conversion from string to timestamp. This
@@ -1276,18 +1303,37 @@ public abstract class CommonTest {
    */
   @Test
   public void stringDateFunctions() {
-    db.dropTableQuietly("dbtest");
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT-4:00"));
 
     new Schema()
         .addTable("dbtest")
         .addColumn("d").asDate().schema().execute(db);
 
+    Date date = new Date(166656789L);
+    System.out.println("Date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(date));
+
     db.toInsert("insert into dbtest (d) values ("
-        + db.flavor().dateAsSqlFunction(new Date(123456789L)).replace(":", "::") + ")")
+        + db.flavor().dateAsSqlFunction(date).replace(":", "::") + ")")
         .insert(1);
 
-    assertEquals("1970-01-02 02:17:36.789000", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(
+    assertEquals("1970-01-02 18:17:36.789000-0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
         db.toSelect("select d from dbtest").queryDateOrNull()));
+
+    // Now do some client operations in a different time zone
+    TimeZone.setDefault(TimeZone.getTimeZone("GMT+4:00"));
+
+    // Verify regular arg maps date the same way even though our TimeZone is now different
+    db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
+
+    db.toInsert("insert into dbtest (d) values ("
+        + db.flavor().dateAsSqlFunction(date).replace(":", "::") + ")")
+        .insert(1);
+
+    assertEquals("1970-01-03 02:17:36.789000+0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
+        db.toSelect("select d from dbtest").queryDateOrNull()));
+
+    // Verify the function maps correctly for equals operations as well
+    db.toDelete("delete from dbtest where d=" + db.flavor().dateAsSqlFunction(date).replace(":", "::")).update(1);
   }
 
   @Test

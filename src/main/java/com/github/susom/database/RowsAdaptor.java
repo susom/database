@@ -37,10 +37,12 @@ import org.jetbrains.annotations.Nullable;
  */
 class RowsAdaptor implements Rows {
   private final ResultSet rs;
+  private final Options options;
   private int column = 1;
 
-  public RowsAdaptor(ResultSet rs) {
+  public RowsAdaptor(ResultSet rs, Options options) {
     this.rs = rs;
+    this.options = options;
   }
 
   @Override
@@ -703,12 +705,12 @@ class RowsAdaptor implements Rows {
   }
 
   private Date toDate(ResultSet rs, int col) throws SQLException {
-    Timestamp val = rs.getTimestamp(col);
+    Timestamp val = rs.getTimestamp(col, options.calendarForTimestamps());
     return val == null ? null : timestampToDate(val);
   }
 
   private Date toDate(ResultSet rs, String col) throws SQLException {
-    Timestamp val = rs.getTimestamp(col);
+    Timestamp val = rs.getTimestamp(col, options.calendarForTimestamps());
     return val == null ? null : timestampToDate(val);
   }
 

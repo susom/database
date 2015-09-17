@@ -16,6 +16,7 @@
 
 package com.github.susom.database;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -102,5 +103,10 @@ public class OptionsOverride implements Options {
   @Override
   public boolean useDatePerAppOnly() {
     return parent.useDatePerAppOnly();
+  }
+
+  @Override
+  public Calendar calendarForTimestamps() {
+    return parent.calendarForTimestamps();
   }
 }

@@ -673,7 +673,7 @@ public class SqlSelectImpl implements SqlSelect {
         rs = ps.executeQuery();
         metric.checkpoint("exec");
         final ResultSet finalRs = rs;
-        T result = handler.process(new RowsAdaptor(finalRs));
+        T result = handler.process(new RowsAdaptor(finalRs, options));
         metric.checkpoint("read");
         isSuccess = true;
         return result;

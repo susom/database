@@ -17,8 +17,10 @@
 package com.github.susom.database;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
+import java.util.TimeZone;
 
 /**
  * Control various optional behavior for the database interactions.
@@ -86,5 +88,10 @@ public class OptionsDefault implements Options {
   @Override
   public boolean useDatePerAppOnly() {
     return false;
+  }
+
+  @Override
+  public Calendar calendarForTimestamps() {
+    return Calendar.getInstance(TimeZone.getTimeZone("GMT"));
   }
 }

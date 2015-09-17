@@ -73,7 +73,7 @@ public class StatementAdaptor {
       } else if (parameters[i] instanceof Date) {
         // this will correct the millis and nanos according to the JDBC spec
         // if a correct Timestamp is passed in, this will detect that and leave it alone
-        ps.setTimestamp(i + 1, toSqlTimestamp((Date) parameters[i]));
+        ps.setTimestamp(i + 1, toSqlTimestamp((Date) parameters[i]), options.calendarForTimestamps());
       } else if (parameters[i] instanceof Reader) {
         if (options.useStringForClob()) {
           ps.setString(i + 1, readerToString((Reader) parameters[i]));

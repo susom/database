@@ -535,7 +535,7 @@ public class SqlInsertImpl implements SqlInsert {
         }
         rs = ps.getGeneratedKeys();
         final ResultSet finalRs = rs;
-        T result = handler.process(new RowsAdaptor(finalRs));
+        T result = handler.process(new RowsAdaptor(finalRs, options));
         metric.checkpoint("read");
         isSuccess = true;
         return result;

@@ -16,6 +16,7 @@
 
 package com.github.susom.database;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -123,4 +124,17 @@ public interface Options {
    * own system clock that will be used for time travel.
    */
   boolean useDatePerAppOnly();
+
+  /**
+   * This calendar will be used for conversions when storing and retrieving timestamps
+   * from the database. By default this is the JVM default with TimeZone explicitly set
+   * to GMT (so timestamps will be stored in the database as GMT).
+   *
+   * <p>It is strongly recommended to always run your database in GMT timezone, and
+   * leave this set to the default.</p>
+   *
+   * <p>Behavior in releases 1.3 and prior was to use the JVM default TimeZone, and
+   * this was not configurable.</p>
+   */
+  Calendar calendarForTimestamps();
 }

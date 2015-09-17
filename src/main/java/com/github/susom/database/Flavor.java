@@ -18,6 +18,7 @@ package com.github.susom.database;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Enumeration of supported databases with various compatibility settings.
@@ -26,6 +27,8 @@ import java.util.Date;
  */
 public enum Flavor {
   derby {
+    private TimeZone gmt = TimeZone.getTimeZone("GMT");
+
     @Override
     public String sequenceNextVal(String sequenceName) {
       return "next value for " + sequenceName;
@@ -63,10 +66,14 @@ public enum Flavor {
 
     @Override
     public String dateAsSqlFunction(Date date) {
-      return "timestamp('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(date) + "')";
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
+      dateFormat.setTimeZone(gmt);
+      return "timestamp('" + dateFormat.format(date) + "')";
     }
   },
   oracle {
+    private TimeZone gmt = TimeZone.getTimeZone("GMT");
+
     @Override
     public String typeFloat() {
       return "binary_float";
@@ -124,11 +131,14 @@ public enum Flavor {
 
     @Override
     public String dateAsSqlFunction(Date date) {
-      return "to_timestamp('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(date)
-          + "', 'YYYY-MM-DD HH24:MI:SS.FF6')";
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
+      dateFormat.setTimeZone(gmt);
+      return "timestamp '" + dateFormat.format(date) + "'";
     }
   },
   postgresql {
+    private TimeZone gmt = TimeZone.getTimeZone("GMT");
+
     @Override
     public String typeDouble() {
       return "double precision";
@@ -186,8 +196,9 @@ public enum Flavor {
 
     @Override
     public String dateAsSqlFunction(Date date) {
-      return "to_timestamp('" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000").format(date)
-          + "', 'YYYY-MM-DD HH24:MI:SS.US')";
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
+      dateFormat.setTimeZone(gmt);
+      return "'" + dateFormat.format(date) + " GMT'::timestamp";
     }
   };
 
@@ -297,8 +308,8 @@ public enum Flavor {
   }
 
   /**
-   * Return a SQL function representing the specified date. For example, in Oracle this
-   * looks like "to_timestamp('1970-01-02 02:17:36.789000', 'YYYY-MM-DD HH24:MI:SS.FF6')".
+   * Return a SQL function representing the specified date. For example, in PostgreSQL this
+   * looks like "'1970-01-02 02:17:36.789000 GMT'::timestamp".
    */
   public abstract String dateAsSqlFunction(Date date);
 }

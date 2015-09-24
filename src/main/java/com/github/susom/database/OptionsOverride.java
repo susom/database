@@ -28,6 +28,14 @@ public class OptionsOverride implements Options {
   private Options parent;
 
   /**
+   * Wrap another {@code Options} and defer to it for anything we choose not
+   * to override.
+   */
+  public OptionsOverride(Options parent) {
+    this.parent = parent;
+  }
+
+  /**
    * Defer to OptionsDefault for anything that is not specified, and use postgresql flavor.
    */
   public OptionsOverride() {

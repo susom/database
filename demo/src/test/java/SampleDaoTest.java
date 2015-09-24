@@ -57,8 +57,8 @@ public class SampleDaoTest {
     assertEquals(now, sample.getUpdateTime());
 
     // Verify SQL executed against golden copies
-    verify(db).insertReturningPk(anyString(), matches("insert into sample \\(sample_id, sample_name, update_sequence, update_time\\) values \\(nextval\\('id_seq'\\),'Foo',0,to_timestamp\\('.{26}', 'YYYY-MM-DD HH24:MI:SS.US'\\)\\)"));
-    verify(db).insert(anyString(), matches("insert into sample_history \\(sample_id, sample_name, update_sequence, update_time, update_user_id, is_deleted\\) values \\(1,'Foo',0,to_timestamp\\('.{26}', 'YYYY-MM-DD HH24:MI:SS.US'\\),1,'N'\\)"));
+    verify(db).insertReturningPk(eq("insert into sample (sample_id, sample_name, update_sequence, update_time) values (nextval('id_seq'),?,0,?)"), anyString());
+    verify(db).insert(eq("insert into sample_history (sample_id, sample_name, update_sequence, update_time, update_user_id, is_deleted) values (?,?,0,?,?,'N')"), anyString());
     verifyNoMoreInteractions(db);
   }
 
@@ -126,8 +126,8 @@ public class SampleDaoTest {
     assertEquals(now, sample.getUpdateTime());
 
     // Verify database queries against golden copies
-    verify(db).update(anyString(), matches("update sample set sample_name='Foo', update_sequence=14, update_time=to_timestamp\\('.{26}', 'YYYY-MM-DD HH24:MI:SS.US'\\) where sample_id=100"));
-    verify(db).insert(anyString(), matches("insert into sample_history \\(sample_id, sample_name, update_sequence, update_time, update_user_id, is_deleted\\) values \\(100,'Foo',14,to_timestamp\\('.{26}', 'YYYY-MM-DD HH24:MI:SS.US'\\),23,'N'\\)"));
+    verify(db).update(eq("update sample set sample_name=?, update_sequence=?, update_time=? where sample_id=?"), anyString());
+    verify(db).insert(eq("insert into sample_history (sample_id, sample_name, update_sequence, update_time, update_user_id, is_deleted) values (?,?,?,?,?,'N')"), anyString());
     verifyNoMoreInteractions(db);
   }
 
@@ -150,7 +150,7 @@ public class SampleDaoTest {
 
     // Verify database queries against golden copies
     verify(db).update(anyString(), eq("delete from sample where sample_id=100"));
-    verify(db).insert(anyString(), matches("insert into sample_history \\(sample_id, sample_name, update_sequence, update_time, update_user_id, is_deleted\\) values \\(100,'Foo',14,to_timestamp\\('.{26}', 'YYYY-MM-DD HH24:MI:SS.US'\\),23,'Y'\\)"));
+    verify(db).insert(eq("insert into sample_history (sample_id, sample_name, update_sequence, update_time, update_user_id, is_deleted) values (?,?,?,?,?,'Y')"), anyString());
     verifyNoMoreInteractions(db);
   }
 }

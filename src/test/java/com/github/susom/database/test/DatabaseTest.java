@@ -365,6 +365,17 @@ public class DatabaseTest {
   }
 
   @Test
+  public void doNotLogSecrets() throws Exception {
+    System.out.println(new DatabaseImpl(createNiceMock(DatabaseMock.class), optionsFullLog)
+        .toSelect("select a from b where c=:secret_arg")
+        .argInteger("secret_arg", 1)
+        .queryLongOrNull());
+
+    capturedLog.assertNoWarningsOrErrors();
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect a from b where c=?${sep}select a from b where c=<secret>");
+  }
+
+  @Test
   public void missingPositionalParameter() throws Exception {
     IMocksControl control = createStrictControl();
 

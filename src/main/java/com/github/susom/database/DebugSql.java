@@ -21,6 +21,8 @@ import java.util.Date;
 
 import org.slf4j.Logger;
 
+import com.github.susom.database.MixedParameterSql.SecretArg;
+
 /**
  * Convenience class to substitute real values into a database query for debugging, logging, etc.
  * <p/>
@@ -76,20 +78,23 @@ public class DebugSql {
         }
         for (int i = 0; i < argsToPrint.length; i++) {
           buf.append(removeTabs(sqlParts[i]));
-          if (argsToPrint[i] instanceof String) {
+          Object argToPrint = argsToPrint[i];
+          if (argToPrint instanceof String) {
             buf.append("'");
-            buf.append(removeTabs(escapeSingleQuoted(((String) argsToPrint[i]))));
+            buf.append(removeTabs(escapeSingleQuoted(((String) argToPrint))));
             buf.append("'");
-          } else if (argsToPrint[i] instanceof StatementAdaptor.SqlNull || argsToPrint[i] == null) {
+          } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
             buf.append("null");
-          } else if (argsToPrint[i] instanceof Date) {
-            buf.append(flavor.dateAsSqlFunction((Date) argsToPrint[i]));
-          } else if (argsToPrint[i] instanceof Number) {
-            buf.append(argsToPrint[i]);
-          } else if (argsToPrint[i] instanceof Boolean) {
-            buf.append(((Boolean) argsToPrint[i]) ? "'Y'" : "'N'");
+          } else if (argToPrint instanceof Date) {
+            buf.append(flavor.dateAsSqlFunction((Date) argToPrint));
+          } else if (argToPrint instanceof Number) {
+            buf.append(argToPrint);
+          } else if (argToPrint instanceof Boolean) {
+            buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
+          } else if (argToPrint instanceof SecretArg) {
+            buf.append("<secret>");
           } else {
-            buf.append("<unknown:").append(argsToPrint[i].getClass().getName()).append(">");
+            buf.append("<unknown:").append(argToPrint.getClass().getName()).append(">");
           }
         }
         if (sqlParts.length > argsToPrint.length) {

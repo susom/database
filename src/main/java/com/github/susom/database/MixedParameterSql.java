@@ -79,13 +79,15 @@ public class MixedParameterSql {
         }
         newSql.append(sql.substring(searchIndex, nextColonIndex));
         String paramName = sql.substring(nextColonIndex + 1, endOfNameIndex);
-        if (nameToArg.get(paramName) instanceof RewriteArg) {
-          newSql.append(((RewriteArg) nameToArg.get(paramName)).sql);
+        boolean secretParam = paramName.startsWith("secret_");
+        Object arg = nameToArg.get(paramName);
+        if (arg instanceof RewriteArg) {
+          newSql.append(((RewriteArg) arg).sql);
           rewrittenArgs.add(paramName);
         } else {
           newSql.append('?');
           if (nameToArg.containsKey(paramName)) {
-            argsList.add(nameToArg.get(paramName));
+            argsList.add(secretParam ? new SecretArg(arg): arg);
           } else {
             throw new DatabaseException("The SQL requires parameter ':" + paramName + "' but no value was provided");
           }
@@ -148,6 +150,23 @@ public class MixedParameterSql {
 
     public RewriteArg(String sql) {
       this.sql = sql;
+    }
+  }
+
+  static class SecretArg {
+    private final Object arg;
+
+    SecretArg(Object arg) {
+      this.arg = arg;
+    }
+
+    Object getArg() {
+      return arg;
+    }
+
+    @Override
+    public String toString() {
+      return "<secret>";
     }
   }
 }

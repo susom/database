@@ -33,6 +33,8 @@ import java.util.Scanner;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import com.github.susom.database.MixedParameterSql.SecretArg;
+
 import oracle.jdbc.OraclePreparedStatement;
 
 /**
@@ -49,7 +51,14 @@ public class StatementAdaptor {
 
   public void addParameters(PreparedStatement ps, Object[] parameters) throws SQLException {
     for (int i = 0; i < parameters.length; i++) {
-      if (parameters[i] == null) {
+      Object parameter = parameters[i];
+
+      // Unwrap secret args here so we can use them
+      if (parameter instanceof SecretArg) {
+        parameter = ((SecretArg) parameter).getArg();
+      }
+
+      if (parameter == null) {
         ParameterMetaData metaData;
         int parameterType;
         try {
@@ -62,48 +71,48 @@ public class StatementAdaptor {
               + " or use SqlNull in place of null values to this query.", e);
         }
         ps.setNull(i + 1, parameterType);
-      } else if (parameters[i] instanceof SqlNull) {
-        SqlNull sqlNull = (SqlNull) parameters[i];
+      } else if (parameter instanceof SqlNull) {
+        SqlNull sqlNull = (SqlNull) parameter;
         if (options.useBytesForBlob() && sqlNull.getType() == Types.BLOB) {
           // The setNull() seems more correct, but PostgreSQL chokes on it
           ps.setBytes(i + 1, null);
         } else {
           ps.setNull(i + 1, sqlNull.getType());
         }
-      } else if (parameters[i] instanceof Date) {
+      } else if (parameter instanceof Date) {
         // this will correct the millis and nanos according to the JDBC spec
         // if a correct Timestamp is passed in, this will detect that and leave it alone
-        ps.setTimestamp(i + 1, toSqlTimestamp((Date) parameters[i]), options.calendarForTimestamps());
-      } else if (parameters[i] instanceof Reader) {
+        ps.setTimestamp(i + 1, toSqlTimestamp((Date) parameter), options.calendarForTimestamps());
+      } else if (parameter instanceof Reader) {
         if (options.useStringForClob()) {
-          ps.setString(i + 1, readerToString((Reader) parameters[i]));
+          ps.setString(i + 1, readerToString((Reader) parameter));
         } else {
-          ps.setCharacterStream(i + 1, (Reader) parameters[i]);
+          ps.setCharacterStream(i + 1, (Reader) parameter);
         }
-      } else if (parameters[i] instanceof InputStream) {
+      } else if (parameter instanceof InputStream) {
         if (options.useBytesForBlob()) {
-          ps.setBytes(i + 1, streamToBytes((InputStream) parameters[i]));
+          ps.setBytes(i + 1, streamToBytes((InputStream) parameter));
         } else {
-          ps.setBinaryStream(i + 1, (InputStream) parameters[i]);
+          ps.setBinaryStream(i + 1, (InputStream) parameter);
         }
-      } else if (parameters[i] instanceof Float) {
+      } else if (parameter instanceof Float) {
         if (options.flavor() == Flavor.oracle && ps.isWrapperFor(OraclePreparedStatement.class)) {
           // The Oracle 11 driver setDouble() first converts the double to NUMBER, causing underflow
           // for small values so we need to use the proprietary mechanism
-          ps.unwrap(OraclePreparedStatement.class).setBinaryFloat(i + 1, (Float) parameters[i]);
+          ps.unwrap(OraclePreparedStatement.class).setBinaryFloat(i + 1, (Float) parameter);
         } else {
-          ps.setFloat(i + 1, (Float) parameters[i]);
+          ps.setFloat(i + 1, (Float) parameter);
         }
-      } else if (parameters[i] instanceof Double) {
+      } else if (parameter instanceof Double) {
         if (options.flavor() == Flavor.oracle && ps.isWrapperFor(OraclePreparedStatement.class)) {
           // The Oracle 11 driver setDouble() first converts the double to NUMBER, causing underflow
           // for small values so we need to use the proprietary mechanism
-          ps.unwrap(OraclePreparedStatement.class).setBinaryDouble(i + 1, (Double) parameters[i]);
+          ps.unwrap(OraclePreparedStatement.class).setBinaryDouble(i + 1, (Double) parameter);
         } else {
-          ps.setDouble(i + 1, (Double) parameters[i]);
+          ps.setDouble(i + 1, (Double) parameter);
         }
       } else {
-        ps.setObject(i + 1, parameters[i]);
+        ps.setObject(i + 1, parameter);
       }
     }
   }

@@ -22,11 +22,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Provider;
 
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.easymock.IMocksControl;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,8 +43,10 @@ import org.junit.runners.JUnit4;
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
+import com.github.susom.database.DatabaseMock;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.DbRun;
+import com.github.susom.database.DebugSql;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.OptionsOverride;
@@ -68,6 +79,25 @@ public class DatabaseTest {
       return Integer.toString(errors);
     }
   };
+  private OptionsOverride optionsFullLog = new OptionsOverride(options) {
+    @Override
+    public boolean isLogParameters() {
+      return true;
+    }
+  };
+  private LogCaptureAppender capturedLog;
+
+  @Before
+  public void initLogCapture() {
+    capturedLog = new LogCaptureAppender();
+    capturedLog.setThreshold(Level.DEBUG);
+    LogManager.getRootLogger().addAppender(capturedLog);
+  }
+
+  @After
+  public void stopLogCapture() {
+    LogManager.getRootLogger().removeAppender(capturedLog);
+  }
 
   @Test
   public void staticSqlToLong() throws Exception {
@@ -310,6 +340,28 @@ public class DatabaseTest {
     assertNull(new DatabaseImpl(c, options).toSelect("select '::a' from b where c=:c").argLong("c", 1L).queryLongOrNull());
 
     control.verify();
+  }
+
+  @Test
+  public void logFormatNoDebugSql() throws Exception {
+    new DatabaseImpl(createNiceMock(DatabaseMock.class), options)
+        .toSelect("select a from b where c=?")
+        .argInteger(1)
+        .queryLongOrNull();
+
+    capturedLog.assertNoWarningsOrErrors();
+    assertTrue(capturedLog.messages().get(0).endsWith("\tselect a from b where c=?"));
+  }
+
+  @Test
+  public void logFormatDebugSqlInteger() throws Exception {
+    new DatabaseImpl(createNiceMock(DatabaseMock.class), optionsFullLog)
+        .toSelect("select a from b where c=?")
+        .argInteger(1)
+        .queryLongOrNull();
+
+    capturedLog.assertNoWarningsOrErrors();
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect a from b where c=?${sep}select a from b where c=1");
   }
 
   @Test
@@ -961,5 +1013,139 @@ public class DatabaseTest {
     });
 
     control.verify();
+  }
+
+  private static class LogCaptureAppender extends AppenderSkeleton {
+    private final List<LoggingEvent> events = new ArrayList<>();
+    private int warnings = 0;
+    private int errors = 0;
+
+    protected void append(LoggingEvent event) {
+      if (Level.TRACE.isGreaterOrEqual(event.getLevel())) {
+        return;
+      }
+      synchronized (events) {
+        if (event.getLevel().equals(Level.WARN)) {
+          warnings++;
+        } else if (event.getLevel().isGreaterOrEqual(Level.ERROR)) {
+          errors++;
+        }
+        events.add(event);
+      }
+    }
+
+    public int nbrWarnings() {
+      return warnings;
+    }
+
+    public int nbrErrors() {
+      return errors;
+    }
+
+    public void close() {
+      // Nothing to do
+    }
+
+    public String toString() {
+      PatternLayout layout = new PatternLayout("%-5p %c %m\u00AE%n");
+      StringBuilder builder = new StringBuilder();
+      for (LoggingEvent event : events) {
+        builder.append(layout.format(event));
+      }
+      return builder.toString();
+    }
+
+    public List<String> messages() {
+      List<String> messages = new ArrayList<>();
+      PatternLayout layout = new PatternLayout("%-5p %c %m");
+      for (LoggingEvent event : events) {
+        messages.add(layout.format(event));
+      }
+      return messages;
+    }
+
+    public void assertNoWarningsOrErrors() {
+      assertEquals("Warnings or errors in the log:\n" + toString(), 0, nbrWarnings() + nbrErrors());
+    }
+
+    public void assertWarnings(int nbrWarnings) {
+      assertEquals("Wrong number of warnings in the log:\n" + toString(), nbrWarnings, nbrWarnings());
+    }
+
+    public void assertErrors(int nbrErrors) {
+      assertEquals("Wrong number of errors or above in the log:\n" + toString(), nbrErrors, nbrErrors());
+    }
+
+    public void assertEntries(int nbrEntries) {
+      assertEquals("Wrong number of entries in the log:\n" + toString(), nbrEntries, events.size());
+    }
+
+    /**
+     * Check for a log entry with a particular log level and message.
+     *
+     * <p>The message pattern is a literal, exactly matching string,
+     * but it may contain a few special tokens that will match varying
+     * input in the messages:</p>
+     *
+     * <ul>
+     *   <li>${timing} - this will match a typical section of metrics</li>
+     *   <li>${sep} - this will match the boundary between the raw SQL and
+     *                the debug sql that logs the parameters as well</li>
+     * </ul>
+     *
+     * @param level the specific level we are looking for
+     * @param messagePattern a search pattern (see notes above)
+     */
+    public void assertMessage(Level level, String messagePattern) {
+      boolean found = false;
+      for (LoggingEvent event : events) {
+        if (!event.getLevel().equals(level)) {
+          continue;
+        }
+
+        String message = event.getRenderedMessage();
+        int messagePos = 0;
+        int patternPos = 0;
+        while (messagePos < message.length() && patternPos < messagePattern.length()) {
+          // Advance until we find a character that doesn't match
+          if (message.charAt(messagePos) == messagePattern.charAt(patternPos)) {
+            messagePos++;
+            patternPos++;
+            continue;
+          }
+
+          // If message has literal '$' terminate because the pattern doesn't have a special matcher
+          if (message.charAt(messagePos) == '$') {
+            break;
+          }
+
+          // Special matchers: expressions for things that vary with each run
+          if (messagePattern.startsWith("${timing}", patternPos) && message.indexOf(')', messagePos) != -1) {
+            messagePos = message.indexOf(')', messagePos) + 1;
+            patternPos += "${timing}".length();
+            continue;
+          }
+          if (messagePattern.startsWith("${sep}", patternPos)
+              && message.startsWith(DebugSql.PARAM_SQL_SEPARATOR, messagePos)) {
+            messagePos += DebugSql.PARAM_SQL_SEPARATOR.length();
+            patternPos += "${sep}".length();
+            continue;
+          }
+
+          // Couldn't match
+          break;
+        }
+
+        if (messagePos >= message.length() && patternPos >= messagePattern.length()) {
+          found = true;
+          break;
+        }
+      }
+      assertTrue("Log message not found (" + level + " " + messagePattern + ") in log:\n" + toString(), found);
+    }
+
+    public boolean requiresLayout() {
+      return false;
+    }
   }
 }

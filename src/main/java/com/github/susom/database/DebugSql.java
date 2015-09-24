@@ -30,6 +30,8 @@ import org.slf4j.Logger;
  * @author garricko
  */
 public class DebugSql {
+  public static final String PARAM_SQL_SEPARATOR = "\tParamSql:\t";
+
   public static String printDebugOnlySqlString(String sql, Object[] args, Options options) {
     StringBuilder buf = new StringBuilder();
     printSql(buf, sql, args, false, true, options.flavor());
@@ -66,24 +68,28 @@ public class DebugSql {
       }
     } else {
       if (includeExecSql) {
-        buf.append(sql);
+        buf.append(removeTabs(sql));
       }
       if (includeParameters && argsToPrint.length > 0) {
         if (includeExecSql) {
-          buf.append('|');
+          buf.append(PARAM_SQL_SEPARATOR);
         }
         for (int i = 0; i < argsToPrint.length; i++) {
-          buf.append(sqlParts[i]);
+          buf.append(removeTabs(sqlParts[i]));
           if (argsToPrint[i] instanceof String) {
             buf.append("'");
-            buf.append(argsToPrint[i]);
+            buf.append(removeTabs(escapeSingleQuoted(((String) argsToPrint[i]))));
             buf.append("'");
-          } else if (argsToPrint[i] instanceof StatementAdaptor.SqlNull) {
+          } else if (argsToPrint[i] instanceof StatementAdaptor.SqlNull || argsToPrint[i] == null) {
             buf.append("null");
           } else if (argsToPrint[i] instanceof Date) {
             buf.append(flavor.dateAsSqlFunction((Date) argsToPrint[i]));
-          } else {
+          } else if (argsToPrint[i] instanceof Number) {
             buf.append(argsToPrint[i]);
+          } else if (argsToPrint[i] instanceof Boolean) {
+            buf.append(((Boolean) argsToPrint[i]) ? "'Y'" : "'N'");
+          } else {
+            buf.append("<unknown:").append(argsToPrint[i].getClass().getName()).append(">");
           }
         }
         if (sqlParts.length > argsToPrint.length) {
@@ -96,6 +102,14 @@ public class DebugSql {
       buf.append(batchSize);
       buf.append(')');
     }
+  }
+
+  private static String removeTabs(String s) {
+    return s == null ? null : s.replace("\t", "<tab>");
+  }
+
+  private static String escapeSingleQuoted(String s) {
+    return s == null ? null : s.replace("'", "''");
   }
 
   public static String exceptionMessage(String sql, Object[] parameters, String errorCode, Options options) {
@@ -115,7 +129,7 @@ public class DebugSql {
       StringBuilder buf = new StringBuilder();
       buf.append(sqlType).append(": ");
       metric.printMessage(buf);
-      buf.append(" ");
+      buf.append('\t');
       printSql(buf, sql, args, options);
       log.debug(buf.toString());
     }

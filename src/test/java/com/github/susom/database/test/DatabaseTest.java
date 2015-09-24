@@ -344,10 +344,10 @@ public class DatabaseTest {
 
   @Test
   public void logFormatNoDebugSql() throws Exception {
-    new DatabaseImpl(createNiceMock(DatabaseMock.class), options)
+    System.out.println(new DatabaseImpl(createNiceMock(DatabaseMock.class), options)
         .toSelect("select a from b where c=?")
         .argInteger(1)
-        .queryLongOrNull();
+        .queryLongOrNull());
 
     capturedLog.assertNoWarningsOrErrors();
     assertTrue(capturedLog.messages().get(0).endsWith("\tselect a from b where c=?"));
@@ -355,10 +355,10 @@ public class DatabaseTest {
 
   @Test
   public void logFormatDebugSqlInteger() throws Exception {
-    new DatabaseImpl(createNiceMock(DatabaseMock.class), optionsFullLog)
+    System.out.println(new DatabaseImpl(createNiceMock(DatabaseMock.class), optionsFullLog)
         .toSelect("select a from b where c=?")
         .argInteger(1)
-        .queryLongOrNull();
+        .queryLongOrNull());
 
     capturedLog.assertNoWarningsOrErrors();
     capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect a from b where c=?${sep}select a from b where c=1");

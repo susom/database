@@ -1,15 +1,10 @@
-import com.github.susom.database.Database;
-import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbRun;
-import com.github.susom.database.Rows;
-import com.github.susom.database.RowsHandler;
-
 import java.io.File;
 
 import javax.inject.Provider;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.xml.DOMConfigurator;
+import com.github.susom.database.Database;
+import com.github.susom.database.DatabaseProvider;
+import com.github.susom.database.DbCode;
 
 /**
  * Demo of using some com.github.susom.database classes with Derby.
@@ -23,7 +18,7 @@ public class HelloDerby {
     }
 
     String url = "jdbc:derby:target/testdb;create=true";
-    DatabaseProvider.fromDriverManager(url).transactRollbackOnError(new DbRun() {
+    DatabaseProvider.fromDriverManager(url).transact(new DbCode() {
       @Override
       public void run(Provider<Database> dbp) {
         Database db = dbp.get();

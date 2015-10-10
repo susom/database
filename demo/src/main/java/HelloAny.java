@@ -2,7 +2,7 @@ import javax.inject.Provider;
 
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbRun;
+import com.github.susom.database.DbCode;
 
 /**
  * Example with database info provided from command line. To use this, set properties like this:
@@ -21,7 +21,7 @@ import com.github.susom.database.DbRun;
  */
 public class HelloAny {
   public void run() {
-    DatabaseProvider.fromSystemProperties().transactRollbackOnError(new DbRun() {
+    DatabaseProvider.fromSystemProperties().transact(new DbCode() {
       @Override
       public void run(Provider<Database> dbp) {
         Database db = dbp.get();

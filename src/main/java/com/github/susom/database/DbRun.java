@@ -23,7 +23,7 @@ import javax.inject.Provider;
  *
  * @author garricko
  */
-public abstract class DbRun {
+public abstract class DbRun implements Transaction {
   private boolean rollbackOnError;
   private boolean rollbackOnly;
 

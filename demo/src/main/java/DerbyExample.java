@@ -4,7 +4,7 @@ import javax.inject.Provider;
 
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbRun;
+import com.github.susom.database.DbCode;
 
 /**
  * Demo of using some com.github.susom.database classes with Derby.
@@ -25,7 +25,7 @@ public abstract class DerbyExample {
       }
 
       String url = "jdbc:derby:target/testdb;create=true";
-      DatabaseProvider.fromDriverManager(url).transactRollbackOnError(new DbRun() {
+      DatabaseProvider.fromDriverManager(url).transact(new DbCode() {
         @Override
         public void run(Provider<Database> db) {
           example(db.get(), args);

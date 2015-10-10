@@ -45,11 +45,13 @@ import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
 import com.github.susom.database.DatabaseMock;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbRun;
+import com.github.susom.database.DbCode;
+import com.github.susom.database.DbCodeTx;
 import com.github.susom.database.DebugSql;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.OptionsOverride;
+import com.github.susom.database.Transaction;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -827,9 +829,10 @@ public class DatabaseTest {
       public Connection get() {
         return c;
       }
-    }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+    }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
       @Override
-      public void run(Provider<Database> db) throws Exception {
+      public void run(Provider<Database> db, Transaction tx) throws Exception {
+        tx.setRollbackOnError(false);
         db.get();
       }
     });
@@ -856,9 +859,10 @@ public class DatabaseTest {
         public Connection get() {
           return c;
         }
-      }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
         @Override
-        public void run(Provider<Database> db) throws Exception {
+        public void run(Provider<Database> db, Transaction tx) throws Exception {
+          tx.setRollbackOnError(false);
           db.get();
           throw new Error("Oops");
         }
@@ -889,11 +893,11 @@ public class DatabaseTest {
         public Connection get() {
           return c;
         }
-      }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
         @Override
-        public void run(Provider<Database> db) throws Exception {
+        public void run(Provider<Database> db, Transaction tx) throws Exception {
           db.get();
-          setRollbackOnError(true);
+          tx.setRollbackOnError(true);
           throw new DatabaseException("Oops");
         }
       });
@@ -923,11 +927,12 @@ public class DatabaseTest {
         public Connection get() {
           return c;
         }
-      }, new OptionsDefault(Flavor.postgresql)).transactCommitOnly(new DbRun() {
+      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
         @Override
-        public void run(Provider<Database> db) throws Exception {
+        public void run(Provider<Database> db, Transaction tx) throws Exception {
           db.get();
-          setRollbackOnly(true);
+          tx.setRollbackOnError(false);
+          tx.setRollbackOnly(true);
           throw new DatabaseException("Oops");
         }
       });
@@ -956,10 +961,11 @@ public class DatabaseTest {
       public Connection get() {
         return c;
       }
-    }, new OptionsDefault(Flavor.postgresql)).transactRollbackOnly(new DbRun() {
+    }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
       @Override
-      public void run(Provider<Database> db) throws Exception {
+      public void run(Provider<Database> db, Transaction tx) throws Exception {
         db.get();
+        tx.setRollbackOnly(true);
       }
     });
 
@@ -984,7 +990,7 @@ public class DatabaseTest {
         public Connection get() {
           return c;
         }
-      }, new OptionsDefault(Flavor.postgresql)).transactRollbackOnError(new DbRun() {
+      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCode() {
         @Override
         public void run(Provider<Database> db) throws Exception {
           db.get();
@@ -1016,7 +1022,7 @@ public class DatabaseTest {
       public Connection get() {
         return c;
       }
-    }, new OptionsDefault(Flavor.postgresql)).transactRollbackOnError(new DbRun() {
+    }, new OptionsDefault(Flavor.postgresql)).transact(new DbCode() {
       @Override
       public void run(Provider<Database> db) throws Exception {
         db.get();

@@ -41,6 +41,22 @@ public class DemoTest {
   }
 
   @Test
+  public void fakeBuilder() {
+    final Output output = mock(Output.class);
+
+    new FakeBuilder() {
+      @Override
+      public void println(String s) {
+        output.println(s);
+      }
+    }.launch(new String[0]);
+
+    verify(output).println("Rows before rollback: 1");
+    verify(output).println("Rows after rollback: 0");
+    verifyNoMoreInteractions(output);
+  }
+
+  @Test
   public void insertReturning() {
     final Output output = mock(Output.class);
 

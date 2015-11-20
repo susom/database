@@ -619,11 +619,6 @@ public final class DatabaseProvider implements Provider<Database> {
    * instead!
    */
   public void transact(final DbCode code) {
-    if (delegateTo != null) {
-      delegateTo.transact(code);
-      return;
-    }
-
     boolean complete = false;
     try {
       code.run(this);

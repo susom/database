@@ -24,7 +24,7 @@ public class FakeBuilder extends DerbyExample {
           db.get().dropTableQuietly("t");
 
           // Create and populate a simple table
-          new Schema().addTable("t").addColumn("pk").primaryKey().schema().execute(db);
+          new Schema().addTable("t").addColumn("pk").primaryKey().schema().execute(db.get());
         }
       });
 

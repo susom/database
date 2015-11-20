@@ -592,11 +592,6 @@ public final class DatabaseProvider implements Provider<Database> {
    */
   @Deprecated
   public void transact(DbRun run) {
-    if (delegateTo != null) {
-      delegateTo.transact(run);
-      return;
-    }
-
     boolean complete = false;
     try {
       run.run(this);
@@ -641,11 +636,6 @@ public final class DatabaseProvider implements Provider<Database> {
    * instead!
    */
   public void transact(final DbCodeTx code) {
-    if (delegateTo != null) {
-      delegateTo.transact(code);
-      return;
-    }
-
     Transaction tx = new TransactionImpl();
     tx.setRollbackOnError(true);
     tx.setRollbackOnly(false);

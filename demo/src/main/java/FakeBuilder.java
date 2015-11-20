@@ -4,7 +4,10 @@ import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.DatabaseProvider.Builder;
 import com.github.susom.database.DbCode;
+import com.github.susom.database.DbCodeTx;
+import com.github.susom.database.DbRun;
 import com.github.susom.database.Schema;
+import com.github.susom.database.Transaction;
 
 /**
  * Demo of how to use the {@code DatabaseProvider.fakeBuilder()} to control
@@ -30,10 +33,23 @@ public class FakeBuilder extends DerbyExample {
 
       Builder fakeBuilder = realDbp.fakeBuilder();
 
+      // Trying all three transact methods, just for completeness
       fakeBuilder.transact(new DbCode() {
         @Override
         public void run(Provider<Database> db) throws Exception {
           db.get().toInsert("insert into t (pk) values (?)").argLong(1L).insert(1);
+        }
+      });
+      fakeBuilder.transact(new DbCodeTx() {
+        @Override
+        public void run(Provider<Database> db, Transaction tx) throws Exception {
+          db.get().toInsert("insert into t (pk) values (?)").argLong(2L).insert(1);
+        }
+      });
+      fakeBuilder.transact(new DbRun() {
+        @Override
+        public void run(Provider<Database> db) throws Exception {
+          db.get().toInsert("insert into t (pk) values (?)").argLong(3L).insert(1);
         }
       });
 

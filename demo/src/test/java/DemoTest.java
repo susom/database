@@ -51,7 +51,7 @@ public class DemoTest {
       }
     }.launch(new String[0]);
 
-    verify(output).println("Rows before rollback: 1");
+    verify(output).println("Rows before rollback: 3");
     verify(output).println("Rows after rollback: 0");
     verifyNoMoreInteractions(output);
   }

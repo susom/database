@@ -52,6 +52,9 @@ public final class DatabaseProvider implements Provider<Database> {
   private final Options options;
 
   public DatabaseProvider(Provider<Connection> connectionProvider, Options options) {
+    if (connectionProvider == null) {
+      throw new IllegalArgumentException("Connection provider cannot be null");
+    }
     this.connectionProvider = connectionProvider;
     this.options = options;
   }
@@ -862,6 +865,10 @@ public final class DatabaseProvider implements Provider<Database> {
       return database;
     }
 
+    if (connectionProvider == null) {
+      throw new DatabaseException("Called get() on a DatabaseProvider after close()");
+    }
+
     Metric metric = new Metric(log.isDebugEnabled());
     try {
       connection = connectionProvider.get();
@@ -1001,5 +1008,6 @@ public final class DatabaseProvider implements Provider<Database> {
     connection = null;
     database = null;
     txStarted = false;
+    connectionProvider = null;
   }
 }

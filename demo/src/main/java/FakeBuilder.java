@@ -1,6 +1,7 @@
 import javax.inject.Provider;
 
 import com.github.susom.database.Database;
+import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.DatabaseProvider.Builder;
 import com.github.susom.database.DbCode;
@@ -20,7 +21,7 @@ public class FakeBuilder extends DerbyExample {
     try {
       realDbp = dbb.create();
 
-      realDbp.transact(new DbCode() {
+      dbb.transact(new DbCode() {
         @Override
         public void run(Provider<Database> db) throws Exception {
           // Drops in case we are running this multiple times
@@ -62,7 +63,20 @@ public class FakeBuilder extends DerbyExample {
 
       realDbp.rollbackAndClose();
 
-      fakeBuilder.transact(new DbCode() {
+      // Can't use fakeBuilder after close
+      try {
+        fakeBuilder.transact(new DbCode() {
+          @Override
+          public void run(Provider<Database> db) throws Exception {
+            db.get();
+            println("Eeek...shouldn't get here!");
+          }
+        });
+      } catch(DatabaseException e) {
+        println("Correctly threw exception: " + e.getMessage());
+      }
+
+      dbb.transact(new DbCode() {
         @Override
         public void run(Provider<Database> db) throws Exception {
           println("Rows after rollback: " + db.get().toSelect("select count(*) from t").queryLongOrZero());

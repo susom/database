@@ -1,7 +1,6 @@
 language: java
 jdk:
   - oraclejdk8
-  - openjdk8
 addons:
   postgresql: "9.3"
 before_script:

@@ -1,6 +1,7 @@
 package com.github.susom.database;
 
 import java.io.File;
+import java.nio.charset.CharsetDecoder;
 import java.util.Properties;
 
 /**
@@ -23,7 +24,11 @@ public interface ConfigFrom {
 
   ConfigFrom propertyFile(String... filenames);
 
+  ConfigFrom propertyFile(CharsetDecoder decoder, String... filenames);
+
   ConfigFrom propertyFile(File... files);
+
+  ConfigFrom propertyFile(CharsetDecoder decoder, File... files);
 
   ConfigFrom includePrefix(String... prefixes);
 

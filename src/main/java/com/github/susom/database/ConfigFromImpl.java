@@ -1,7 +1,10 @@
 package com.github.susom.database;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -61,9 +64,14 @@ public class ConfigFromImpl implements ConfigFrom {
 
   @Override
   public ConfigFrom propertyFile(String... filenames) {
+    return propertyFile(Charset.defaultCharset().newDecoder(), filenames);
+  }
+
+  @Override
+  public ConfigFrom propertyFile(CharsetDecoder decoder, String... filenames) {
     for (String filename : filenames) {
       if (filename != null) {
-        propertyFile(new File(filename));
+        propertyFile(decoder, new File(filename));
       }
     }
     return this;
@@ -71,11 +79,16 @@ public class ConfigFromImpl implements ConfigFrom {
 
   @Override
   public ConfigFrom propertyFile(File... files) {
+    return propertyFile(Charset.defaultCharset().newDecoder(), files);
+  }
+
+  @Override
+  public ConfigFrom propertyFile(CharsetDecoder decoder, File... files) {
     for (File file : files) {
       if (file != null) {
         try {
           Properties properties = new Properties();
-          properties.load(new FileReader(file));
+          properties.load(new InputStreamReader(new FileInputStream(file), decoder));
           searchPath.add(new ConfigImpl(properties::getProperty));
           if (log.isTraceEnabled()) {
             log.trace("Using properties from file: " + file.getAbsolutePath());

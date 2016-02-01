@@ -15,7 +15,7 @@
  */
 package com.github.susom.database;
 
-import javax.inject.Provider;
+import java.util.function.Supplier;
 
 /**
  * A block of runnable code using a transacted Database.
@@ -31,5 +31,5 @@ public interface DbCode {
    * <p>If a {@link Throwable} is thrown from this method, it will be caught, wrapped in
    * a DatabaseException (if it is not already one), and then propagated.</p>
    */
-  void run(Provider<Database> db) throws Exception;
+  void run(Supplier<Database> dbs) throws Exception;
 }

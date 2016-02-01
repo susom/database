@@ -1,10 +1,7 @@
 import java.io.File;
 
-import javax.inject.Provider;
-
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbCode;
 
 /**
  * Demo of using some com.github.susom.database classes with Derby.
@@ -18,20 +15,17 @@ public class HelloDerby {
     }
 
     String url = "jdbc:derby:target/testdb;create=true";
-    DatabaseProvider.fromDriverManager(url).transact(new DbCode() {
-      @Override
-      public void run(Provider<Database> dbp) {
-        Database db = dbp.get();
-        db.ddl("drop table t").executeQuietly();
-        db.ddl("create table t (a numeric)").execute();
-        db.toInsert("insert into t (a) values (?)").argInteger(32).insert(1);
-        db.toUpdate("update t set a=:val")
-            .argInteger("val", 23)
-            .update(1);
+    DatabaseProvider.fromDriverManager(url).transact(dbp -> {
+      Database db = dbp.get();
+      db.ddl("drop table t").executeQuietly();
+      db.ddl("create table t (a numeric)").execute();
+      db.toInsert("insert into t (a) values (?)").argInteger(32).insert(1);
+      db.toUpdate("update t set a=:val")
+          .argInteger("val", 23)
+          .update(1);
 
-        Long rows = db.toSelect("select count(1) from t ").queryLongOrNull();
-        println("Rows: " + rows);
-      }
+      Long rows = db.toSelect("select count(1) from t ").queryLongOrNull();
+      println("Rows: " + rows);
     });
   }
 

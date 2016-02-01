@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
 import javax.inject.Provider;
@@ -42,7 +43,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author garricko
  */
-public final class DatabaseProvider implements Provider<Database> {
+public final class DatabaseProvider implements Provider<Database>, Supplier<Database> {
   private static final Logger log = LoggerFactory.getLogger(DatabaseProvider.class);
   private DatabaseProvider delegateTo = null;
   private Provider<Connection> connectionProvider;
@@ -612,10 +613,6 @@ public final class DatabaseProvider implements Provider<Database> {
     }
   }
 
-  /**
-   * You most likely want to use {@link com.github.susom.database.DatabaseProvider.Builder#transact(DbCode)}
-   * instead!
-   */
   public void transact(final DbCode code) {
     boolean complete = false;
     try {
@@ -634,10 +631,6 @@ public final class DatabaseProvider implements Provider<Database> {
     }
   }
 
-  /**
-   * You most likely want to use {@link com.github.susom.database.DatabaseProvider.Builder#transact(DbCodeTx)}
-   * instead!
-   */
   public void transact(final DbCodeTx code) {
     Transaction tx = new TransactionImpl();
     tx.setRollbackOnError(true);
@@ -740,7 +733,7 @@ public final class DatabaseProvider implements Provider<Database> {
      * This is a convenience method to eliminate the need for explicitly
      * managing the resources (and error handling) for this class. After
      * the run block is complete commit() will be called unless either the
-     * {@link DbCode#run(Provider)} method threw a {@link Throwable}.
+     * {@link DbCode#run(Supplier)} method threw a {@link Throwable}.
      *
      * @param code the code you want to run as a transaction with a Database
      * @see {@link #transact(DbCodeTx)} if you want to explicitly manage
@@ -752,7 +745,7 @@ public final class DatabaseProvider implements Provider<Database> {
      * This is a convenience method to eliminate the need for explicitly
      * managing the resources (and error handling) for this class. After
      * the run block is complete commit() will be called unless either the
-     * {@link DbCodeTx#run(Provider, Transaction)} method threw a {@link Throwable}
+     * {@link DbCodeTx#run(Supplier, Transaction)} method threw a {@link Throwable}
      * while {@link Transaction#isRollbackOnError()} returns true, or
      * {@link Transaction#isRollbackOnly()} returns a true value.
      *

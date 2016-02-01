@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  *
  * @author garricko
  */
-public interface DbCodeTx {
+public interface DbCodeTypedTx<T> {
   /**
    * Implement this method to provide a block of code that uses the provided database
    * and is transacted. Whether the transaction will commit or rollback is typically
@@ -31,5 +31,5 @@ public interface DbCodeTx {
    * <p>If a {@link Throwable} is thrown from this method, it will be caught, wrapped in
    * a DatabaseException (if it is not already one), and then propagated.</p>
    */
-  void run(Supplier<Database> db, Transaction tx) throws Exception;
+  T run(Supplier<Database> db, Transaction tx) throws Exception;
 }

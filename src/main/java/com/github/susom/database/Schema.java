@@ -18,6 +18,7 @@ package com.github.susom.database;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.github.susom.database.Schema.Table.Check;
 import com.github.susom.database.Schema.Table.Column;
@@ -449,6 +450,10 @@ public class Schema {
 
   public void execute(Database db) {
     executeOrPrint(db, null);
+  }
+
+  public void execute(Supplier<Database> db) {
+    executeOrPrint(db.get(), null);
   }
 
   public String print(Flavor flavor) {

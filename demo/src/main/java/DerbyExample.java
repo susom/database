@@ -1,11 +1,8 @@
 import java.io.File;
 
-import javax.inject.Provider;
-
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.DatabaseProvider.Builder;
-import com.github.susom.database.DbCode;
 
 /**
  * Demo of using some com.github.susom.database classes with Derby.
@@ -16,11 +13,8 @@ public abstract class DerbyExample {
   }
 
   void example(Builder dbb, final String[] args) {
-    dbb.transact(new DbCode() {
-      @Override
-      public void run(Provider<Database> db) {
-        example(db.get(), args);
-      }
+    dbb.transact(db -> {
+      example(db.get(), args);
     });
   }
 

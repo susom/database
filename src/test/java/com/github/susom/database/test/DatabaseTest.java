@@ -25,8 +25,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Provider;
-
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
@@ -45,13 +43,10 @@ import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseImpl;
 import com.github.susom.database.DatabaseMock;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbCode;
-import com.github.susom.database.DbCodeTx;
 import com.github.susom.database.DebugSql;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.OptionsOverride;
-import com.github.susom.database.Transaction;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -824,17 +819,9 @@ public class DatabaseTest {
 
     control.replay();
 
-    new DatabaseProvider(new Provider<Connection>() {
-      @Override
-      public Connection get() {
-        return c;
-      }
-    }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
-      @Override
-      public void run(Provider<Database> db, Transaction tx) throws Exception {
-        tx.setRollbackOnError(false);
-        db.get();
-      }
+    new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db, tx) -> {
+      tx.setRollbackOnError(false);
+      db.get();
     });
 
     control.verify();
@@ -854,18 +841,10 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseProvider(new Provider<Connection>() {
-        @Override
-        public Connection get() {
-          return c;
-        }
-      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
-        @Override
-        public void run(Provider<Database> db, Transaction tx) throws Exception {
-          tx.setRollbackOnError(false);
-          db.get();
-          throw new Error("Oops");
-        }
+      new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db, tx) -> {
+        tx.setRollbackOnError(false);
+        db.get();
+        throw new Error("Oops");
       });
       fail("Should have thrown an exception");
     } catch (Exception e) {
@@ -888,18 +867,10 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseProvider(new Provider<Connection>() {
-        @Override
-        public Connection get() {
-          return c;
-        }
-      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
-        @Override
-        public void run(Provider<Database> db, Transaction tx) throws Exception {
-          db.get();
-          tx.setRollbackOnError(true);
-          throw new DatabaseException("Oops");
-        }
+      new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db, tx) -> {
+        db.get();
+        tx.setRollbackOnError(true);
+        throw new DatabaseException("Oops");
       });
       fail("Should have thrown an exception");
     } catch (Exception e) {
@@ -922,19 +893,11 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseProvider(new Provider<Connection>() {
-        @Override
-        public Connection get() {
-          return c;
-        }
-      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
-        @Override
-        public void run(Provider<Database> db, Transaction tx) throws Exception {
-          db.get();
-          tx.setRollbackOnError(false);
-          tx.setRollbackOnly(true);
-          throw new DatabaseException("Oops");
-        }
+      new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db, tx) -> {
+        db.get();
+        tx.setRollbackOnError(false);
+        tx.setRollbackOnly(true);
+        throw new DatabaseException("Oops");
       });
       fail("Should have thrown an exception");
     } catch (Exception e) {
@@ -956,17 +919,9 @@ public class DatabaseTest {
 
     control.replay();
 
-    new DatabaseProvider(new Provider<Connection>() {
-      @Override
-      public Connection get() {
-        return c;
-      }
-    }, new OptionsDefault(Flavor.postgresql)).transact(new DbCodeTx() {
-      @Override
-      public void run(Provider<Database> db, Transaction tx) throws Exception {
-        db.get();
-        tx.setRollbackOnly(true);
-      }
+    new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db, tx) -> {
+      db.get();
+      tx.setRollbackOnly(true);
     });
 
     control.verify();
@@ -985,17 +940,9 @@ public class DatabaseTest {
     control.replay();
 
     try {
-      new DatabaseProvider(new Provider<Connection>() {
-        @Override
-        public Connection get() {
-          return c;
-        }
-      }, new OptionsDefault(Flavor.postgresql)).transact(new DbCode() {
-        @Override
-        public void run(Provider<Database> db) throws Exception {
-          db.get();
-          throw new Exception("Oops");
-        }
+      new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact(db -> {
+        db.get();
+        throw new Exception("Oops");
       });
       fail("Should have thrown an exception");
     } catch (Exception e) {
@@ -1017,16 +964,8 @@ public class DatabaseTest {
 
     control.replay();
 
-    new DatabaseProvider(new Provider<Connection>() {
-      @Override
-      public Connection get() {
-        return c;
-      }
-    }, new OptionsDefault(Flavor.postgresql)).transact(new DbCode() {
-      @Override
-      public void run(Provider<Database> db) throws Exception {
-        db.get();
-      }
+    new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db) -> {
+      db.get();
     });
 
     control.verify();

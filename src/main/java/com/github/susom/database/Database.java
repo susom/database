@@ -18,6 +18,7 @@ package com.github.susom.database;
 
 import java.sql.Connection;
 import java.util.Date;
+import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
 import javax.inject.Provider;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author garricko
  */
-public interface Database extends Provider<Database> {
+public interface Database extends Provider<Database>, Supplier<Database> {
   /**
    * Create a SQL "insert" statement for further manipulation and execution.
    * Note this call does not actually execute the SQL.

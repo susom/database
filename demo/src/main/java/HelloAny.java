@@ -1,8 +1,5 @@
-import javax.inject.Provider;
-
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.DbCode;
 
 /**
  * Example with database info provided from command line. To use this, set properties like this:
@@ -21,22 +18,19 @@ import com.github.susom.database.DbCode;
  */
 public class HelloAny {
   public void run() {
-    DatabaseProvider.fromSystemProperties().transact(new DbCode() {
-      @Override
-      public void run(Provider<Database> dbp) {
-        Database db = dbp.get();
-        db.dropTableQuietly("t");
-        db.ddl("create table t (a numeric)").execute();
-        db.toInsert("insert into t (a) values (?)")
-            .argInteger(32)
-            .insert(1);
-        db.toUpdate("update t set a=:val")
-            .argInteger("val", 23)
-            .update(1);
+    DatabaseProvider.fromSystemProperties().transact(dbp -> {
+      Database db = dbp.get();
+      db.dropTableQuietly("t");
+      db.ddl("create table t (a numeric)").execute();
+      db.toInsert("insert into t (a) values (?)")
+          .argInteger(32)
+          .insert(1);
+      db.toUpdate("update t set a=:val")
+          .argInteger("val", 23)
+          .update(1);
 
-        Long rows = db.toSelect("select count(1) from t ").queryLongOrNull();
-        System.out.println("Rows: " + rows);
-      }
+      Long rows = db.toSelect("select count(1) from t ").queryLongOrNull();
+      System.out.println("Rows: " + rows);
     });
   }
 

@@ -6,7 +6,7 @@
 
   <groupId>database-demo</groupId>
   <artifactId>database-demo</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>2.0-SNAPSHOT</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -40,6 +40,19 @@
       <artifactId>mockito-all</artifactId>
       <version>1.10.8</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+      <version>3.2.0</version>
+    </dependency>
+    <!-- This one isn't necessary in real projects, but makes the IDE happy
+         for running these demos in the same project as the library source -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>2.4.3</version>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 

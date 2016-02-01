@@ -16,7 +16,7 @@
 
 package com.github.susom.database;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 /**
  * Convenience for conditional SQL generation.
@@ -29,32 +29,32 @@ public class When {
     this.actualFlavor = actualFlavor;
   }
 
-  @NotNull
-  public When oracle(@NotNull String sql) {
+  @Nonnull
+  public When oracle(@Nonnull String sql) {
     if (actualFlavor == Flavor.oracle) {
       chosen = sql;
     }
     return this;
   }
 
-  @NotNull
-  public When derby(@NotNull String sql) {
+  @Nonnull
+  public When derby(@Nonnull String sql) {
     if (actualFlavor == Flavor.derby) {
       chosen = sql;
     }
     return this;
   }
 
-  @NotNull
-  public When postgres(@NotNull String sql) {
+  @Nonnull
+  public When postgres(@Nonnull String sql) {
     if (actualFlavor == Flavor.postgresql) {
       chosen = sql;
     }
     return this;
   }
 
-  @NotNull
-  public String other(@NotNull String sql) {
+  @Nonnull
+  public String other(@Nonnull String sql) {
     if (chosen == null) {
       chosen = sql;
     }

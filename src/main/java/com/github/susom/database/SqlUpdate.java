@@ -22,9 +22,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.annotation.CheckReturnValue;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Interface for configuring (setting parameters) and executing a chunk of SQL.
@@ -32,117 +31,117 @@ import org.jetbrains.annotations.Nullable;
  * @author garricko
  */
 public interface SqlUpdate {
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argBoolean(Boolean arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argBoolean(@NotNull String argName, Boolean arg);
+  SqlUpdate argBoolean(@Nonnull String argName, Boolean arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argInteger(@Nullable Integer arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argInteger(@NotNull String argName, @Nullable Integer arg);
+  SqlUpdate argInteger(@Nonnull String argName, @Nullable Integer arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argLong(@Nullable Long arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argLong(@NotNull String argName, @Nullable Long arg);
+  SqlUpdate argLong(@Nonnull String argName, @Nullable Long arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argFloat(@Nullable Float arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argFloat(@NotNull String argName, @Nullable Float arg);
+  SqlUpdate argFloat(@Nonnull String argName, @Nullable Float arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argDouble(@Nullable Double arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argDouble(@NotNull String argName, @Nullable Double arg);
+  SqlUpdate argDouble(@Nonnull String argName, @Nullable Double arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argBigDecimal(@Nullable BigDecimal arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argBigDecimal(@NotNull String argName, @Nullable BigDecimal arg);
+  SqlUpdate argBigDecimal(@Nonnull String argName, @Nullable BigDecimal arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argString(@Nullable String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argString(@NotNull String argName, @Nullable String arg);
+  SqlUpdate argString(@Nonnull String argName, @Nullable String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argDate(@Nullable Date arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argDate(@NotNull String argName, @Nullable Date arg);
+  SqlUpdate argDate(@Nonnull String argName, @Nullable Date arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argDateNowPerApp();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argDateNowPerApp(@NotNull String argName);
+  SqlUpdate argDateNowPerApp(@Nonnull String argName);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argDateNowPerDb();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argDateNowPerDb(@NotNull String argName);
+  SqlUpdate argDateNowPerDb(@Nonnull String argName);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argBlobBytes(@Nullable byte[] arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argBlobBytes(@NotNull String argName, @Nullable byte[] arg);
+  SqlUpdate argBlobBytes(@Nonnull String argName, @Nullable byte[] arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argBlobStream(@Nullable InputStream arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argBlobStream(@NotNull String argName, @Nullable InputStream arg);
+  SqlUpdate argBlobStream(@Nonnull String argName, @Nullable InputStream arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argClobString(@Nullable String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argClobString(@NotNull String argName, @Nullable String arg);
+  SqlUpdate argClobString(@Nonnull String argName, @Nullable String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate argClobReader(@Nullable Reader arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate argClobReader(@NotNull String argName, @Nullable Reader arg);
+  SqlUpdate argClobReader(@Nonnull String argName, @Nullable Reader arg);
 
   /**
    * Call this between setting rows of parameters for a SQL statement. You may call it before
@@ -156,11 +155,11 @@ public interface SqlUpdate {
     void apply(SqlUpdate update);
   }
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate withArgs(SqlArgs args);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlUpdate apply(Apply apply);
 

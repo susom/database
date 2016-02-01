@@ -30,7 +30,8 @@ import java.sql.Types;
 import java.util.Date;
 import java.util.Scanner;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 
 import com.github.susom.database.MixedParameterSql.SecretArg;

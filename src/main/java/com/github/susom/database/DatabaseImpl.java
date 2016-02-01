@@ -19,7 +19,8 @@ package com.github.susom.database;
 import java.sql.Connection;
 import java.util.Date;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /*>>>
@@ -37,84 +38,84 @@ public class DatabaseImpl implements Database {
   private final DatabaseMock mock;
   private final Options options;
 
-  public DatabaseImpl(@NotNull Connection connection, @NotNull Options options) {
+  public DatabaseImpl(@Nonnull Connection connection, @Nonnull Options options) {
     this.connection = connection;
     this.mock = null;
     this.options = options;
   }
 
-  public DatabaseImpl(@NotNull DatabaseMock mock, Flavor flavor) {
+  public DatabaseImpl(@Nonnull DatabaseMock mock, Flavor flavor) {
     this(mock, new OptionsDefault(flavor));
   }
 
-  public DatabaseImpl(@NotNull DatabaseMock mock, @NotNull Options options) {
+  public DatabaseImpl(@Nonnull DatabaseMock mock, @Nonnull Options options) {
     this.connection = null;
     this.mock = mock;
     this.options = options;
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public DatabaseImpl get() {
     return this;
   }
 
   @Override
-  @NotNull
-  public SqlInsert toInsert(@NotNull String sql) {
+  @Nonnull
+  public SqlInsert toInsert(@Nonnull String sql) {
     return new SqlInsertImpl(connection, mock, sql, options);
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlInsert toInsert(@NotNull Sql sql) {
+  public SqlInsert toInsert(@Nonnull Sql sql) {
     return new SqlInsertImpl(connection, mock, sql.sql(), options).apply(sql);
   }
 
   @Override
-  @NotNull
-  public SqlSelect toSelect(@NotNull String sql) {
+  @Nonnull
+  public SqlSelect toSelect(@Nonnull String sql) {
     return new SqlSelectImpl(connection, mock, sql, options);
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect toSelect(@NotNull Sql sql) {
+  public SqlSelect toSelect(@Nonnull Sql sql) {
     return new SqlSelectImpl(connection, mock, sql.sql(), options).apply(sql);
   }
 
   @Override
-  @NotNull
-  public SqlUpdate toUpdate(@NotNull String sql) {
+  @Nonnull
+  public SqlUpdate toUpdate(@Nonnull String sql) {
     return new SqlUpdateImpl(connection, mock, sql, options);
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlUpdate toUpdate(@NotNull Sql sql) {
+  public SqlUpdate toUpdate(@Nonnull Sql sql) {
     return new SqlUpdateImpl(connection, mock, sql.sql(), options).apply(sql);
   }
 
   @Override
-  @NotNull
-  public SqlUpdate toDelete(@NotNull String sql) {
+  @Nonnull
+  public SqlUpdate toDelete(@Nonnull String sql) {
     return new SqlUpdateImpl(connection, mock, sql, options);
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlUpdate toDelete(@NotNull Sql sql) {
+  public SqlUpdate toDelete(@Nonnull Sql sql) {
     return new SqlUpdateImpl(connection, mock, sql.sql(), options).apply(sql);
   }
 
   @Override
-  @NotNull
-  public Ddl ddl(@NotNull String sql) {
+  @Nonnull
+  public Ddl ddl(@Nonnull String sql) {
     return new DdlImpl(connection, sql, options);
   }
 
   @Override
-  public Long nextSequenceValue(/*@Untainted*/ @NotNull String sequenceName) {
+  public Long nextSequenceValue(/*@Untainted*/ @Nonnull String sequenceName) {
     return toSelect(flavor().sequenceSelectNextVal(sequenceName)).queryLongOrNull();
   }
 
@@ -157,7 +158,7 @@ public class DatabaseImpl implements Database {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public Connection underlyingConnection() {
     if (!options.allowConnectionAccess()) {
@@ -167,31 +168,31 @@ public class DatabaseImpl implements Database {
     return connection;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public Options options() {
     return options;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public Flavor flavor() {
     return options.flavor();
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public When when() {
     return new When(options.flavor());
   }
 
   @Override
-  public void dropSequenceQuietly(/*@Untainted*/ @NotNull String sequenceName) {
+  public void dropSequenceQuietly(/*@Untainted*/ @Nonnull String sequenceName) {
     ddl(flavor().sequenceDrop(sequenceName)).executeQuietly();
   }
 
   @Override
-  public void dropTableQuietly(/*@Untainted*/ @NotNull String tableName) {
+  public void dropTableQuietly(/*@Untainted*/ @Nonnull String tableName) {
     ddl("drop table " + tableName).executeQuietly();
   }
 }

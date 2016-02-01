@@ -27,8 +27,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Safely wrap a ResultSet and provide access to the data it contains.
@@ -55,7 +55,7 @@ class RowsAdaptor implements Rows {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String[] getColumnNames() {
     try {
@@ -366,13 +366,13 @@ class RowsAdaptor implements Rows {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public BigDecimal getBigDecimalOrZero() {
     return getBigDecimalOrZero(column++);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public BigDecimal getBigDecimalOrZero(int columnOneBased) {
     BigDecimal result = getBigDecimalOrNull(columnOneBased);
@@ -382,7 +382,7 @@ class RowsAdaptor implements Rows {
     return result;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public BigDecimal getBigDecimalOrZero(String columnName) {
     BigDecimal result = getBigDecimalOrNull(columnName);
@@ -426,13 +426,13 @@ class RowsAdaptor implements Rows {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String getStringOrEmpty() {
     return getStringOrEmpty(column++);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String getStringOrEmpty(int columnOneBased) {
     String result = getStringOrNull(columnOneBased);
@@ -442,7 +442,7 @@ class RowsAdaptor implements Rows {
     return result;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String getStringOrEmpty(String columnName) {
     String result = getStringOrNull(columnName);
@@ -486,13 +486,13 @@ class RowsAdaptor implements Rows {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String getClobStringOrEmpty() {
     return getClobStringOrEmpty(column++);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String getClobStringOrEmpty(int columnOneBased) {
     String result = getClobStringOrNull(columnOneBased);
@@ -502,7 +502,7 @@ class RowsAdaptor implements Rows {
     return result;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String getClobStringOrEmpty(String columnName) {
     String result = getClobStringOrNull(columnName);
@@ -538,13 +538,13 @@ class RowsAdaptor implements Rows {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public Reader getClobReaderOrEmpty() {
     return getClobReaderOrEmpty(column++);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public Reader getClobReaderOrEmpty(int columnOneBased) {
     Reader result = getClobReaderOrNull(columnOneBased);
@@ -554,7 +554,7 @@ class RowsAdaptor implements Rows {
     return result;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public Reader getClobReaderOrEmpty(String columnName) {
     Reader result = getClobReaderOrNull(columnName);
@@ -590,13 +590,13 @@ class RowsAdaptor implements Rows {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public byte[] getBlobBytesOrZeroLen() {
     return getBlobBytesOrZeroLen(column++);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public byte[] getBlobBytesOrZeroLen(int columnOneBased) {
     byte[] result = getBlobBytesOrNull(columnOneBased);
@@ -606,7 +606,7 @@ class RowsAdaptor implements Rows {
     return result;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public byte[] getBlobBytesOrZeroLen(String columnName) {
     byte[] result = getBlobBytesOrNull(columnName);
@@ -642,13 +642,13 @@ class RowsAdaptor implements Rows {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public InputStream getBlobInputStreamOrEmpty() {
     return getBlobInputStreamOrEmpty(column++);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public InputStream getBlobInputStreamOrEmpty(int columnOneBased) {
     InputStream result = getBlobInputStreamOrNull(columnOneBased);
@@ -658,7 +658,7 @@ class RowsAdaptor implements Rows {
     return result;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public InputStream getBlobInputStreamOrEmpty(String columnName) {
     InputStream result = getBlobInputStreamOrNull(columnName);

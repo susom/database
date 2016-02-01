@@ -22,8 +22,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.annotation.CheckReturnValue;
-
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 /**
  * Interface for configuring (setting parameters) and executing a chunk of SQL.
@@ -31,127 +30,127 @@ import org.jetbrains.annotations.NotNull;
  * @author garricko
  */
 public interface SqlInsert {
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argBoolean(Boolean arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argBoolean(@NotNull String argName, Boolean arg);
+  SqlInsert argBoolean(@Nonnull String argName, Boolean arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argInteger(Integer arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argInteger(@NotNull String argName, Integer arg);
+  SqlInsert argInteger(@Nonnull String argName, Integer arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argLong(Long arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argLong(@NotNull String argName, Long arg);
+  SqlInsert argLong(@Nonnull String argName, Long arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argFloat(Float arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argFloat(@NotNull String argName, Float arg);
+  SqlInsert argFloat(@Nonnull String argName, Float arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argDouble(Double arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argDouble(@NotNull String argName, Double arg);
+  SqlInsert argDouble(@Nonnull String argName, Double arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argBigDecimal(BigDecimal arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argBigDecimal(@NotNull String argName, BigDecimal arg);
+  SqlInsert argBigDecimal(@Nonnull String argName, BigDecimal arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argString(String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argString(@NotNull String argName, String arg);
+  SqlInsert argString(@Nonnull String argName, String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argDate(Date arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argDate(@NotNull String argName, Date arg);
+  SqlInsert argDate(@Nonnull String argName, Date arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argDateNowPerApp();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argDateNowPerApp(@NotNull String argName);
+  SqlInsert argDateNowPerApp(@Nonnull String argName);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argDateNowPerDb();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argDateNowPerDb(@NotNull String argName);
+  SqlInsert argDateNowPerDb(@Nonnull String argName);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argBlobBytes(byte[] arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argBlobBytes(@NotNull String argName, byte[] arg);
+  SqlInsert argBlobBytes(@Nonnull String argName, byte[] arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argBlobStream(InputStream arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argBlobStream(@NotNull String argName, InputStream arg);
+  SqlInsert argBlobStream(@Nonnull String argName, InputStream arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argClobString(String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argClobString(@NotNull String argName, String arg);
+  SqlInsert argClobString(@Nonnull String argName, String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argClobReader(Reader arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argClobReader(@NotNull String argName, Reader arg);
+  SqlInsert argClobReader(@Nonnull String argName, Reader arg);
 
   interface Apply {
     void apply(SqlInsert insert);
   }
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert withArgs(SqlArgs args);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert apply(Apply apply);
 
@@ -181,9 +180,9 @@ public interface SqlInsert {
   <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> rowsHandler,
                         String...otherColumnNames);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argPkSeq(@NotNull String sequenceName);
+  SqlInsert argPkSeq(@Nonnull String sequenceName);
 
   /**
    * Use this method to populate the primary key value (assumed to be type Long)
@@ -193,15 +192,15 @@ public interface SqlInsert {
    * unable to return the value from the insert (such as Derby) this will be simulated
    * first issuing a select to read the sequence, then an insert.
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert argPkSeq(@NotNull String argName, @NotNull String sequenceName);
+  SqlInsert argPkSeq(@Nonnull String argName, @Nonnull String sequenceName);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argPkLong(Long pkValue);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlInsert argPkLong(String argName, Long pkValue);
 }

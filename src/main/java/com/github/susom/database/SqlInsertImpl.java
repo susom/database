@@ -29,7 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,115 +63,115 @@ public class SqlInsertImpl implements SqlInsert {
     adaptor = new StatementAdaptor(options);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlInsert argBoolean(Boolean arg) {
     return positionalArg(adaptor.nullString(booleanToString(arg)));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlInsert argBoolean(@NotNull String argName, Boolean arg) {
+  public SqlInsert argBoolean(@Nonnull String argName, Boolean arg) {
     return namedArg(argName, adaptor.nullString(booleanToString(arg)));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argInteger(Integer arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argInteger(@NotNull String argName, Integer arg) {
+  @Nonnull
+  public SqlInsert argInteger(@Nonnull String argName, Integer arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argLong(Long arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argLong(@NotNull String argName, Long arg) {
+  @Nonnull
+  public SqlInsert argLong(@Nonnull String argName, Long arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argFloat(Float arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argFloat(@NotNull String argName, Float arg) {
+  @Nonnull
+  public SqlInsert argFloat(@Nonnull String argName, Float arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argDouble(Double arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argDouble(@NotNull String argName, Double arg) {
+  @Nonnull
+  public SqlInsert argDouble(@Nonnull String argName, Double arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argBigDecimal(BigDecimal arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argBigDecimal(@NotNull String argName, BigDecimal arg) {
+  @Nonnull
+  public SqlInsert argBigDecimal(@Nonnull String argName, BigDecimal arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argString(String arg) {
     return positionalArg(adaptor.nullString(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argString(@NotNull String argName, String arg) {
+  @Nonnull
+  public SqlInsert argString(@Nonnull String argName, String arg) {
     return namedArg(argName, adaptor.nullString(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argDate(Date arg) {
     return positionalArg(adaptor.nullDate(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argDate(@NotNull String argName, Date arg) {
+  @Nonnull
+  public SqlInsert argDate(@Nonnull String argName, Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlInsert argDateNowPerApp() {
     return positionalArg(adaptor.nullDate(options.currentDate()));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argDateNowPerApp(@NotNull String argName) {
+  @Nonnull
+  public SqlInsert argDateNowPerApp(@Nonnull String argName) {
     return namedArg(argName, adaptor.nullDate(options.currentDate()));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlInsert argDateNowPerDb() {
     if (options.useDatePerAppOnly()) {
@@ -180,8 +181,8 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
-  @NotNull
-  public SqlInsert argDateNowPerDb(@NotNull String argName) {
+  @Nonnull
+  public SqlInsert argDateNowPerDb(@Nonnull String argName) {
     if (options.useDatePerAppOnly()) {
       return namedArg(argName, adaptor.nullDate(options.currentDate()));
     }
@@ -189,60 +190,60 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argBlobBytes(byte[] arg) {
     return positionalArg(adaptor.nullBytes(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argBlobBytes(@NotNull String argName, byte[] arg) {
+  @Nonnull
+  public SqlInsert argBlobBytes(@Nonnull String argName, byte[] arg) {
     return namedArg(argName, adaptor.nullBytes(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argBlobStream(InputStream arg) {
     return positionalArg(adaptor.nullInputStream(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argBlobStream(@NotNull String argName, InputStream arg) {
+  @Nonnull
+  public SqlInsert argBlobStream(@Nonnull String argName, InputStream arg) {
     return namedArg(argName, adaptor.nullInputStream(arg));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argClobString(String arg) {
     return positionalArg(adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argClobString(@NotNull String argName, String arg) {
+  @Nonnull
+  public SqlInsert argClobString(@Nonnull String argName, String arg) {
     return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argClobReader(Reader arg) {
     return positionalArg(adaptor.nullClobReader(arg));
   }
 
   @Override
-  @NotNull
-  public SqlInsert argClobReader(@NotNull String argName, Reader arg) {
+  @Nonnull
+  public SqlInsert argClobReader(@Nonnull String argName, Reader arg) {
     return namedArg(argName, adaptor.nullClobReader(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlInsert withArgs(SqlArgs args) {
     return apply(args);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlInsert apply(Apply apply) {
     apply.apply(this);
@@ -328,9 +329,9 @@ public class SqlInsertImpl implements SqlInsert {
     }
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlInsert argPkSeq(@NotNull String sequenceName) {
+  public SqlInsert argPkSeq(@Nonnull String sequenceName) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");
     }
@@ -341,8 +342,8 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
-  @NotNull
-  public SqlInsert argPkSeq(@NotNull String argName, @NotNull String sequenceName) {
+  @Nonnull
+  public SqlInsert argPkSeq(@Nonnull String argName, @Nonnull String sequenceName) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");
     }
@@ -352,7 +353,7 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argPkLong(String argName, Long arg) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");
@@ -362,7 +363,7 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
-  @NotNull
+  @Nonnull
   public SqlInsert argPkLong(Long arg) {
     if (hasPk()) {
       throw new DatabaseException("Only call one argPk*() method");
@@ -433,7 +434,7 @@ public class SqlInsertImpl implements SqlInsert {
     }
   }
 
-  private Long updateInternal(int expectedNumAffectedRows, @NotNull String pkToReturn) {
+  private Long updateInternal(int expectedNumAffectedRows, @Nonnull String pkToReturn) {
     PreparedStatement ps = null;
     ResultSet rs = null;
     Metric metric = new Metric(log.isDebugEnabled());
@@ -499,7 +500,7 @@ public class SqlInsertImpl implements SqlInsert {
     }
   }
 
-  private <T> T updateInternal(int expectedNumAffectedRows, @NotNull String pkToReturn, RowsHandler<T> handler,
+  private <T> T updateInternal(int expectedNumAffectedRows, @Nonnull String pkToReturn, RowsHandler<T> handler,
                               String... otherCols) {
     PreparedStatement ps = null;
     ResultSet rs = null;

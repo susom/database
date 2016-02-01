@@ -21,9 +21,8 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.CheckReturnValue;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Interface for configuring (setting parameters) and executing a chunk of SQL.
@@ -31,91 +30,91 @@ import org.jetbrains.annotations.Nullable;
  * @author garricko
  */
 public interface SqlSelect {
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argBoolean(Boolean arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argBoolean(@NotNull String argName, Boolean arg);
+  SqlSelect argBoolean(@Nonnull String argName, Boolean arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argInteger(Integer arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argInteger(@NotNull String argName, Integer arg);
+  SqlSelect argInteger(@Nonnull String argName, Integer arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argLong(Long arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argLong(@NotNull String argName, Long arg);
+  SqlSelect argLong(@Nonnull String argName, Long arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argFloat(Float arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argFloat(@NotNull String argName, Float arg);
+  SqlSelect argFloat(@Nonnull String argName, Float arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argDouble(Double arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argDouble(@NotNull String argName, Double arg);
+  SqlSelect argDouble(@Nonnull String argName, Double arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argBigDecimal(BigDecimal arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argBigDecimal(@NotNull String argName, BigDecimal arg);
+  SqlSelect argBigDecimal(@Nonnull String argName, BigDecimal arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argString(String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argString(@NotNull String argName, String arg);
+  SqlSelect argString(@Nonnull String argName, String arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argDate(Date arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argDate(@NotNull String argName, Date arg);
+  SqlSelect argDate(@Nonnull String argName, Date arg);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argDateNowPerApp();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argDateNowPerApp(@NotNull String argName);
+  SqlSelect argDateNowPerApp(@Nonnull String argName);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect argDateNowPerDb();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect argDateNowPerDb(@NotNull String argName);
+  SqlSelect argDateNowPerDb(@Nonnull String argName);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect withTimeoutSeconds(int seconds);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect withMaxRows(int rows);
 
@@ -123,11 +122,11 @@ public interface SqlSelect {
     void apply(SqlSelect select);
   }
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect withArgs(SqlArgs args);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   SqlSelect apply(Apply apply);
 
@@ -153,7 +152,7 @@ public interface SqlSelect {
    *
    * @return the first column values, omitting any that were null
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   List<Long> queryLongs();
 
@@ -164,7 +163,7 @@ public interface SqlSelect {
   @CheckReturnValue
   int queryIntegerOrZero();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   List<Integer> queryIntegers();
 
@@ -175,7 +174,7 @@ public interface SqlSelect {
   @CheckReturnValue
   float queryFloatOrZero();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   List<Float> queryFloats();
 
@@ -186,7 +185,7 @@ public interface SqlSelect {
   @CheckReturnValue
   double queryDoubleOrZero();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   List<Double> queryDoubles();
 
@@ -194,11 +193,11 @@ public interface SqlSelect {
   @CheckReturnValue
   BigDecimal queryBigDecimalOrNull();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   BigDecimal queryBigDecimalOrZero();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   List<BigDecimal> queryBigDecimals();
 
@@ -206,7 +205,7 @@ public interface SqlSelect {
   @CheckReturnValue
   String queryStringOrNull();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   String queryStringOrEmpty();
 
@@ -215,7 +214,7 @@ public interface SqlSelect {
    *
    * @return the first column values, omitting any that were null
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   List<String> queryStrings();
 
@@ -223,7 +222,7 @@ public interface SqlSelect {
   @CheckReturnValue
   Date queryDateOrNull();
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
   List<Date> queryDates();
 

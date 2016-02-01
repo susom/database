@@ -24,8 +24,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Stack;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 /*>>>
 import org.checkerframework.checker.tainting.qual.Untainted;
 */
@@ -221,170 +221,170 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
     }
   }
 
-  @NotNull
+  @Nonnull
   public Sql argBoolean(@Nullable Boolean arg) {
     invocations.add(new Invocation(ColumnType.Boolean, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argBoolean(@NotNull String argName, @Nullable Boolean arg) {
+  @Nonnull
+  public Sql argBoolean(@Nonnull String argName, @Nullable Boolean arg) {
     invocations.add(new Invocation(ColumnType.Boolean, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argInteger(@Nullable Integer arg) {
     invocations.add(new Invocation(ColumnType.Integer, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argInteger(@NotNull String argName, @Nullable Integer arg) {
+  @Nonnull
+  public Sql argInteger(@Nonnull String argName, @Nullable Integer arg) {
     invocations.add(new Invocation(ColumnType.Integer, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argLong(@Nullable Long arg) {
     invocations.add(new Invocation(ColumnType.Long, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argLong(@NotNull String argName, @Nullable Long arg) {
+  @Nonnull
+  public Sql argLong(@Nonnull String argName, @Nullable Long arg) {
     invocations.add(new Invocation(ColumnType.Long, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argFloat(@Nullable Float arg) {
     invocations.add(new Invocation(ColumnType.Float, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argFloat(@NotNull String argName, @Nullable Float arg) {
+  @Nonnull
+  public Sql argFloat(@Nonnull String argName, @Nullable Float arg) {
     invocations.add(new Invocation(ColumnType.Float, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argDouble(@Nullable Double arg) {
     invocations.add(new Invocation(ColumnType.Double, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argDouble(@NotNull String argName, @Nullable Double arg) {
+  @Nonnull
+  public Sql argDouble(@Nonnull String argName, @Nullable Double arg) {
     invocations.add(new Invocation(ColumnType.Double, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argBigDecimal(@Nullable BigDecimal arg) {
     invocations.add(new Invocation(ColumnType.BigDecimal, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argBigDecimal(@NotNull String argName, @Nullable BigDecimal arg) {
+  @Nonnull
+  public Sql argBigDecimal(@Nonnull String argName, @Nullable BigDecimal arg) {
     invocations.add(new Invocation(ColumnType.BigDecimal, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argString(@Nullable String arg) {
     invocations.add(new Invocation(ColumnType.String, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argString(@NotNull String argName, @Nullable String arg) {
+  @Nonnull
+  public Sql argString(@Nonnull String argName, @Nullable String arg) {
     invocations.add(new Invocation(ColumnType.String, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argDate(@Nullable Date arg) {
     invocations.add(new Invocation(ColumnType.Date, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argDate(@NotNull String argName, @Nullable Date arg) {
+  @Nonnull
+  public Sql argDate(@Nonnull String argName, @Nullable Date arg) {
     invocations.add(new Invocation(ColumnType.Date, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argDateNowPerApp() {
     invocations.add(new Invocation(ColumnType.DateNowPerApp, null, null));
     return this;
   }
 
-  @NotNull
-  public Sql argDateNowPerApp(@NotNull String argName) {
+  @Nonnull
+  public Sql argDateNowPerApp(@Nonnull String argName) {
     invocations.add(new Invocation(ColumnType.DateNowPerApp, argName, null));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argDateNowPerDb() {
     invocations.add(new Invocation(ColumnType.DateNowPerDb, null, null));
     return this;
   }
 
-  @NotNull
-  public Sql argDateNowPerDb(@NotNull String argName) {
+  @Nonnull
+  public Sql argDateNowPerDb(@Nonnull String argName) {
     invocations.add(new Invocation(ColumnType.DateNowPerDb, argName, null));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argBlobBytes(@Nullable byte[] arg) {
     invocations.add(new Invocation(ColumnType.BlobBytes, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argBlobBytes(@NotNull String argName, @Nullable byte[] arg) {
+  @Nonnull
+  public Sql argBlobBytes(@Nonnull String argName, @Nullable byte[] arg) {
     invocations.add(new Invocation(ColumnType.BlobBytes, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argBlobInputStream(@Nullable InputStream arg) {
     invocations.add(new Invocation(ColumnType.BlobStream, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argBlobInputStream(@NotNull String argName, @Nullable InputStream arg) {
+  @Nonnull
+  public Sql argBlobInputStream(@Nonnull String argName, @Nullable InputStream arg) {
     invocations.add(new Invocation(ColumnType.BlobStream, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argClobString(@Nullable String arg) {
     invocations.add(new Invocation(ColumnType.ClobString, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argClobString(@NotNull String argName, @Nullable String arg) {
+  @Nonnull
+  public Sql argClobString(@Nonnull String argName, @Nullable String arg) {
     invocations.add(new Invocation(ColumnType.ClobString, argName, arg));
     return this;
   }
 
-  @NotNull
+  @Nonnull
   public Sql argClobReader(@Nullable Reader arg) {
     invocations.add(new Invocation(ColumnType.ClobStream, null, arg));
     return this;
   }
 
-  @NotNull
-  public Sql argClobReader(@NotNull String argName, @Nullable Reader arg) {
+  @Nonnull
+  public Sql argClobReader(@Nonnull String argName, @Nullable Reader arg) {
     invocations.add(new Invocation(ColumnType.ClobStream, argName, arg));
     return this;
   }

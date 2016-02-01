@@ -27,8 +27,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,115 +62,115 @@ public class SqlSelectImpl implements SqlSelect {
     adaptor = new StatementAdaptor(options);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argBoolean(Boolean arg) {
     return positionalArg(adaptor.nullString(booleanToString(arg)));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argBoolean(@NotNull String argName, Boolean arg) {
+  public SqlSelect argBoolean(@Nonnull String argName, Boolean arg) {
     return namedArg(argName, adaptor.nullString(booleanToString(arg)));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argInteger(Integer arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argInteger(@NotNull String argName, Integer arg) {
+  public SqlSelect argInteger(@Nonnull String argName, Integer arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argLong(Long arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argLong(@NotNull String argName, Long arg) {
+  public SqlSelect argLong(@Nonnull String argName, Long arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argFloat(Float arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argFloat(@NotNull String argName, Float arg) {
+  public SqlSelect argFloat(@Nonnull String argName, Float arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argDouble(Double arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argDouble(@NotNull String argName, Double arg) {
+  public SqlSelect argDouble(@Nonnull String argName, Double arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argBigDecimal(BigDecimal arg) {
     return positionalArg(adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argBigDecimal(@NotNull String argName, BigDecimal arg) {
+  public SqlSelect argBigDecimal(@Nonnull String argName, BigDecimal arg) {
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argString(String arg) {
     return positionalArg(adaptor.nullString(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argString(@NotNull String argName, String arg) {
+  public SqlSelect argString(@Nonnull String argName, String arg) {
     return namedArg(argName, adaptor.nullString(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argDate(Date arg) {
     return positionalArg(adaptor.nullDate(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argDate(@NotNull String argName, Date arg) {
+  public SqlSelect argDate(@Nonnull String argName, Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argDateNowPerApp() {
     return positionalArg(adaptor.nullDate(options.currentDate()));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argDateNowPerApp(@NotNull String argName) {
+  public SqlSelect argDateNowPerApp(@Nonnull String argName) {
     return namedArg(argName, adaptor.nullDate(options.currentDate()));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect argDateNowPerDb() {
     if (options.useDatePerAppOnly()) {
@@ -178,36 +179,36 @@ public class SqlSelectImpl implements SqlSelect {
     return positionalArg(new RewriteArg(options.flavor().dbTimeMillis()));
   }
 
-  @NotNull
+  @Nonnull
   @Override
-  public SqlSelect argDateNowPerDb(@NotNull String argName) {
+  public SqlSelect argDateNowPerDb(@Nonnull String argName) {
     if (options.useDatePerAppOnly()) {
       return namedArg(argName, adaptor.nullDate(options.currentDate()));
     }
     return namedArg(argName, new RewriteArg(options.flavor().dbTimeMillis()));
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect withTimeoutSeconds(int seconds) {
     timeoutSeconds = seconds;
     return this;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect withMaxRows(int rows) {
     maxRows = rows;
     return this;
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect withArgs(SqlArgs args) {
     return apply(args);
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public SqlSelect apply(Apply apply) {
     apply.apply(this);
@@ -267,7 +268,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public List<Long> queryLongs() {
     return queryWithTimeout(new RowsHandler<List<Long>>() {
@@ -312,7 +313,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public List<Integer> queryIntegers() {
     return queryWithTimeout(new RowsHandler<List<Integer>>() {
@@ -357,7 +358,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public List<Float> queryFloats() {
     return queryWithTimeout(new RowsHandler<List<Float>>() {
@@ -402,7 +403,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public List<Double> queryDoubles() {
     return queryWithTimeout(new RowsHandler<List<Double>>() {
@@ -434,7 +435,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public BigDecimal queryBigDecimalOrZero() {
     return queryWithTimeout(new RowsHandler<BigDecimal>() {
@@ -448,7 +449,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public List<BigDecimal> queryBigDecimals() {
     return queryWithTimeout(new RowsHandler<List<BigDecimal>>() {
@@ -479,7 +480,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public String queryStringOrEmpty() {
     return queryWithTimeout(new RowsHandler<String>() {
@@ -493,7 +494,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public List<String> queryStrings() {
     return queryWithTimeout(new RowsHandler<List<String>>() {
@@ -525,7 +526,7 @@ public class SqlSelectImpl implements SqlSelect {
     });
   }
 
-  @NotNull
+  @Nonnull
   @Override
   public List<Date> queryDates() {
     return queryWithTimeout(new RowsHandler<List<Date>>() {

@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Convenience for specifying hard-coded values for the Rows object. Useful for testing,
@@ -43,7 +43,7 @@ public class RowStub {
         return !rows.isEmpty() && ++row < rows.size();
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public String[] getColumnNames() {
         requireColumnNames();
@@ -279,21 +279,21 @@ public class RowStub {
         return toBigDecimal(rows.get(row)[columnIndexByName(columnName)]);
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public BigDecimal getBigDecimalOrZero() {
         BigDecimal i = getBigDecimalOrNull();
         return i == null ? new BigDecimal(0) : i;
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public BigDecimal getBigDecimalOrZero(int columnOneBased) {
         BigDecimal i = getBigDecimalOrNull(columnOneBased);
         return i == null ? new BigDecimal(0) : i;
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public BigDecimal getBigDecimalOrZero(String columnName) {
         BigDecimal i = getBigDecimalOrNull(columnName);
@@ -320,21 +320,21 @@ public class RowStub {
         return toString(rows.get(row)[columnIndexByName(columnName)]);
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public String getStringOrEmpty() {
         String i = getStringOrNull();
         return i == null ? "" : i;
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public String getStringOrEmpty(int columnOneBased) {
         String i = getStringOrNull(columnOneBased);
         return i == null ? "" : i;
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public String getStringOrEmpty(String columnName) {
         String i = getStringOrNull(columnName);
@@ -359,19 +359,19 @@ public class RowStub {
         return getStringOrNull(columnName);
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public String getClobStringOrEmpty() {
         return getStringOrEmpty();
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public String getClobStringOrEmpty(int columnOneBased) {
         return getStringOrEmpty(columnOneBased);
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public String getClobStringOrEmpty(String columnName) {
         return getStringOrEmpty(columnName);
@@ -398,19 +398,19 @@ public class RowStub {
         return s == null ? null : new StringReader(s);
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public Reader getClobReaderOrEmpty() {
         return new StringReader(getStringOrEmpty());
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public Reader getClobReaderOrEmpty(int columnOneBased) {
         return new StringReader(getStringOrEmpty(columnOneBased));
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public Reader getClobReaderOrEmpty(String columnName) {
         return new StringReader(getStringOrEmpty(columnName));
@@ -436,21 +436,21 @@ public class RowStub {
         return toBytes(rows.get(row)[columnIndexByName(columnName)]);
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public byte[] getBlobBytesOrZeroLen() {
         byte[] a = getBlobBytesOrNull();
         return a == null ? new byte[0] : a;
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public byte[] getBlobBytesOrZeroLen(int columnOneBased) {
         byte[] a = getBlobBytesOrNull(columnOneBased);
         return a == null ? new byte[0] : a;
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public byte[] getBlobBytesOrZeroLen(String columnName) {
         byte[] a = getBlobBytesOrNull(columnName);
@@ -478,19 +478,19 @@ public class RowStub {
         return a == null ? null : new ByteArrayInputStream(a);
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public InputStream getBlobInputStreamOrEmpty() {
         return new ByteArrayInputStream(getBlobBytesOrZeroLen());
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public InputStream getBlobInputStreamOrEmpty(int columnOneBased) {
         return new ByteArrayInputStream(getBlobBytesOrZeroLen(columnOneBased));
       }
 
-      @NotNull
+      @Nonnull
       @Override
       public InputStream getBlobInputStreamOrEmpty(String columnName) {
         return new ByteArrayInputStream(getBlobBytesOrZeroLen(columnName));

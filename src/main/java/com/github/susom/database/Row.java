@@ -21,8 +21,8 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Interface for reading results from a database query.
@@ -40,7 +40,7 @@ public interface Row {
    * parameters with AS "FOO" (including quotes) to ensure you desired name
    * will be honored.
    */
-  @NotNull
+  @Nonnull
   String[] getColumnNames();
 
   /**
@@ -267,13 +267,13 @@ public interface Row {
   @Nullable
   BigDecimal getBigDecimalOrNull(String columnName);
 
-  @NotNull
+  @Nonnull
   BigDecimal getBigDecimalOrZero();
 
-  @NotNull
+  @Nonnull
   BigDecimal getBigDecimalOrZero(int columnOneBased);
 
-  @NotNull
+  @Nonnull
   BigDecimal getBigDecimalOrZero(String columnName);
 
   /**
@@ -297,19 +297,19 @@ public interface Row {
   /**
    * @return the value, or the empty string if it is SQL null; never returns null
    */
-  @NotNull
+  @Nonnull
   String getStringOrEmpty();
 
   /**
    * @return the value, or the empty string if it is SQL null; never returns null
    */
-  @NotNull
+  @Nonnull
   String getStringOrEmpty(int columnOneBased);
 
   /**
    * @return the value, or the empty string if it is SQL null; never returns null
    */
-  @NotNull
+  @Nonnull
   String getStringOrEmpty(String columnName);
 
   /**
@@ -333,19 +333,19 @@ public interface Row {
   /**
    * @return the value, or the empty string if it is SQL null; never returns null
    */
-  @NotNull
+  @Nonnull
   String getClobStringOrEmpty();
 
   /**
    * @return the value, or the empty string if it is SQL null; never returns null
    */
-  @NotNull
+  @Nonnull
   String getClobStringOrEmpty(int columnOneBased);
 
   /**
    * @return the value, or the empty string if it is SQL null; never returns null
    */
-  @NotNull
+  @Nonnull
   String getClobStringOrEmpty(String columnName);
 
   /**
@@ -369,19 +369,19 @@ public interface Row {
   /**
    * @return the value, or a StringReader containing the empty string if it is SQL null
    */
-  @NotNull
+  @Nonnull
   Reader getClobReaderOrEmpty();
 
   /**
    * @return the value, or a StringReader containing the empty string if it is SQL null
    */
-  @NotNull
+  @Nonnull
   Reader getClobReaderOrEmpty(int columnOneBased);
 
   /**
    * @return the value, or a StringReader containing the empty string if it is SQL null
    */
-  @NotNull
+  @Nonnull
   Reader getClobReaderOrEmpty(String columnName);
 
   @Nullable
@@ -393,13 +393,13 @@ public interface Row {
   @Nullable
   byte[] getBlobBytesOrNull(String columnName);
 
-  @NotNull
+  @Nonnull
   byte[] getBlobBytesOrZeroLen();
 
-  @NotNull
+  @Nonnull
   byte[] getBlobBytesOrZeroLen(int columnOneBased);
 
-  @NotNull
+  @Nonnull
   byte[] getBlobBytesOrZeroLen(String columnName);
 
   @Nullable
@@ -411,13 +411,13 @@ public interface Row {
   @Nullable
   InputStream getBlobInputStreamOrNull(String columnName);
 
-  @NotNull
+  @Nonnull
   InputStream getBlobInputStreamOrEmpty();
 
-  @NotNull
+  @Nonnull
   InputStream getBlobInputStreamOrEmpty(int columnOneBased);
 
-  @NotNull
+  @Nonnull
   InputStream getBlobInputStreamOrEmpty(String columnName);
 
   /**

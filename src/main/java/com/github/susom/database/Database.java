@@ -21,10 +21,9 @@ import java.util.Date;
 import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
+import javax.annotation.Syntax;
 import javax.inject.Provider;
-
-import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Primary class for accessing a relational (SQL) database.
@@ -43,13 +42,13 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert toInsert(@Language("SQL") @NotNull String sql);
+  SqlInsert toInsert(@Syntax("SQL") @Nonnull String sql);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlInsert toInsert(@NotNull Sql sql);
+  SqlInsert toInsert(@Nonnull Sql sql);
 
   /**
    * Create a SQL "select" statement for further manipulation and execution.
@@ -62,13 +61,13 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect toSelect(@Language("SQL") @NotNull String sql);
+  SqlSelect toSelect(@Syntax("SQL") @Nonnull String sql);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlSelect toSelect(@NotNull Sql sql);
+  SqlSelect toSelect(@Nonnull Sql sql);
 
   /**
    * Create a SQL "update" statement for further manipulation and execution.
@@ -81,13 +80,13 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate toUpdate(@Language("SQL") @NotNull String sql);
+  SqlUpdate toUpdate(@Syntax("SQL") @Nonnull String sql);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate toUpdate(@NotNull Sql sql);
+  SqlUpdate toUpdate(@Nonnull Sql sql);
 
   /**
    * Create a SQL "delete" statement for further manipulation and execution.
@@ -100,13 +99,13 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate toDelete(@Language("SQL") @NotNull String sql);
+  SqlUpdate toDelete(@Syntax("SQL") @Nonnull String sql);
 
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  SqlUpdate toDelete(@NotNull Sql sql);
+  SqlUpdate toDelete(@Nonnull Sql sql);
 
   /**
    * Create a DDL (schema modifying) statement for further manipulation and execution.
@@ -119,16 +118,16 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
    */
-  @NotNull
+  @Nonnull
   @CheckReturnValue
-  Ddl ddl(@Language("SQL") @NotNull String sql);
+  Ddl ddl(@Syntax("SQL") @Nonnull String sql);
 
   /**
    * Read the next value from a sequence. This method helps smooth over the
    * syntax differences across databases.
    */
   @CheckReturnValue
-  Long nextSequenceValue(@NotNull String sequenceName);
+  Long nextSequenceValue(@Nonnull String sequenceName);
 
   /**
    * Get the value that would be used if you specify an argNowPerApp() parameter.
@@ -159,16 +158,16 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    * to use this method you must explicitly enable it via
    * {@link com.github.susom.database.Options#allowConnectionAccess()}</p>
    */
-  @NotNull
+  @Nonnull
   Connection underlyingConnection();
 
-  @NotNull
+  @Nonnull
   Options options();
 
   /**
    * Access information about what kind of database we are dealing with.
    */
-  @NotNull
+  @Nonnull
   Flavor flavor();
 
   /**
@@ -180,7 +179,7 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    *
    * @return an interface for chaining or terminating the conditionals
    */
-  @NotNull
+  @Nonnull
   When when();
 
   /**

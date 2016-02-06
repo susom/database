@@ -1027,8 +1027,11 @@ public abstract class CommonTest {
   @Test
   public void dropTableQuietly() {
     db.dropTableQuietly("dbtest");
+    new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
+    db.dropTableQuietly("dbtest");
     // Verify the quietly part really kicks in, since the table might have existed above
     db.dropTableQuietly("dbtest");
+    new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
   }
 
   @Test

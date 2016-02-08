@@ -19,6 +19,7 @@ package com.github.susom.database;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.sql.ResultSetMetaData;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -42,6 +43,12 @@ public interface Row {
    */
   @Nonnull
   String[] getColumnNames();
+
+  /**
+   * Get raw access to the underlying JDBC metadata.
+   */
+  @Nonnull
+  ResultSetMetaData getMetadata();
 
   /**
    * Boolean values are represented as strings {@code "Y"} or {@code "N"} in the database,

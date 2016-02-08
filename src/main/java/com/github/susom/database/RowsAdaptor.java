@@ -70,6 +70,16 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  @Nonnull
+  @Override
+  public ResultSetMetaData getMetadata() {
+    try {
+      return rs.getMetaData();
+    } catch (SQLException e) {
+      throw new DatabaseException("Unable to retrieve metadata from ResultSet", e);
+    }
+  }
+
   @Nullable
   @Override
   public Boolean getBooleanOrNull() {

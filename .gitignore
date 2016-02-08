@@ -3,3 +3,5 @@ build
 .idea
 local.properties
 .vagrant
+
+dependency-reduced-pom.xml

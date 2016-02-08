@@ -103,7 +103,7 @@
               <relocations>
                 <relocation>
                   <pattern>com.zaxxer.hikari</pattern>
-                  <shadedPattern>com.github.susom.database.shaded.com.zaxxer.hikari</shadedPattern>
+                  <shadedPattern>shaded.com.github.susom.database.shaded.com.zaxxer.hikari</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>

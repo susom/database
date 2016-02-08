@@ -90,6 +90,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     ds.setJdbcUrl(url);
     ds.setUsername(config.getString("database.user"));
     ds.setPassword(config.getString("database.password"));
+    ds.setMaximumPoolSize(config.getInteger("database.pool.size", 10));
     ds.setAutoCommit(false);
 
     return new BuilderImpl(vertx, () -> {

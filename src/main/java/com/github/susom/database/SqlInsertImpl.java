@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -279,7 +280,8 @@ public class SqlInsertImpl implements SqlInsert {
   public void insertBatch() {
     int[] result = updateBatch();
     for (int r : result) {
-      if (r != 1) {
+      // Tolerate SUCCESS_NO_INFO for older versions of Oracle
+      if (r != 1 && r != Statement.SUCCESS_NO_INFO) {
         throw new DatabaseException("Batch did not return the expected result: " + Arrays.toString(result));
       }
     }

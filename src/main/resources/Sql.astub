@@ -6,6 +6,10 @@ package com.github.susom.database;
 class Sql {
   Sql(@Untainted String sql);
 
+  static Sql insert(@Untainted String table, SqlArgs args);
+
+  static Sql insert(@Untainted String table, List<SqlArgs> args);
+
   Sql append(@Untainted String sql);
 
   Sql replace(int start, int end, @Untainted String sql);

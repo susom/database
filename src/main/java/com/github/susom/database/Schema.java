@@ -16,6 +16,9 @@
 
 package com.github.susom.database;
 
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -57,6 +60,85 @@ public class Schema {
   public Table addTable(String name) {
     Table table = new Table(name);
     tables.add(table);
+    return table;
+  }
+
+  public Table addTableFromRow(String tableName, Row r) {
+    Table table = addTable(tableName);
+    try {
+      ResultSetMetaData metadata = r.getMetadata();
+
+      int columnCount = metadata.getColumnCount();
+      String[] names = new String[columnCount];
+      for (int i = 0; i < columnCount; i++) {
+        names[i] = metadata.getColumnName(i + 1);
+      }
+      names = SqlArgs.tidyColumnNames(names);
+
+      for (int i = 0; i < columnCount; i++) {
+        int type = metadata.getColumnType(i + 1);
+
+        switch (type) {
+        case Types.SMALLINT:
+        case Types.INTEGER:
+          table.addColumn(names[i]).asInteger();
+          break;
+        case Types.BIGINT:
+          table.addColumn(names[i]).asLong();
+          break;
+        case Types.REAL:
+        case 100: // Oracle proprietary it seems
+          table.addColumn(names[i]).asFloat();
+          break;
+        case Types.DOUBLE:
+        case 101: // Oracle proprietary it seems
+          table.addColumn(names[i]).asDouble();
+          break;
+        case Types.NUMERIC:
+          int precision1 = metadata.getPrecision(i + 1);
+          int scale = metadata.getScale(i + 1);
+          if (precision1 == 10 && scale == 0) {
+            // Oracle reports integer as numeric
+            table.addColumn(names[i]).asInteger();
+          } else if (precision1 == 19 && scale == 0) {
+            // Oracle reports long as numeric
+            table.addColumn(names[i]).asLong();
+          } else {
+            table.addColumn(names[i]).asBigDecimal(precision1, scale);
+          }
+          break;
+        case Types.BINARY:
+        case Types.BLOB:
+          table.addColumn(names[i]).asBlob();
+          break;
+        case Types.CLOB:
+        case Types.NCLOB:
+          table.addColumn(names[i]).asClob();
+          break;
+        case Types.TIMESTAMP:
+          table.addColumn(names[i]).asDate();
+          break;
+        case Types.NVARCHAR:
+        case Types.VARCHAR:
+          int precision = metadata.getPrecision(i + 1);
+          if (precision >= 2147483647) {
+            // Postgres seems to report clobs are varchar(2147483647)
+            table.addColumn(names[i]).asClob();
+          } else {
+            table.addColumn(names[i]).asString(precision);
+          }
+          break;
+        case Types.CHAR:
+        case Types.NCHAR:
+          table.addColumn(names[i]).asStringFixed(metadata.getPrecision(i + 1));
+          break;
+        default:
+          throw new DatabaseException("Don't know what type to use for: " + type);
+        }
+      }
+    } catch (SQLException e) {
+      throw new DatabaseException("Unable to retrieve metadata from ResultSet", e);
+    }
     return table;
   }
 

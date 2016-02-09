@@ -25,6 +25,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -38,12 +41,15 @@ import org.junit.Test;
 import com.github.susom.database.ConstraintViolationException;
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
+import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.Row;
 import com.github.susom.database.RowHandler;
 import com.github.susom.database.Rows;
 import com.github.susom.database.RowsHandler;
 import com.github.susom.database.Schema;
+import com.github.susom.database.Sql;
+import com.github.susom.database.SqlArgs;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
@@ -587,6 +593,103 @@ public abstract class CommonTest {
             return null;
           }
         });
+  }
+
+  @Test
+  public void saveResultAsTable() {
+    new Schema().addTable("dbtest")
+        .addColumn("nbr_integer").asInteger().primaryKey().table()
+        .addColumn("nbr_long").asLong().table()
+        .addColumn("nbr_float").asFloat().table()
+        .addColumn("nbr_double").asDouble().table()
+        .addColumn("nbr_big_decimal").asBigDecimal(19, 9).table()
+        .addColumn("str_varchar").asString(80).table()
+        .addColumn("str_fixed").asStringFixed(1).table()
+        .addColumn("str_lob").asClob().table()
+        .addColumn("bin_blob").asBlob().table()
+        .addColumn("boolean_flag").asBoolean().table()
+        .addColumn("date_millis").asDate().schema().execute(db);
+
+    db.toInsert("insert into dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar,"
+        + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis) values (?,?,?,?,?,?,?,?,?,?,?)")
+        .argInteger(Integer.MAX_VALUE).argLong(Long.MAX_VALUE).argFloat(Float.MAX_VALUE)
+        .argDouble(Double.MAX_VALUE).argBigDecimal(new BigDecimal("123.456"))
+        .argString("hello").argString("Z").argClobString("hello again")
+        .argBlobBytes(new byte[] { '1', '2' }).argBoolean(true).argDateNowPerApp().insert(1);
+
+    db.toInsert("insert into dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar,"
+        + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis) values (?,?,?,?,?,?,?,?,?,?,?)")
+        .argInteger(Integer.MIN_VALUE).argLong(Long.MIN_VALUE).argFloat(Float.MIN_VALUE)
+        .argDouble(Double.MIN_VALUE).argBigDecimal(new BigDecimal("-123.456"))
+        .argString("goodbye").argString("A").argClobString("bye again")
+        .argBlobBytes(new byte[] { '3', '4' }).argBoolean(false).argDateNowPerApp().insert(1);
+
+    String expectedSchema = new Schema().addTable("dbtest2")
+        .addColumn("nbr_integer").asInteger().table()
+        .addColumn("nbr_long").asLong().table()
+        .addColumn("nbr_float").asFloat().table()
+        .addColumn("nbr_double").asDouble().table()
+        .addColumn("nbr_big_decimal").asBigDecimal(19, 9).table()
+        .addColumn("str_varchar").asString(80).table()
+        .addColumn("str_fixed").asStringFixed(1).table()
+        .addColumn("str_lob").asClob().table()
+        .addColumn("bin_blob").asBlob().table()
+        .addColumn("boolean_flag").asBoolean().table()
+        .addColumn("date_millis").asDate().schema().print(db.flavor());
+
+    List<SqlArgs> args = db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
+        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest")
+        .query(rs -> {
+          List<SqlArgs> result = new ArrayList<>();
+          while (rs.next()) {
+            if (result.size() == 0) {
+              db.dropTableQuietly("dbtest2");
+              Schema schema = new Schema().addTableFromRow("dbtest2", rs).schema();
+              assertEquals(expectedSchema, schema.print(db.flavor()));
+              schema.execute(db);
+            }
+            result.add(SqlArgs.readRow(rs));
+          }
+          return result;
+        });
+
+    db.toInsert(Sql.insert("dbtest2", args)).insertBatch();
+
+    assertEquals(2, db.toSelect("select count(*) from dbtest2").queryIntegerOrZero());
+    assertEquals(db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
+        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest order by 1")
+        .queryMany(SqlArgs::readRow),
+        db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
+        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest2 order by 1")
+        .queryMany(SqlArgs::readRow));
+    assertEquals(Arrays.asList(new SqlArgs()
+        .argInteger("nbr_integer", Integer.MIN_VALUE).argLong("nbr_long", Long.MIN_VALUE)
+        .argFloat("nbr_float", Float.MIN_VALUE)
+        .argDouble("nbr_double", Double.MIN_VALUE).argBigDecimal("nbr_big_decimal", new BigDecimal("-123.456"))
+        .argString("str_varchar", "goodbye").argString("str_fixed", "A").argClobString("str_lob", "bye again")
+        .argBlobBytes("bin_blob", new byte[] { '3', '4' }).argString("boolean_flag", "N")//.argBoolean("boolean_flag", false)
+        .argDate("date_millis", now), new SqlArgs().argInteger("nbr_integer", Integer.MAX_VALUE)
+        .argLong("nbr_long", Long.MAX_VALUE).argFloat("nbr_float", Float.MAX_VALUE)
+        .argDouble("nbr_double", Double.MAX_VALUE).argBigDecimal("nbr_big_decimal", new BigDecimal("123.456"))
+        .argString("str_varchar", "hello").argString("str_fixed", "Z").argClobString("str_lob", "hello again")
+        .argBlobBytes("bin_blob", new byte[] { '1', '2' }).argString("boolean_flag", "Y")//.argBoolean("boolean_flag", true)
+        .argDate("date_millis", now)),
+        db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
+        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest2 order by 1")
+        .queryMany(SqlArgs::readRow));
+  }
+
+  @Test
+  public void readSqlArgs() {
+    new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
+
+    db.toInsert("insert into dbtest (pk) values (?)").argInteger(1).insert(1);
+
+    SqlArgs args = db.toSelect("select Pk, Pk as Foo, Pk as \"Foo\", pk as \"g arB#G!\","
+        + " pk as \"TitleCase\" from dbtest")
+        .queryOneOrThrow(SqlArgs::readRow);
+
+    assertEquals(Arrays.asList("pk", "foo", "foo_2", "g_ar_b_g", "title_case"), args.names());
   }
 
   @Test

@@ -19,9 +19,15 @@ package com.github.susom.database;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +39,7 @@ import javax.annotation.Nullable;
  * @author garricko
  */
 public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
-  public static enum ColumnType {
+  public enum ColumnType {
     Integer, Long, Float, Double, BigDecimal, String, ClobString, ClobStream,
     BlobBytes, BlobStream, Date, DateNowPerApp, DateNowPerDb, Boolean
   }
@@ -47,6 +53,26 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
       this.columnType = columnType;
       this.argName = argName;
       this.arg = arg;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Invocation that = (Invocation) o;
+      return columnType == that.columnType &&
+          Objects.equals(argName, that.argName) &&
+          Objects.deepEquals(arg, that.arg);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(columnType, argName, arg);
+    }
+
+    @Override
+    public String toString() {
+      return "{name=" + argName + ", type=" + columnType + ", arg=" + arg + '}';
     }
   }
 
@@ -218,6 +244,56 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   public SqlArgs argClobReader(@Nonnull String argName, @Nullable Reader arg) {
     invocations.add(new Invocation(ColumnType.ClobStream, argName, arg));
     return this;
+  }
+
+  @Nonnull
+  public static Builder fromMetadata(Row r) {
+    return new Builder(r);
+  }
+
+  /**
+   * Convenience method for reading a single row. If you are reading multiple
+   * rows, see {@link #fromMetadata(Row)} to avoid reading metadata multiple times.
+   *
+   * @return a SqlArgs with one invocation for each column in the Row, with name
+   *         and type inferred from the metadata
+   */
+  @Nonnull
+  public static SqlArgs readRow(Row r) {
+    return new Builder(r).read(r);
+  }
+
+  @Nonnull
+  public SqlArgs makePositional() {
+    for (Invocation invocation : invocations) {
+      invocation.argName = null;
+    }
+    return this;
+  }
+
+  @Nonnull
+  public List<String> names() {
+    List<String> names = new ArrayList<>();
+    for (Invocation invocation : invocations) {
+      if (invocation.argName != null) {
+        names.add(invocation.argName);
+      }
+    }
+    return names;
+  }
+
+  public int argCount() {
+    return invocations.size();
+  }
+
+  public int positionalCount() {
+    int count = 0;
+    for (Invocation invocation : invocations) {
+      if (invocation.argName == null) {
+        count++;
+      }
+    }
+    return count;
   }
 
   @SuppressWarnings("CheckReturnValue")
@@ -524,5 +600,146 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         break;
       }
     }
+  }
+
+  public static class Builder {
+    private String[] names;
+    private final int[] types;
+    private final int[] precision;
+    private final int[] scale;
+
+    public Builder(Row r) {
+      try {
+        ResultSetMetaData metadata = r.getMetadata();
+        int columnCount = metadata.getColumnCount();
+        names = new String[columnCount];
+        types = new int[columnCount];
+        precision = new int[columnCount];
+        scale = new int[columnCount];
+
+        for (int i = 0; i < columnCount; i++) {
+          names[i] = metadata.getColumnName(i + 1);
+          types[i] = metadata.getColumnType(i + 1);
+          precision[i] = metadata.getPrecision(i + 1);
+          scale[i] = metadata.getScale(i + 1);
+        }
+
+        names = tidyColumnNames(names);
+      } catch (SQLException e) {
+        throw new DatabaseException("Unable to retrieve metadata from ResultSet", e);
+      }
+    }
+
+    @Nonnull
+    public SqlArgs read(Row r) {
+      SqlArgs args = new SqlArgs();
+
+      for (int i = 0; i < names.length; i++) {
+        switch (types[i]) {
+        case Types.SMALLINT:
+        case Types.INTEGER:
+          args.argInteger(names[i], r.getIntegerOrNull());
+          break;
+        case Types.BIGINT:
+          args.argLong(names[i], r.getLongOrNull());
+          break;
+        case Types.REAL:
+        case 100: // Oracle proprietary it seems
+          args.argFloat(names[i], r.getFloatOrNull());
+          break;
+        case Types.DOUBLE:
+        case 101: // Oracle proprietary it seems
+          args.argDouble(names[i], r.getDoubleOrNull());
+          break;
+        case Types.NUMERIC:
+          if (precision[i] == 10 && scale[i] == 0) {
+            // Oracle reports integer as numeric
+            args.argInteger(names[i], r.getIntegerOrNull());
+          } else if (precision[i] == 19 && scale[i] == 0) {
+            // Oracle reports long as numeric
+            args.argLong(names[i], r.getLongOrNull());
+          } else {
+            args.argBigDecimal(names[i], r.getBigDecimalOrNull());
+          }
+          break;
+        case Types.BINARY:
+        case Types.BLOB:
+          args.argBlobBytes(names[i], r.getBlobBytesOrNull());
+          break;
+        case Types.CLOB:
+        case Types.NCLOB:
+          args.argClobString(names[i], r.getClobStringOrNull());
+          break;
+        case Types.TIMESTAMP:
+          args.argDate(names[i], r.getDateOrNull());
+          break;
+        case Types.NVARCHAR:
+        case Types.VARCHAR:
+        case Types.CHAR:
+        case Types.NCHAR:
+          if (precision[i] >= 2147483647) {
+            // Postgres seems to report clobs are varchar(2147483647)
+            args.argClobString(names[i], r.getClobStringOrNull());
+          } else {
+            args.argString(names[i], r.getStringOrNull());
+          }
+          break;
+        default:
+          throw new DatabaseException("Don't know how to deal with column type: " + types[i]);
+        }
+      }
+      return args;
+    }
+  }
+
+  public static String[] tidyColumnNames(String[] names) {
+    Set<String> uniqueNames = new LinkedHashSet<>();
+    for (String name : names) {
+      if (name == null || name.length() == 0) {
+        name = "column_" + (uniqueNames.size() + 1);
+      }
+      name = name.replaceAll("[^a-zA-Z0-9]", " ");
+      name = name.replaceAll("([a-z])([A-Z])", "$1_$2");
+      name = name.trim().toLowerCase();
+      name = name.replaceAll("\\s", "_");
+      if (Character.isDigit(name.charAt(0))) {
+        name = "a" + name;
+      }
+      if (name.length() > 29) {
+        name = name.substring(0, 28);
+      }
+      int i = 2;
+      String uniqueName = name;
+      while (uniqueNames.contains(uniqueName)) {
+        if (name.length() > 27) {
+          name = name.substring(0, 26);
+        }
+        if (i > 9 && name.length() > 26) {
+          name = name.substring(0, 25);
+        }
+        uniqueName = name + "_" + i++;
+      }
+      name = uniqueName;
+      uniqueNames.add(name);
+    }
+    return uniqueNames.toArray(new String[uniqueNames.size()]);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    SqlArgs sqlArgs = (SqlArgs) o;
+    return Objects.equals(invocations, sqlArgs.invocations);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(invocations);
+  }
+
+  @Override
+  public String toString() {
+    return "SqlArgs" + invocations;
   }
 }

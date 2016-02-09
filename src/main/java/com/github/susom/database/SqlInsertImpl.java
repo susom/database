@@ -280,7 +280,7 @@ public class SqlInsertImpl implements SqlInsert {
     int[] result = updateBatch();
     for (int r : result) {
       if (r != 1) {
-        throw new DatabaseException("Batch did not return the expected result: " + Arrays.asList(result));
+        throw new DatabaseException("Batch did not return the expected result: " + Arrays.toString(result));
       }
     }
   }

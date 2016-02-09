@@ -749,6 +749,19 @@ public abstract class CommonTest {
   }
 
   @Test
+  public void batchInsert() {
+    new Schema().addTable("dbtest")
+        .addColumn("pk").primaryKey().schema().execute(db);
+
+    db.toInsert("insert into dbtest (pk) values (?)")
+        .argInteger(1).batch()
+        .argInteger(2).batch()
+        .argInteger(3).batch().insertBatch();
+
+    assertEquals(3, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+  }
+
+  @Test
   public void bigClob() {
     new Schema().addTable("dbtest").addColumn("str_lob").asClob().schema().execute(db);
 

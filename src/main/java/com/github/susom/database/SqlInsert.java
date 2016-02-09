@@ -156,14 +156,28 @@ public interface SqlInsert {
 
   /**
    * Call this between setting rows of parameters for a SQL statement. You may call it before
-   * setting any parameters, after setting all, or multiple times between rows.
+   * setting any parameters, after setting all, or multiple times between rows. This feature
+   * only currently works with basic inserts (you can't do insertReturning type operations).
    */
-//  SqlInsert batch();
+  SqlInsert batch();
 
   @CheckReturnValue
   int insert();
 
   void insert(int expectedRowsUpdated);
+
+  /**
+   * Insert multiple rows in one database call. This will automatically verify
+   * that exactly 1 row is inserted for each row of parameters.
+   */
+  void insertBatch();
+
+  /**
+   * Insert multiple rows in one database call. This returns the results for
+   * each row so you can check them yourself.
+   */
+  @CheckReturnValue
+  int[] insertBatchUnchecked();
 
   /**
    * Use this method in conjunction with argPkSeq() to optimize inserts where the

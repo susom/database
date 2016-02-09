@@ -24,6 +24,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +49,7 @@ public class SqlInsertImpl implements SqlInsert {
   private final StatementAdaptor adaptor;
   private final String sql;
   private final Options options;
+  private List<Batch> batched;
   private List<Object> parameterList;       // !null ==> traditional ? args
   private Map<String, Object> parameterMap; // !null ==> named :abc args
   private String pkArgName;
@@ -251,6 +253,19 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  public SqlInsert batch() {
+    if (!parameterList.isEmpty() || !parameterMap.isEmpty()) {
+      if (batched == null) {
+        batched = new ArrayList<>();
+      }
+      batched.add(new Batch(parameterList, parameterMap));
+      parameterList = new ArrayList<>();
+      parameterMap = new HashMap<>();
+    }
+    return this;
+  }
+
+  @Override
   public int insert() {
     return updateInternal(0);
   }
@@ -258,6 +273,21 @@ public class SqlInsertImpl implements SqlInsert {
   @Override
   public void insert(int expectedRowsUpdated) {
     updateInternal(expectedRowsUpdated);
+  }
+
+  @Override
+  public void insertBatch() {
+    int[] result = updateBatch();
+    for (int r : result) {
+      if (r != 1) {
+        throw new DatabaseException("Batch did not return the expected result: " + Arrays.asList(result));
+      }
+    }
+  }
+
+  @Override
+  public int[] insertBatchUnchecked() {
+    return updateBatch();
   }
 
   @Override
@@ -376,7 +406,89 @@ public class SqlInsertImpl implements SqlInsert {
     return pkArgName != null || pkSeqName != null || pkLong != null;
   }
 
+  private int[] updateBatch() {
+    batch();
+
+    if (batched == null || batched.size() == 0) {
+      throw new DatabaseException("Batch insert requires parameters");
+    }
+
+    PreparedStatement ps = null;
+    Metric metric = new Metric(log.isDebugEnabled());
+
+    String executeSql = sql;
+    Object[] firstRowParameters = null;
+    List<Object[]> parameters = new ArrayList<>();
+
+    boolean isSuccess = false;
+    String errorCode = null;
+    Exception logEx = null;
+    try {
+      for (Batch batch : batched) {
+        MixedParameterSql mpSql = new MixedParameterSql(sql, batch.parameterList, batch.parameterMap);
+        if (executeSql == null) {
+          executeSql = mpSql.getSqlToExecute();
+          firstRowParameters = mpSql.getArgs();
+        } else {
+          if (!executeSql.equals(mpSql.getSqlToExecute())) {
+            throw new DatabaseException("All rows in a batch must use parameters in the same way. \nSQL1: "
+                + executeSql + "\nSQL2: " + mpSql.getSqlToExecute());
+          }
+        }
+        parameters.add(mpSql.getArgs());
+      }
+
+      if (connection != null) {
+        ps = connection.prepareStatement(executeSql);
+
+        for (Object[] params : parameters) {
+          adaptor.addParameters(ps, params);
+          ps.addBatch();
+        }
+
+        metric.checkpoint("prep");
+        int[] numAffectedRows = ps.executeBatch();
+        metric.checkpoint("execBatch[" + parameters.size() + "]");
+        isSuccess = true;
+        return numAffectedRows;
+      } else {
+        int[] result = new int[parameters.size()];
+        for (int i = 0; i < parameters.size(); i++) {
+          Object[] params = parameters.get(i);
+          Integer numAffectedRows = mock.insert(executeSql, DebugSql.printDebugOnlySqlString(executeSql, params, options));
+          if (numAffectedRows == null) {
+            // No mock behavior provided, be nice and assume the expected value
+            log.debug("Setting numAffectedRows to expected");
+            numAffectedRows = 1;
+          }
+          result[i] = numAffectedRows;
+        }
+        metric.checkpoint("stubBatch[" + parameters.size() + "]");
+        isSuccess = true;
+        return result;
+      }
+    } catch (WrongNumberOfRowsException e) {
+      throw e;
+    } catch (Exception e) {
+      errorCode = options.generateErrorCode();
+      logEx = e;
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, firstRowParameters, errorCode, options), e);
+    } finally {
+      adaptor.closeQuietly(ps, log);
+      metric.done("close");
+      if (isSuccess) {
+        DebugSql.logSuccess("Insert", log, metric, executeSql, firstRowParameters, options);
+      } else {
+        DebugSql.logError("Insert", log, metric, errorCode, executeSql, firstRowParameters, options, logEx);
+      }
+    }
+  }
+
   private int updateInternal(int expectedNumAffectedRows) {
+    if (batched != null) {
+      throw new DatabaseException("Call insertBatch() if you are using the batch() feature");
+    }
+
     PreparedStatement ps = null;
     Metric metric = new Metric(log.isDebugEnabled());
 
@@ -435,6 +547,10 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   private Long updateInternal(int expectedNumAffectedRows, @Nonnull String pkToReturn) {
+    if (batched != null) {
+      throw new DatabaseException("Call insertBatch() if you are using the batch() feature");
+    }
+
     PreparedStatement ps = null;
     ResultSet rs = null;
     Metric metric = new Metric(log.isDebugEnabled());
@@ -502,6 +618,10 @@ public class SqlInsertImpl implements SqlInsert {
 
   private <T> T updateInternal(int expectedNumAffectedRows, @Nonnull String pkToReturn, RowsHandler<T> handler,
                               String... otherCols) {
+    if (batched != null) {
+      throw new DatabaseException("Call insertBatch() if you are using the batch() feature");
+    }
+
     PreparedStatement ps = null;
     ResultSet rs = null;
     Metric metric = new Metric(log.isDebugEnabled());
@@ -590,5 +710,15 @@ public class SqlInsertImpl implements SqlInsert {
 
   private String booleanToString(Boolean b) {
     return b == null ? null : b ? "Y" : "N";
+  }
+
+  private class Batch {
+    private List<Object> parameterList;       // !null ==> traditional ? args
+    private Map<String, Object> parameterMap; // !null ==> named :abc args
+
+    public Batch(List<Object> parameterList, Map<String, Object> parameterMap) {
+      this.parameterList = parameterList;
+      this.parameterMap = parameterMap;
+    }
   }
 }

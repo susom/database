@@ -54,6 +54,12 @@
       <version>2.4.3</version>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>9.4-1201-jdbc41</version>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
 
   <build>

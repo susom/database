@@ -18,6 +18,7 @@ package com.github.susom.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
@@ -25,6 +26,7 @@ import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -138,11 +140,13 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    * loop thread (the same thread that is calling this method).
    */
   public <T> void transactAsync(final DbCodeTyped<T> code, Handler<AsyncResult<T>> resultHandler) {
+    Map mdc = MDC.getCopyOfContextMap();
     vertx.executeBlocking(future -> {
       try {
         T returnValue = null;
         boolean complete = false;
         try {
+          MDC.setContextMap(mdc);
           returnValue = code.run(this);
           complete = true;
         } catch (ThreadDeath | DatabaseException t) {
@@ -155,6 +159,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
           } else {
             commitAndClose();
           }
+          MDC.clear();
         }
         future.complete(returnValue);
       } catch (ThreadDeath t) {
@@ -201,6 +206,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    * loop thread (the same thread that is calling this method).
    */
   public <T> void transactAsync(final DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler) {
+    Map mdc = MDC.getCopyOfContextMap();
     vertx.executeBlocking(future -> {
       try {
         T returnValue = null;
@@ -209,6 +215,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
         tx.setRollbackOnly(false);
         boolean complete = false;
         try {
+          MDC.setContextMap(mdc);
           returnValue = code.run(this, tx);
           complete = true;
         } catch (ThreadDeath | DatabaseException t) {
@@ -221,6 +228,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
           } else {
             commitAndClose();
           }
+          MDC.clear();
         }
         future.complete(returnValue);
       } catch (ThreadDeath t) {

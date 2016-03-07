@@ -146,7 +146,9 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
         T returnValue = null;
         boolean complete = false;
         try {
-          MDC.setContextMap(mdc);
+          if (mdc != null) {
+            MDC.setContextMap(mdc);
+          }
           returnValue = code.run(this);
           complete = true;
         } catch (ThreadDeath | DatabaseException t) {
@@ -215,7 +217,9 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
         tx.setRollbackOnly(false);
         boolean complete = false;
         try {
-          MDC.setContextMap(mdc);
+          if (mdc != null) {
+            MDC.setContextMap(mdc);
+          }
           returnValue = code.run(this, tx);
           complete = true;
         } catch (ThreadDeath | DatabaseException t) {

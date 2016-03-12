@@ -33,10 +33,12 @@ public class Metric {
   private static class Checkpoint {
     String description;
     long durationNanos;
+    private final Object[] args;
 
-    Checkpoint(String description, long durationNanos) {
+    Checkpoint(String description, long durationNanos, Object... args) {
       this.description = description;
       this.durationNanos = durationNanos;
+      this.args = args;
     }
   }
 
@@ -99,15 +101,24 @@ public class Metric {
   }
 
   /**
-   * Set a mark for timing.
+   * Set a mark for timing. It is strongly recommended to use a short,
+   * simple alphanumeric description. For example, "sent" or "didThat".
+   * With this version you can provide additional arguments, such as
+   * byte counts, which will be appended comma-separated within brackets.
+   * For example, {@code checkpoint("sent", 25, 3)} will result in a
+   * description "sent[25,3]". The string evaluation and concatenation is
+   * lazy, and won't be done if this metric is disabled.
    *
    * @param description a label for this mark; may not be null; spaces
    *                    and tabs will be converted to underscores
+   * @param args additional information to append to the description; will
+   *             print "null" if null; evaluated with String.valueOf() lazily
+   *             and sanitized of most non-alphanumeric characters
    */
-  public void checkpoint(String description) {
+  public void checkpoint(String description, Object... args) {
     if (enabled) {
       long currentCheckpointNanos = System.nanoTime();
-      checkpoints.add(new Checkpoint(noTabsOrSpaces(description), currentCheckpointNanos - lastCheckpointNanos));
+      checkpoints.add(new Checkpoint(noTabsOrSpaces(description), currentCheckpointNanos - lastCheckpointNanos, args));
       lastCheckpointNanos = currentCheckpointNanos;
     }
   }
@@ -120,8 +131,8 @@ public class Metric {
    * @return time in nanoseconds from the start of this metric, or -1
    *         if {@code false} was passed in the constructor
    */
-  public long done(String description) {
-    checkpoint(description);
+  public long done(String description, Object... args) {
+    checkpoint(description, args);
     return done();
   }
 
@@ -180,6 +191,19 @@ public class Metric {
             buf.append(',');
           }
           buf.append(checkpoint.description);
+          if (checkpoint.args != null && checkpoint.args.length > 0) {
+            buf.append('[');
+            boolean firstArg = true;
+            for (Object o : checkpoint.args) {
+              if (firstArg) {
+                firstArg = false;
+              } else {
+                buf.append(',');
+              }
+              buf.append(sanitizeArg(String.valueOf(o)));
+            }
+            buf.append(']');
+          }
           buf.append('=');
           writeNanos(buf, checkpoint.durationNanos);
         }
@@ -211,5 +235,9 @@ public class Metric {
 
   private String noTabsOrSpaces(String s) {
     return s.replace(' ', '_').replace('\t', '_');
+  }
+
+  private String sanitizeArg(String s) {
+    return s.replaceAll("[^\\p{Alnum}_.\\-\\+]", "*");
   }
 }

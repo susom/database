@@ -276,7 +276,7 @@ public class SqlUpdateImpl implements SqlUpdate {
         adaptor.addParameters(ps, parameters);
         metric.checkpoint("prep");
         int numAffectedRows = ps.executeUpdate();
-        metric.checkpoint("exec[" + numAffectedRows + "]");
+        metric.checkpoint("exec", numAffectedRows);
         if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
           errorCode = options.generateErrorCode();
           throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
@@ -287,7 +287,7 @@ public class SqlUpdateImpl implements SqlUpdate {
         return numAffectedRows;
       } else {
         int numAffectedRows = mock.update(executeSql, DebugSql.printDebugOnlySqlString(executeSql, parameters, options));
-        metric.checkpoint("stub[" + numAffectedRows + "]");
+        metric.checkpoint("stub", numAffectedRows);
         isSuccess = true;
         return numAffectedRows;
       }

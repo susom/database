@@ -450,7 +450,7 @@ public class SqlInsertImpl implements SqlInsert {
 
         metric.checkpoint("prep");
         int[] numAffectedRows = ps.executeBatch();
-        metric.checkpoint("execBatch[" + parameters.size() + "]");
+        metric.checkpoint("execBatch", parameters.size());
         isSuccess = true;
         return numAffectedRows;
       } else {
@@ -465,7 +465,7 @@ public class SqlInsertImpl implements SqlInsert {
           }
           result[i] = numAffectedRows;
         }
-        metric.checkpoint("stubBatch[" + parameters.size() + "]");
+        metric.checkpoint("stubBatch", parameters.size());
         isSuccess = true;
         return result;
       }
@@ -511,7 +511,7 @@ public class SqlInsertImpl implements SqlInsert {
         adaptor.addParameters(ps, parameters);
         metric.checkpoint("prep");
         int numAffectedRows = ps.executeUpdate();
-        metric.checkpoint("exec[" + numAffectedRows + "]");
+        metric.checkpoint("exec", numAffectedRows);
         if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
           errorCode = options.generateErrorCode();
           throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
@@ -527,7 +527,7 @@ public class SqlInsertImpl implements SqlInsert {
           log.debug("Setting numAffectedRows to expected");
           numAffectedRows = expectedNumAffectedRows;
         }
-        metric.checkpoint("stub[" + numAffectedRows + "]");
+        metric.checkpoint("stub", numAffectedRows);
         isSuccess = true;
         return numAffectedRows;
       }
@@ -574,7 +574,7 @@ public class SqlInsertImpl implements SqlInsert {
         adaptor.addParameters(ps, parameters);
         metric.checkpoint("prep");
         int numAffectedRows = ps.executeUpdate();
-        metric.checkpoint("exec[" + numAffectedRows + "]");
+        metric.checkpoint("exec", numAffectedRows);
         if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
           errorCode = options.generateErrorCode();
           throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
@@ -649,7 +649,7 @@ public class SqlInsertImpl implements SqlInsert {
         adaptor.addParameters(ps, parameters);
         metric.checkpoint("prep");
         int numAffectedRows = ps.executeUpdate();
-        metric.checkpoint("exec[" + numAffectedRows + "]");
+        metric.checkpoint("exec", numAffectedRows);
         if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
           errorCode = options.generateErrorCode();
           throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "

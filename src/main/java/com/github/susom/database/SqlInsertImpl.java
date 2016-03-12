@@ -428,7 +428,7 @@ public class SqlInsertImpl implements SqlInsert {
     try {
       for (Batch batch : batched) {
         MixedParameterSql mpSql = new MixedParameterSql(sql, batch.parameterList, batch.parameterMap);
-        if (executeSql == null) {
+        if (firstRowParameters == null) {
           executeSql = mpSql.getSqlToExecute();
           firstRowParameters = mpSql.getArgs();
         } else {

@@ -286,6 +286,18 @@ public enum Flavor {
     }
   }
 
+  public static String driverForJdbcUrl(String url) {
+    if (url.startsWith("jdbc:postgresql:")) {
+      return "org.postgresql.Driver";
+    } else if (url.startsWith("jdbc:oracle:")) {
+      return "oracle.jdbc.OracleDriver";
+    } else if (url.startsWith("jdbc:derby:")) {
+      return "org.apache.derby.jdbc.EmbeddedDriver";
+    } else {
+      throw new DatabaseException("Cannot determine database driver class from url");
+    }
+  }
+
   public String sequenceCacheClause(int nbrValuesToCache) {
     return " cache " + nbrValuesToCache;
   }

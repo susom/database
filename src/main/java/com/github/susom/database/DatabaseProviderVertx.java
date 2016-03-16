@@ -80,6 +80,8 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    *                          url; prompted on standard input if user is provided and
    *                          password is not)
    *   database.pool.size=... How many connections in the connection pool (default 10).
+   *   database.driver.class  The driver to initialize with Class.forName(). This will
+   *                          be guessed from the database.url if not provided.
    * </pre>
    * <p>The database flavor will be guessed based on the URL.</p>
    * <p>A database pool will be created using HikariCP.</p>
@@ -90,6 +92,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     Options options = new OptionsDefault(Flavor.fromJdbcUrl(url));
     HikariDataSource ds = new HikariDataSource();
     ds.setJdbcUrl(url);
+    ds.setDriverClassName(config.getString("database.driver.class", Flavor.driverForJdbcUrl(url)));
     ds.setUsername(config.getString("database.user"));
     ds.setPassword(config.getString("database.password"));
     ds.setMaximumPoolSize(config.getInteger("database.pool.size", 10));

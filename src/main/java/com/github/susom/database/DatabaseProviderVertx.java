@@ -89,6 +89,9 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   @CheckReturnValue
   public static Builder builder(Vertx vertx, Config config) {
     String url = config.getString("database.url");
+    if (url == null) {
+      throw new DatabaseException("You must provide database.url");
+    }
     Options options = new OptionsDefault(Flavor.fromJdbcUrl(url));
     HikariDataSource ds = new HikariDataSource();
     ds.setJdbcUrl(url);
@@ -144,7 +147,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    */
   public <T> void transactAsync(final DbCodeTyped<T> code, Handler<AsyncResult<T>> resultHandler) {
     Map mdc = MDC.getCopyOfContextMap();
-    vertx.executeBlocking(future -> {
+    vertx.<T>executeBlocking(future -> {
       try {
         T returnValue = null;
         boolean complete = false;
@@ -172,7 +175,16 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       } catch (Throwable t) {
         future.fail(t);
       }
-    }, resultHandler);
+    }, h -> {
+      try {
+        if (mdc != null) {
+          MDC.setContextMap(mdc);
+        }
+        resultHandler.handle(h);
+      } finally {
+        MDC.clear();
+      }
+    });
   }
 
   /**
@@ -212,7 +224,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    */
   public <T> void transactAsync(final DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler) {
     Map mdc = MDC.getCopyOfContextMap();
-    vertx.executeBlocking(future -> {
+    vertx.<T>executeBlocking(future -> {
       try {
         T returnValue = null;
         Transaction tx = new TransactionImpl();
@@ -243,7 +255,16 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       } catch (Throwable t) {
         future.fail(t);
       }
-    }, resultHandler);
+    }, h -> {
+      try {
+        if (mdc != null) {
+          MDC.setContextMap(mdc);
+        }
+        resultHandler.handle(h);
+      } finally {
+        MDC.clear();
+      }
+    });
   }
 
   /**

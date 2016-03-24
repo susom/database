@@ -26,6 +26,7 @@ import java.util.List;
  */
 public class Metric {
   private final boolean enabled;
+  private boolean done;
   private long startNanos;
   private long lastCheckpointNanos;
   private List<Checkpoint> checkpoints;
@@ -124,7 +125,8 @@ public class Metric {
   }
 
   /**
-   * Set a final mark for timing and stop the timer.
+   * Set a final mark for timing and stop the timer. Once you call this
+   * method, subsequent calls have no effect.
    *
    * @param description a label for this mark; may not be null; spaces
    *                    and tabs will be converted to underscores
@@ -137,14 +139,18 @@ public class Metric {
   }
 
   /**
-   * Indicate we are done (stop the timer).
+   * Indicate we are done (stop the timer). Once you call this
+   * method, subsequent calls have no effect.
    *
    * @return time in nanoseconds from the start of this metric, or -1
    *         if {@code false} was passed in the constructor
    */
   public long done() {
     if (enabled) {
-      lastCheckpointNanos = System.nanoTime();
+      if (!done) {
+        lastCheckpointNanos = System.nanoTime();
+        done = true;
+      }
       return lastCheckpointNanos - startNanos;
     }
     return -1;
@@ -154,6 +160,9 @@ public class Metric {
    * Construct and return a message based on the timing and checkpoints. This
    * will look like "123.456ms(checkpoint1=100.228ms,checkpoint2=23.228ms)"
    * without the quotes. There will be no spaces or tabs in the output.
+   *
+   * <p>This will automatically call the done() method to stop the timer if
+   * you haven't already done so.</p>
    *
    * @return a string with timing information, or {@code "metricsDisabled"}
    *         if {@code false} was passed in the constructor.
@@ -175,11 +184,15 @@ public class Metric {
    * value of {@code "metricsDisabled"} will be printed if {@code false} was
    * passed in the constructor.
    *
+   * <p>This will automatically call the done() method to stop the timer if
+   * you haven't already done so.</p>
+   *
    * @param buf the message will be printed to this builder
    * @see #getMessage()
    */
   public void printMessage(StringBuilder buf) {
     if (enabled) {
+      done();
       writeNanos(buf, lastCheckpointNanos - startNanos);
       if (!checkpoints.isEmpty()) {
         buf.append("(");

@@ -602,6 +602,18 @@ public abstract class CommonTest {
   }
 
   @Test
+  public void intervals() {
+    new Schema().addTable("dbtest").addColumn("d").asDate().schema().execute(db);
+
+    db.toInsert("insert into dbtest (d) values (?)").argDate(now).insert(1);
+
+    assertEquals(1, db.toSelect("select count(1) from dbtest where d - interval '1' hour * ? < ?")
+        .argInteger(2)
+        .argDate(now)
+        .queryIntegerOrZero());
+  }
+
+  @Test
   public void saveResultAsTable() {
     new Schema().addTable("dbtest")
         .addColumn("nbr_integer").asInteger().primaryKey().table()

@@ -83,6 +83,13 @@ public class DerbyTest extends CommonTest {
   public void argDoubleNegativeZero() {
     super.argDoubleNegativeZero();
   }
+
+  @Ignore("Derby does not support timestamp intervals")
+  @Test
+  public void intervals() {
+    super.intervals();
+  }
+
   @Test
   public void argBigDecimal31Precision0() {
     db.dropTableQuietly("dbtest");

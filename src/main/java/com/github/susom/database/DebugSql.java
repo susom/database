@@ -16,6 +16,8 @@
 
 package com.github.susom.database;
 
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Date;
@@ -81,9 +83,15 @@ public class DebugSql {
           buf.append(removeTabs(sqlParts[i]));
           Object argToPrint = argsToPrint[i];
           if (argToPrint instanceof String) {
-            buf.append("'");
-            buf.append(removeTabs(escapeSingleQuoted(((String) argToPrint))));
-            buf.append("'");
+            String argToPrintString = (String) argToPrint;
+            int maxLength = options.maxStringLengthParam();
+            if (argToPrintString.length() > maxLength && maxLength > 0) {
+              buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
+            } else {
+              buf.append("'");
+              buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
+              buf.append("'");
+            }
           } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
             buf.append("null");
           } else if (argToPrint instanceof Date) {
@@ -94,8 +102,10 @@ public class DebugSql {
             buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
           } else if (argToPrint instanceof SecretArg) {
             buf.append("<secret>");
-          } else if (argToPrint instanceof StringReader) {
-            buf.append("<java.io.StringReader>");
+          } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
+            buf.append("<").append(argToPrint.getClass().getName()).append(">");
+          } else if (argToPrint instanceof byte[]) {
+            buf.append("<").append(((byte[]) argToPrint).length).append(" bytes>");
           } else {
             buf.append("<unknown:").append(argToPrint.getClass().getName()).append(">");
           }

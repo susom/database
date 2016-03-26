@@ -117,4 +117,9 @@ public class OptionsOverride implements Options {
   public Calendar calendarForTimestamps() {
     return parent.calendarForTimestamps();
   }
+
+  @Override
+  public int maxStringLengthParam() {
+    return parent.maxStringLengthParam();
+  }
 }

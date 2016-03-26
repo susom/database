@@ -94,4 +94,9 @@ public class OptionsDefault implements Options {
   public Calendar calendarForTimestamps() {
     return Calendar.getInstance(TimeZone.getDefault());
   }
+
+  @Override
+  public int maxStringLengthParam() {
+    return 4000;
+  }
 }

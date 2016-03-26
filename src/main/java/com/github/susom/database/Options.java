@@ -137,4 +137,11 @@ public interface Options {
    * this was not configurable.</p>
    */
   Calendar calendarForTimestamps();
+
+  /**
+   * The maximum number of characters to print in debug SQL for a given String type
+   * query parameter. If it exceeds this length the value will be truncated and a
+   * "..." will be appended.
+   */
+  int maxStringLengthParam();
 }

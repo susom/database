@@ -17,6 +17,7 @@
 package com.github.susom.database;
 
 import java.sql.Connection;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -198,5 +199,43 @@ public class DatabaseImpl implements Database {
     } else {
       ddl("drop table " + tableName).executeQuietly();
     }
+  }
+
+  @Override
+  public void assertTimeSynchronized(long millisToWarn, long millisToError) {
+    toSelect("select ?" + flavor().fromAny())
+        .argDateNowPerDb().queryFirstOrNull(r -> {
+      Date appDate = nowPerApp();
+      Date dbDate = r.getDateOrNull();
+
+      if (dbDate == null) {
+        throw new DatabaseException("Expecting a date in the result");
+      }
+
+      if (Math.abs(appDate.getTime() - dbDate.getTime()) > 3600000) {
+        throw new DatabaseException("App and db time are over an hour apart (check your timezones) app: "
+            + DateTimeFormatter.ISO_INSTANT.format(appDate.toInstant()) + " db: "
+            + DateTimeFormatter.ISO_INSTANT.format(dbDate.toInstant()));
+      }
+
+      if (Math.abs(appDate.getTime() - dbDate.getTime()) > millisToError) {
+        throw new DatabaseException("App and db time over " + millisToError + " millis apart (check your clocks) app: "
+            + DateTimeFormatter.ISO_INSTANT.format(appDate.toInstant()) + " db: "
+            + DateTimeFormatter.ISO_INSTANT.format(dbDate.toInstant()));
+      }
+
+      if (Math.abs(appDate.getTime() - dbDate.getTime()) > millisToWarn) {
+        log.warn("App and db time are over " + millisToWarn + " millis apart (check your clocks) app: "
+            + DateTimeFormatter.ISO_INSTANT.format(appDate.toInstant()) + " db: "
+            + DateTimeFormatter.ISO_INSTANT.format(dbDate.toInstant()));
+      }
+
+      return null;
+    });
+  }
+
+  @Override
+  public void assertTimeSynchronized() {
+    assertTimeSynchronized(10000, 30000);
   }
 }

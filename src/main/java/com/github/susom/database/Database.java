@@ -198,4 +198,25 @@ public interface Database extends Provider<Database>, Supplier<Database> {
    * @param tableName the table to be dropped
    */
   void dropTableQuietly(String tableName);
+
+  /**
+   * Check the JVM time (and timezone) against the database and log a warning
+   * or throw an error if they are too far apart. It is a good idea to do this
+   * before you store and dates, and maybe make it part of your health checks.
+   * If the clocks differ by more than an hour, a DatabaseException is thrown
+   * suggesting you check the timezones (under the assumptions the JVM and
+   * database are running in different timezones).
+   *
+   * @param millisToWarn if the clocks disagree by more than this and less than
+   *                     millisToError, a warning will be dropped in the log
+   * @param millisToError if the clocks disagree by more than this a
+   *                      DatabaseEception will be thrown
+   */
+  void assertTimeSynchronized(long millisToWarn, long millisToError);
+
+  /**
+   * Convenience method, same as {@link #assertTimeSynchronized(long, long)}
+   * with millisToWarn=10000 and millisToError=30000.
+   */
+  void assertTimeSynchronized();
 }

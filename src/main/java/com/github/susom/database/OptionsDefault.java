@@ -92,6 +92,6 @@ public class OptionsDefault implements Options {
 
   @Override
   public Calendar calendarForTimestamps() {
-    return Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+    return Calendar.getInstance(TimeZone.getDefault());
   }
 }

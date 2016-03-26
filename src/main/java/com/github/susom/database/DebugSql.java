@@ -36,16 +36,16 @@ public class DebugSql {
 
   public static String printDebugOnlySqlString(String sql, Object[] args, Options options) {
     StringBuilder buf = new StringBuilder();
-    printSql(buf, sql, args, false, true, options.flavor());
+    printSql(buf, sql, args, false, true, options);
     return buf.toString();
   }
 
   public static void printSql(StringBuilder buf, String sql, Object[] args, Options options) {
-    printSql(buf, sql, args, true, options.isLogParameters(), options.flavor());
+    printSql(buf, sql, args, true, options.isLogParameters(), options);
   }
 
   public static void printSql(StringBuilder buf, String sql, Object[] args, boolean includeExecSql,
-                              boolean includeParameters, Flavor flavor) {
+                              boolean includeParameters, Options options) {
     Object[] argsToPrint = args;
     if (argsToPrint == null) {
       argsToPrint = new Object[0];
@@ -86,7 +86,7 @@ public class DebugSql {
           } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
             buf.append("null");
           } else if (argToPrint instanceof Date) {
-            buf.append(flavor.dateAsSqlFunction((Date) argToPrint));
+            buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
           } else if (argToPrint instanceof Number) {
             buf.append(argToPrint);
           } else if (argToPrint instanceof Boolean) {

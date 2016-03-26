@@ -16,6 +16,7 @@
 
 package com.github.susom.database;
 
+import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -93,6 +94,8 @@ public class DebugSql {
             buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
           } else if (argToPrint instanceof SecretArg) {
             buf.append("<secret>");
+          } else if (argToPrint instanceof StringReader) {
+            buf.append("<java.io.StringReader>");
           } else {
             buf.append("<unknown:").append(argToPrint.getClass().getName()).append(">");
           }

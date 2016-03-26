@@ -18,6 +18,7 @@ package com.github.susom.database;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -211,13 +212,13 @@ public class SqlUpdateImpl implements SqlUpdate {
   @Override
   @Nonnull
   public SqlUpdate argClobString(@Nullable String arg) {
-    return positionalArg(adaptor.nullString(arg));
+    return positionalArg(adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
   }
 
   @Override
   @Nonnull
   public SqlUpdate argClobString(@Nonnull String argName, @Nullable String arg) {
-    return namedArg(argName, adaptor.nullString(arg));
+    return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
   }
 
   @Override

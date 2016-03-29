@@ -25,7 +25,6 @@ import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.Schema;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Exercise Database functionality with a real Oracle database.
@@ -98,7 +97,7 @@ public class SqlServerTest extends CommonTest {
     new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
 
     db.toSelect("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest").query(rs -> {
-      assertArrayEquals(new String[] { "Pk", "Foo", "Foo" }, rs.getColumnNames());
+      assertArrayEquals(new String[] { "Pk", "Foo", "Foo" }, rs.getColumnLabels());
       return null;
     });
   }

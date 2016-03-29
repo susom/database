@@ -618,7 +618,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         scale = new int[columnCount];
 
         for (int i = 0; i < columnCount; i++) {
-          names[i] = metadata.getColumnName(i + 1);
+          names[i] = metadata.getColumnLabel(i + 1);
           types[i] = metadata.getColumnType(i + 1);
           precision[i] = metadata.getPrecision(i + 1);
           scale[i] = metadata.getScale(i + 1);

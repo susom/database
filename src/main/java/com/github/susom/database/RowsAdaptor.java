@@ -57,12 +57,12 @@ class RowsAdaptor implements Rows {
 
   @Nonnull
   @Override
-  public String[] getColumnNames() {
+  public String[] getColumnLabels() {
     try {
       ResultSetMetaData metaData = rs.getMetaData();
       String[] names = new String[metaData.getColumnCount()];
       for (int i = 0; i < names.length; i++) {
-        names[i] = metaData.getColumnName(i + 1);
+        names[i] = metaData.getColumnLabel(i + 1);
       }
       return names;
     } catch (SQLException e) {

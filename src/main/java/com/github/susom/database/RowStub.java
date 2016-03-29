@@ -48,7 +48,7 @@ public class RowStub {
 
       @Nonnull
       @Override
-      public String[] getColumnNames() {
+      public String[] getColumnLabels() {
         requireColumnNames();
         return columnNames;
       }

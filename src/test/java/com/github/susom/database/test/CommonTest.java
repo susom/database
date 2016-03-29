@@ -28,7 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -42,7 +41,6 @@ import org.junit.Test;
 import com.github.susom.database.ConstraintViolationException;
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
-import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.Row;
 import com.github.susom.database.RowHandler;
@@ -591,14 +589,10 @@ public abstract class CommonTest {
   public void metadataColumnNames() {
     new Schema().addTable("dbtest").addColumn("pk").primaryKey().schema().execute(db);
 
-    db.toSelect("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest")
-        .query(new RowsHandler<Object>() {
-          @Override
-          public Object process(Rows rs) throws Exception {
-            assertArrayEquals(new String[] { "PK", "FOO", "Foo" }, rs.getColumnNames());
-            return null;
-          }
-        });
+    db.toSelect("select Pk, Pk as Foo, Pk as \"Foo\" from dbtest").query(rs -> {
+      assertArrayEquals(new String[] { "PK", "FOO", "Foo" }, rs.getColumnLabels());
+      return null;
+    });
   }
 
   @Test
@@ -708,6 +702,11 @@ public abstract class CommonTest {
         .queryOneOrThrow(SqlArgs::readRow);
 
     assertEquals(Arrays.asList("pk", "foo", "foo_2", "g_ar_b_g", "title_case"), args.names());
+  }
+
+  @Test
+  public void clockSync() {
+    db.assertTimeSynchronized();
   }
 
   @Test

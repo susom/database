@@ -42,7 +42,7 @@ public interface Row {
    * will be honored.
    */
   @Nonnull
-  String[] getColumnNames();
+  String[] getColumnLabels();
 
   /**
    * Get raw access to the underlying JDBC metadata.

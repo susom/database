@@ -71,7 +71,7 @@ public class PostgreSqlTest extends CommonTest {
         .query(new RowsHandler<Object>() {
       @Override
       public Object process(Rows rs) throws Exception {
-        assertArrayEquals(new String[] { "pk", "foo", "Foo" }, rs.getColumnNames());
+        assertArrayEquals(new String[] { "pk", "foo", "Foo" }, rs.getColumnLabels());
         return null;
       }
     });

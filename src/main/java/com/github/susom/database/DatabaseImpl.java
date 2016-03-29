@@ -194,7 +194,7 @@ public class DatabaseImpl implements Database {
 
   @Override
   public void dropTableQuietly(/*@Untainted*/ @Nonnull String tableName) {
-    if (flavor() == Flavor.postgresql) {
+    if (flavor() == Flavor.postgresql || flavor() == Flavor.hsqldb) {
       ddl("drop table if exists " + tableName).executeQuietly();
     } else {
       ddl("drop table " + tableName).executeQuietly();

@@ -17,6 +17,7 @@
 package com.github.susom.database;
 
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -143,6 +144,11 @@ public enum Flavor {
       dateFormat.setCalendar(calendar);
       return "timestamp('" + dateFormat.format(date) + "')";
     }
+
+    @Override
+    public String sequenceOptions() {
+      return " as bigint";
+    }
   },
   sqlserver {
     @Override
@@ -263,6 +269,11 @@ public enum Flavor {
       dateFormat.setCalendar(calendar);
       return "cast('" + dateFormat.format(date) + "' as datetime2(3))";
     }
+
+    @Override
+    public String sequenceOptions() {
+      return "";
+    }
   },
   oracle {
     @Override
@@ -380,6 +391,11 @@ public enum Flavor {
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
       dateFormat.setCalendar(calendar);
       return "timestamp '" + dateFormat.format(date) + "'";
+    }
+
+    @Override
+    public String sequenceOptions() {
+      return "";
     }
   },
   postgresql {
@@ -499,6 +515,133 @@ public enum Flavor {
       dateFormat.setCalendar(calendar);
       return "'" + dateFormat.format(date) + " GMT'::timestamp";
     }
+
+    @Override
+    public String sequenceOptions() {
+      return "";
+    }
+  }, hsqldb {
+    @Override
+    public String typeInteger() {
+      return "integer";
+    }
+
+    @Override
+    public String typeBoolean() {
+      return "char(1)";
+    }
+
+    @Override
+    public String typeLong() {
+      return "bigint";
+    }
+
+    @Override
+    public String typeFloat() {
+      return "double";
+    }
+
+    @Override
+    public String typeDouble() {
+      return "double";
+    }
+
+    @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "numeric(" + size + "," + precision + ")";
+    }
+
+    @Override
+    public String typeStringVar(int bytes) {
+      return "varchar(" + bytes + ")";
+    }
+
+    @Override
+    public String typeStringFixed(int bytes) {
+      return "char(" + bytes + ")";
+    }
+
+    @Override
+    public String typeClob() {
+      return "clob(2G)";
+    }
+
+    @Override
+    public String typeBlob() {
+      return "blob(2G)";
+    }
+
+    @Override
+    public String typeDate() {
+      return "timestamp(3)";
+    }
+
+    @Override
+    public boolean useStringForClob() {
+      return true;
+    }
+
+    @Override
+    public boolean useBytesForBlob() {
+      return true;
+    }
+
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      return "next value for " + sequenceName + "";
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      return "select " + sequenceNextVal(sequenceName) + fromAny();
+    }
+
+    @Override
+    public String sequenceDrop(String dbtestSeq) {
+      return "drop sequence if exists " + dbtestSeq;
+    }
+
+    @Override
+    public String sequenceOrderClause(boolean order) {
+      return "";
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      return cycle ? " cycle" : " no cycle";
+    }
+
+    @Override
+    public String fromAny() {
+      return " from (values(0))";
+    }
+
+    @Override
+    public boolean supportsInsertReturning() {
+      return false;
+    }
+
+    @Override
+    public String dbTimeMillis() {
+      return "localtimestamp";
+    }
+
+    @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      return "";
+    }
+
+    @Override
+    public String dateAsSqlFunction(Date date, Calendar calendar) {
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000XXX");
+      dateFormat.setCalendar(calendar);
+      return "cast(timestamp '" + dateFormat.format(date) + "' as timestamp without time zone)";
+    }
+
+    @Override
+    public String sequenceOptions() {
+      return " as bigint";
+    }
   };
 
   public abstract String typeInteger();
@@ -556,6 +699,8 @@ public enum Flavor {
    */
   public abstract String dateAsSqlFunction(Date date, Calendar calendar);
 
+  public abstract String sequenceOptions();
+
   public static Flavor fromJdbcUrl(String url) {
     if (url.startsWith("jdbc:postgresql:")) {
       return postgresql;
@@ -563,6 +708,8 @@ public enum Flavor {
       return oracle;
     } else if (url.startsWith("jdbc:sqlserver:")) {
       return sqlserver;
+    } else if (url.startsWith("jdbc:hsqldb:")) {
+      return hsqldb;
     } else if (url.startsWith("jdbc:derby:")) {
       return derby;
     } else {
@@ -577,6 +724,8 @@ public enum Flavor {
       return "oracle.jdbc.OracleDriver";
     } else if (url.startsWith("jdbc:sqlserver:")) {
       return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+    } else if (url.startsWith("jdbc:hsqldb:")) {
+      return "org.hsqldb.jdbc.JDBCDriver";
     } else if (url.startsWith("jdbc:derby:")) {
       return "org.apache.derby.jdbc.EmbeddedDriver";
     } else {

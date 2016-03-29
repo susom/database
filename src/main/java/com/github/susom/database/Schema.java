@@ -706,9 +706,7 @@ public class Schema {
       Sql sql = new Sql();
       sql.append("create sequence ");
       sql.append(sequence.name);
-      if (flavor == Flavor.derby) {
-        sql.append(" as bigint");
-      }
+      sql.append(flavor.sequenceOptions());
       sql.append(" minvalue ");
       sql.append(sequence.min);
       sql.append(" maxvalue ");

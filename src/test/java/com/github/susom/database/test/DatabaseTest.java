@@ -346,6 +346,8 @@ public class DatabaseTest {
         .argInteger(1)
         .queryLongOrNull());
 
+    Thread.sleep(1000);
+
     capturedLog.assertNoWarningsOrErrors();
     assertTrue(capturedLog.messages().get(0).endsWith("\tselect a from b where c=?"));
   }

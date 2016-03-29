@@ -19,7 +19,6 @@ package com.github.susom.database;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * Enumeration of supported databases with various compatibility settings.
@@ -28,6 +27,71 @@ import java.util.TimeZone;
  */
 public enum Flavor {
   derby {
+    @Override
+    public String typeInteger() {
+      return "integer";
+    }
+
+    @Override
+    public String typeBoolean() {
+      return "char(1)";
+    }
+
+    @Override
+    public String typeLong() {
+      return "bigint";
+    }
+
+    @Override
+    public String typeFloat() {
+      return "real";
+    }
+
+    @Override
+    public String typeDouble() {
+      return "double";
+    }
+
+    @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "numeric(" + size + "," + precision + ")";
+    }
+
+    @Override
+    public String typeStringVar(int bytes) {
+      return "varchar(" + bytes + ")";
+    }
+
+    @Override
+    public String typeStringFixed(int bytes) {
+      return "char(" + bytes + ")";
+    }
+
+    @Override
+    public String typeClob() {
+      return "clob";
+    }
+
+    @Override
+    public String typeBlob() {
+      return "blob";
+    }
+
+    @Override
+    public String typeDate() {
+      return "timestamp";
+    }
+
+    @Override
+    public boolean useStringForClob() {
+      return false;
+    }
+
+    @Override
+    public boolean useBytesForBlob() {
+      return false;
+    }
+
     @Override
     public String sequenceNextVal(String sequenceName) {
       return "next value for " + sequenceName;
@@ -44,6 +108,11 @@ public enum Flavor {
     }
 
     @Override
+    public boolean supportsInsertReturning() {
+      return false;
+    }
+
+    @Override
     public String sequenceCacheClause(int nbrValuesToCache) {
       return "";
     }
@@ -51,6 +120,11 @@ public enum Flavor {
     @Override
     public String sequenceOrderClause(boolean order) {
       return "";
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      return cycle ? " cycle" : " no cycle";
     }
 
     @Override
@@ -70,6 +144,126 @@ public enum Flavor {
       return "timestamp('" + dateFormat.format(date) + "')";
     }
   },
+  sqlserver {
+    @Override
+    public String typeFloat() {
+      return "float(24)";
+    }
+
+    @Override
+    public String typeDouble() {
+      return "float(53)";
+    }
+
+    @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "numeric(" + size + "," + precision + ")";
+    }
+
+    @Override
+    public String typeInteger() {
+      return "numeric(10)";
+    }
+
+    @Override
+    public String typeBoolean() {
+      return "char(1)";
+    }
+
+    @Override
+    public String typeLong() {
+      return "numeric(19)";
+    }
+
+    @Override
+    public String typeDate() {
+      return "datetime2(3)";
+    }
+
+    @Override
+    public boolean useStringForClob() {
+      return false;
+    }
+
+    @Override
+    public boolean useBytesForBlob() {
+      return false;
+    }
+
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      return "next value for " + sequenceName;
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      return "select next value for " + sequenceName;
+    }
+
+    @Override
+    public String sequenceDrop(String dbtestSeq) {
+      return "drop sequence " + dbtestSeq;
+    }
+
+    @Override
+    public String typeStringVar(int bytes) {
+      return "varchar(" + bytes + ")";
+    }
+
+    @Override
+    public String typeStringFixed(int bytes) {
+      return "char(" + bytes + ")";
+    }
+
+    @Override
+    public String typeClob() {
+      return "varchar(max)";
+    }
+
+    @Override
+    public String typeBlob() {
+      return "varbinary(max)";
+    }
+
+    @Override
+    public String sequenceOrderClause(boolean order) {
+      // Not supported
+      return "";
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      return cycle ? " cycle" : " no cycle";
+    }
+
+    @Override
+    public boolean supportsInsertReturning() {
+      // TODO it probably does, but I haven't figure it out yet
+      return false;
+    }
+
+    @Override
+    public String dbTimeMillis() {
+      return "current_timestamp";
+    }
+
+    @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      return " cache " + nbrValuesToCache;
+    }
+
+    @Override
+    public String fromAny() {
+      return "";
+    }
+
+    @Override
+    public String dateAsSqlFunction(Date date, Calendar calendar) {
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
+      dateFormat.setCalendar(calendar);
+      return "cast('" + dateFormat.format(date) + "' as datetime2(3))";
+    }
+  },
   oracle {
     @Override
     public String typeFloat() {
@@ -82,8 +276,18 @@ public enum Flavor {
     }
 
     @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "numeric(" + size + "," + precision + ")";
+    }
+
+    @Override
     public String typeInteger() {
       return "numeric(10)";
+    }
+
+    @Override
+    public String typeBoolean() {
+      return "char(1)";
     }
 
     @Override
@@ -97,8 +301,48 @@ public enum Flavor {
     }
 
     @Override
+    public boolean useStringForClob() {
+      return false;
+    }
+
+    @Override
+    public boolean useBytesForBlob() {
+      return false;
+    }
+
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      return sequenceName + ".nextval";
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      return "select " + sequenceName + ".nextval from dual";
+    }
+
+    @Override
+    public String sequenceDrop(String dbtestSeq) {
+      return "drop sequence " + dbtestSeq;
+    }
+
+    @Override
     public String typeStringVar(int bytes) {
       return "varchar2(" + bytes + ")";
+    }
+
+    @Override
+    public String typeStringFixed(int bytes) {
+      return "char(" + bytes + ")";
+    }
+
+    @Override
+    public String typeClob() {
+      return "clob";
+    }
+
+    @Override
+    public String typeBlob() {
+      return "blob";
     }
 
     @Override
@@ -122,6 +366,11 @@ public enum Flavor {
     }
 
     @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      return " cache " + nbrValuesToCache;
+    }
+
+    @Override
     public String fromAny() {
       return " from dual";
     }
@@ -135,8 +384,43 @@ public enum Flavor {
   },
   postgresql {
     @Override
+    public String typeInteger() {
+      return "integer";
+    }
+
+    @Override
+    public String typeBoolean() {
+      return "char(1)";
+    }
+
+    @Override
+    public String typeLong() {
+      return "bigint";
+    }
+
+    @Override
+    public String typeFloat() {
+      return "real";
+    }
+
+    @Override
     public String typeDouble() {
       return "double precision";
+    }
+
+    @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "numeric(" + size + "," + precision + ")";
+    }
+
+    @Override
+    public String typeStringVar(int bytes) {
+      return "varchar(" + bytes + ")";
+    }
+
+    @Override
+    public String typeStringFixed(int bytes) {
+      return "char(" + bytes + ")";
     }
 
     @Override
@@ -175,7 +459,22 @@ public enum Flavor {
     }
 
     @Override
+    public String sequenceDrop(String dbtestSeq) {
+      return "drop sequence " + dbtestSeq;
+    }
+
+    @Override
     public String sequenceOrderClause(boolean order) {
+      return "";
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      return cycle ? " cycle" : " no cycle";
+    }
+
+    @Override
+    public String fromAny() {
       return "";
     }
 
@@ -190,6 +489,11 @@ public enum Flavor {
     }
 
     @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      return " cache " + nbrValuesToCache;
+    }
+
+    @Override
     public String dateAsSqlFunction(Date date, Calendar calendar) {
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
       dateFormat.setCalendar(calendar);
@@ -197,83 +501,68 @@ public enum Flavor {
     }
   };
 
-  public String typeInteger() {
-    return "integer";
-  }
+  public abstract String typeInteger();
 
-  public String typeBoolean() {
-    return "char(1)";
-  }
+  public abstract String typeBoolean();
 
-  public String typeLong() {
-    return "bigint";
-  }
+  public abstract String typeLong();
 
-  public String typeFloat() {
-    return "real";
-  }
+  public abstract String typeFloat();
 
-  public String typeDouble() {
-    return "double";
-  }
+  public abstract String typeDouble();
 
-  public String typeBigDecimal(int size, int precision) {
-    return "numeric(" + size + "," + precision + ")";
-  }
+  public abstract String typeBigDecimal(int size, int precision);
 
-  public String typeStringVar(int bytes) {
-    return "varchar(" + bytes + ")";
-  }
+  public abstract String typeStringVar(int bytes);
 
-  public String typeStringFixed(int bytes) {
-    return "char(" + bytes + ")";
-  }
+  public abstract String typeStringFixed(int bytes);
 
-  public String typeClob() {
-    return "clob";
-  }
+  public abstract String typeClob();
 
-  public String typeBlob() {
-    return "blob";
-  }
+  public abstract String typeBlob();
 
-  public String typeDate() {
-    return "timestamp";
-  }
+  public abstract String typeDate();
 
-  public boolean useStringForClob() {
-    return false;
-  }
+  public abstract boolean useStringForClob();
 
-  public boolean useBytesForBlob() {
-    return false;
-  }
+  public abstract boolean useBytesForBlob();
 
-  public String sequenceNextVal(String sequenceName) {
-    return sequenceName + ".nextval";
-  }
+  public abstract String sequenceNextVal(String sequenceName);
 
-  public String sequenceSelectNextVal(String sequenceName) {
-    return "select " + sequenceName + ".nextval from dual";
-  }
+  public abstract String sequenceSelectNextVal(String sequenceName);
 
-  public String sequenceDrop(String dbtestSeq) {
-    return "drop sequence " + dbtestSeq;
-  }
+  public abstract String sequenceDrop(String dbtestSeq);
 
-  public boolean supportsInsertReturning() {
-    return false;
-  }
+  public abstract boolean supportsInsertReturning();
 
-  public String dbTimeMillis() {
-    return "current_time";
-  }
+  public abstract String dbTimeMillis();
+
+  public abstract String sequenceCacheClause(int nbrValuesToCache);
+
+  public abstract String sequenceOrderClause(boolean order);
+
+  public abstract String sequenceCycleClause(boolean cycle);
+
+  /**
+   * Indicate what should follow a constant select statement. For example, "select 1"
+   * works on some databases, while Oracle requires "select 1 from dual". For Oracle
+   * this function should return " from dual" (including the leading space).
+   */
+  public abstract String fromAny();
+
+  /**
+   * Return a SQL function representing the specified date. For example, in PostgreSQL this
+   * looks like "'1970-01-02 02:17:36.789000 GMT'::timestamp".
+   */
+  public abstract String dateAsSqlFunction(Date date, Calendar calendar);
 
   public static Flavor fromJdbcUrl(String url) {
     if (url.startsWith("jdbc:postgresql:")) {
       return postgresql;
     } else if (url.startsWith("jdbc:oracle:")) {
       return oracle;
+    } else if (url.startsWith("jdbc:sqlserver:")) {
+      return sqlserver;
     } else if (url.startsWith("jdbc:derby:")) {
       return derby;
     } else {
@@ -286,37 +575,12 @@ public enum Flavor {
       return "org.postgresql.Driver";
     } else if (url.startsWith("jdbc:oracle:")) {
       return "oracle.jdbc.OracleDriver";
+    } else if (url.startsWith("jdbc:sqlserver:")) {
+      return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     } else if (url.startsWith("jdbc:derby:")) {
       return "org.apache.derby.jdbc.EmbeddedDriver";
     } else {
       throw new DatabaseException("Cannot determine database driver class from url");
     }
   }
-
-  public String sequenceCacheClause(int nbrValuesToCache) {
-    return " cache " + nbrValuesToCache;
-  }
-
-  public String sequenceOrderClause(boolean order) {
-    return order ? " order" : " no order";
-  }
-
-  public String sequenceCycleClause(boolean cycle) {
-    return cycle ? " cycle" : " no cycle";
-  }
-
-  /**
-   * Indicate what should follow a constant select statement. For example, "select 1"
-   * works on some databases, while Oracle requires "select 1 from dual". For Oracle
-   * this function should return " from dual" (including the leading space).
-   */
-  public String fromAny() {
-    return "";
-  }
-
-  /**
-   * Return a SQL function representing the specified date. For example, in PostgreSQL this
-   * looks like "'1970-01-02 02:17:36.789000 GMT'::timestamp".
-   */
-  public abstract String dateAsSqlFunction(Date date, Calendar calendar);
 }

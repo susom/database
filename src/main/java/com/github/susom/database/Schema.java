@@ -108,6 +108,7 @@ public class Schema {
           }
           break;
         case Types.BINARY:
+        case Types.VARBINARY:
         case Types.BLOB:
           table.addColumn(names[i]).asBlob();
           break;

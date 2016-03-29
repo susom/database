@@ -86,6 +86,11 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     return fromDriverManager(url, flavor, null, null, null);
   }
 
+  public static Builder fromDriverManager(Config config) {
+    return fromDriverManager(config.getString("database.url"), config.getString("database.user"),
+        config.getString("database.password"));
+  }
+
   /**
    * Builder method to create and initialize an instance of this class using
    * the JDBC standard DriverManager method. The url parameter will be inspected

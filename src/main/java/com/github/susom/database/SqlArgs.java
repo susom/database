@@ -663,6 +663,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
           }
           break;
         case Types.BINARY:
+        case Types.VARBINARY:
         case Types.BLOB:
           args.argBlobBytes(names[i], r.getBlobBytesOrNull());
           break;

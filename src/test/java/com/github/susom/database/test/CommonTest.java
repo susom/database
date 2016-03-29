@@ -637,7 +637,7 @@ public abstract class CommonTest {
 
     db.toInsert("insert into dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar,"
         + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis) values (?,?,?,?,?,?,?,?,?,?,?)")
-        .argInteger(Integer.MIN_VALUE).argLong(Long.MIN_VALUE).argFloat(Float.MIN_VALUE)
+        .argInteger(Integer.MIN_VALUE).argLong(Long.MIN_VALUE).argFloat(0.000001f)
         .argDouble(Double.MIN_VALUE).argBigDecimal(new BigDecimal("-123.456"))
         .argString("goodbye").argString("A").argClobString("bye again")
         .argBlobBytes(new byte[] { '3', '4' }).argBoolean(false).argDateNowPerApp().insert(1);
@@ -682,7 +682,7 @@ public abstract class CommonTest {
         .queryMany(SqlArgs::readRow));
     assertEquals(Arrays.asList(new SqlArgs()
         .argInteger("nbr_integer", Integer.MIN_VALUE).argLong("nbr_long", Long.MIN_VALUE)
-        .argFloat("nbr_float", Float.MIN_VALUE)
+        .argFloat("nbr_float", 0.000001f)
         .argDouble("nbr_double", Double.MIN_VALUE).argBigDecimal("nbr_big_decimal", new BigDecimal("-123.456"))
         .argString("str_varchar", "goodbye").argString("str_fixed", "A").argClobString("str_lob", "bye again")
         .argBlobBytes("bin_blob", new byte[] { '3', '4' }).argString("boolean_flag", "N")//.argBoolean("boolean_flag", false)

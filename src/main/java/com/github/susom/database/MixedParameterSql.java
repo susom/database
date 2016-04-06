@@ -79,7 +79,7 @@ public class MixedParameterSql {
         }
         newSql.append(sql.substring(searchIndex, nextColonIndex));
         String paramName = sql.substring(nextColonIndex + 1, endOfNameIndex);
-        boolean secretParam = paramName.startsWith("secret_");
+        boolean secretParam = paramName.startsWith("secret");
         Object arg = nameToArg.get(paramName);
         if (arg instanceof RewriteArg) {
           newSql.append(((RewriteArg) arg).sql);

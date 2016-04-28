@@ -346,8 +346,6 @@ public class DatabaseTest {
         .argInteger(1)
         .queryLongOrNull());
 
-    Thread.sleep(1000);
-
     capturedLog.assertNoWarningsOrErrors();
     assertTrue(capturedLog.messages().get(0).endsWith("\tselect a from b where c=?"));
   }
@@ -978,25 +976,23 @@ public class DatabaseTest {
     private int warnings = 0;
     private int errors = 0;
 
-    protected void append(LoggingEvent event) {
+    protected synchronized void append(LoggingEvent event) {
       if (Level.TRACE.isGreaterOrEqual(event.getLevel())) {
         return;
       }
-      synchronized (events) {
-        if (event.getLevel().equals(Level.WARN)) {
-          warnings++;
-        } else if (event.getLevel().isGreaterOrEqual(Level.ERROR)) {
-          errors++;
-        }
-        events.add(event);
+      if (event.getLevel().equals(Level.WARN)) {
+        warnings++;
+      } else if (event.getLevel().isGreaterOrEqual(Level.ERROR)) {
+        errors++;
       }
+      events.add(event);
     }
 
-    public int nbrWarnings() {
+    public synchronized int nbrWarnings() {
       return warnings;
     }
 
-    public int nbrErrors() {
+    public synchronized int nbrErrors() {
       return errors;
     }
 
@@ -1004,44 +1000,38 @@ public class DatabaseTest {
       // Nothing to do
     }
 
-    public String toString() {
+    public synchronized String toString() {
       PatternLayout layout = new PatternLayout("%-5p %c %m\u00AE%n");
       StringBuilder builder = new StringBuilder();
-      synchronized (events) {
-        for (LoggingEvent event : events) {
-          builder.append(layout.format(event));
-        }
+      for (LoggingEvent event : events) {
+        builder.append(layout.format(event));
       }
       return builder.toString();
     }
 
-    public List<String> messages() {
+    public synchronized List<String> messages() {
       List<String> messages = new ArrayList<>();
       PatternLayout layout = new PatternLayout("%-5p %c %m");
-      synchronized (events) {
-        for (LoggingEvent event : events) {
-          messages.add(layout.format(event));
-        }
+      for (LoggingEvent event : events) {
+        messages.add(layout.format(event));
       }
       return messages;
     }
 
-    public void assertNoWarningsOrErrors() {
+    public synchronized void assertNoWarningsOrErrors() {
       assertEquals("Warnings or errors in the log:\n" + toString(), 0, nbrWarnings() + nbrErrors());
     }
 
-    public void assertWarnings(int nbrWarnings) {
+    public synchronized void assertWarnings(int nbrWarnings) {
       assertEquals("Wrong number of warnings in the log:\n" + toString(), nbrWarnings, nbrWarnings());
     }
 
-    public void assertErrors(int nbrErrors) {
+    public synchronized void assertErrors(int nbrErrors) {
       assertEquals("Wrong number of errors or above in the log:\n" + toString(), nbrErrors, nbrErrors());
     }
 
-    public void assertEntries(int nbrEntries) {
-      synchronized (events) {
-        assertEquals("Wrong number of entries in the log:\n" + toString(), nbrEntries, events.size());
-      }
+    public synchronized void assertEntries(int nbrEntries) {
+      assertEquals("Wrong number of entries in the log:\n" + toString(), nbrEntries, events.size());
     }
 
     /**
@@ -1060,54 +1050,52 @@ public class DatabaseTest {
      * @param level the specific level we are looking for
      * @param messagePattern a search pattern (see notes above)
      */
-    public void assertMessage(Level level, String messagePattern) {
+    public synchronized void assertMessage(Level level, String messagePattern) {
       boolean found = false;
-      synchronized (events) {
-        for (LoggingEvent event : events) {
-          if (!event.getLevel().equals(level)) {
+      for (LoggingEvent event : events) {
+        if (!event.getLevel().equals(level)) {
+          continue;
+        }
+
+        String message = event.getRenderedMessage();
+        int messagePos = 0;
+        int patternPos = 0;
+        while (messagePos < message.length() && patternPos < messagePattern.length()) {
+          // Advance until we find a character that doesn't match
+          if (message.charAt(messagePos) == messagePattern.charAt(patternPos)) {
+            messagePos++;
+            patternPos++;
             continue;
           }
 
-          String message = event.getRenderedMessage();
-          int messagePos = 0;
-          int patternPos = 0;
-          while (messagePos < message.length() && patternPos < messagePattern.length()) {
-            // Advance until we find a character that doesn't match
-            if (message.charAt(messagePos) == messagePattern.charAt(patternPos)) {
-              messagePos++;
-              patternPos++;
-              continue;
-            }
-
-            // If message has literal '$' terminate because the pattern doesn't have a special matcher
-            if (message.charAt(messagePos) == '$') {
-              break;
-            }
-
-            // Special matchers: expressions for things that vary with each run
-            if (messagePattern.startsWith("${timing}", patternPos) && message.indexOf(')', messagePos) != -1) {
-              messagePos = message.indexOf(')', messagePos) + 1;
-              patternPos += "${timing}".length();
-              continue;
-            }
-            if (messagePattern.startsWith("${sep}", patternPos)
-                && message.startsWith(DebugSql.PARAM_SQL_SEPARATOR, messagePos)) {
-              messagePos += DebugSql.PARAM_SQL_SEPARATOR.length();
-              patternPos += "${sep}".length();
-              continue;
-            }
-
-            // Couldn't match
+          // If message has literal '$' terminate because the pattern doesn't have a special matcher
+          if (message.charAt(messagePos) == '$') {
             break;
           }
 
-          if (messagePos >= message.length() && patternPos >= messagePattern.length()) {
-            found = true;
-            break;
+          // Special matchers: expressions for things that vary with each run
+          if (messagePattern.startsWith("${timing}", patternPos) && message.indexOf(')', messagePos) != -1) {
+            messagePos = message.indexOf(')', messagePos) + 1;
+            patternPos += "${timing}".length();
+            continue;
           }
+          if (messagePattern.startsWith("${sep}", patternPos)
+              && message.startsWith(DebugSql.PARAM_SQL_SEPARATOR, messagePos)) {
+            messagePos += DebugSql.PARAM_SQL_SEPARATOR.length();
+            patternPos += "${sep}".length();
+            continue;
+          }
+
+          // Couldn't match
+          break;
         }
-        assertTrue("Log message not found (" + level + " " + messagePattern + ") in log:\n" + toString(), found);
+
+        if (messagePos >= message.length() && patternPos >= messagePattern.length()) {
+          found = true;
+          break;
+        }
       }
+      assertTrue("Log message not found (" + level + " " + messagePattern + ") in log:\n" + toString(), found);
     }
 
     public boolean requiresLayout() {

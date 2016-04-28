@@ -27,28 +27,59 @@ public interface Config {
    */
   @Nullable String getString(@Nonnull String key);
 
+  /**
+   * @return a trimmed, non-empty string
+   * @throws ConfigMissingException if no value could be read for the specified key
+   */
+  @Nonnull String getStringOrThrow(@Nonnull String key);
+
   @Nonnull String getString(String key, @Nonnull String defaultValue);
 
   @Nullable Integer getInteger(@Nonnull String key);
 
   int getInteger(@Nonnull String key, int defaultValue);
 
+  /**
+   * @throws ConfigMissingException if no value could be read for the specified key
+   */
+  int getIntegerOrThrow(@Nonnull String key);
+
   @Nullable Long getLong(@Nonnull String key);
 
   long getLong(@Nonnull String key, long defaultValue);
+
+  /**
+   * @throws ConfigMissingException if no value could be read for the specified key
+   */
+  long getLongOrThrow(@Nonnull String key);
 
   @Nullable Float getFloat(@Nonnull String key);
 
   float getFloat(@Nonnull String key, float defaultValue);
 
+  /**
+   * @throws ConfigMissingException if no value could be read for the specified key
+   */
+  float getFloatOrThrow(@Nonnull String key);
+
   @Nullable Double getDouble(@Nonnull String key);
 
   double getDouble(@Nonnull String key, double defaultValue);
+
+  /**
+   * @throws ConfigMissingException if no value could be read for the specified key
+   */
+  double getDoubleOrThrow(@Nonnull String key);
 
   @Nullable
   BigDecimal getBigDecimal(@Nonnull String key);
 
   @Nonnull BigDecimal getBigDecimal(String key, @Nonnull BigDecimal defaultValue);
+
+  /**
+   * @throws ConfigMissingException if no value could be read for the specified key
+   */
+  @Nonnull BigDecimal getBigDecimalOrThrow(String key);
 
   /**
    * Read a boolean value from the configuration. The value is not case-sensitivie,
@@ -63,4 +94,9 @@ public interface Config {
    * value is provided, true will be returned.
    */
   boolean getBooleanOrTrue(@Nonnull String key);
+
+  /**
+   * @throws ConfigMissingException if no value could be read for the specified key
+   */
+  boolean getBooleanOrThrow(@Nonnull String key);
 }

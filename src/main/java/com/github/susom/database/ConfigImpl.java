@@ -30,6 +30,11 @@ public class ConfigImpl implements Config {
     return cleanString(key);
   }
 
+  @Override
+  public String getStringOrThrow(@Nonnull String key) {
+    return nonnull(key, getString(key));
+  }
+
   @Nonnull
   @Override
   public String getString(String key, @Nonnull String defaultValue) {
@@ -65,6 +70,11 @@ public class ConfigImpl implements Config {
     return value == null ? defaultValue : value;
   }
 
+  @Override
+  public int getIntegerOrThrow(@Nonnull String key) {
+    return nonnull(key, getInteger(key));
+  }
+
   @Nullable
   @Override
   public Long getLong(@Nonnull String key) {
@@ -84,6 +94,11 @@ public class ConfigImpl implements Config {
   public long getLong(@Nonnull String key, long defaultValue) {
     Long value = getLong(key);
     return value == null ? defaultValue : value;
+  }
+
+  @Override
+  public long getLongOrThrow(@Nonnull String key) {
+    return nonnull(key, getLong(key));
   }
 
   @Nullable
@@ -107,6 +122,11 @@ public class ConfigImpl implements Config {
     return value == null ? defaultValue : value;
   }
 
+  @Override
+  public float getFloatOrThrow(@Nonnull String key) {
+    return nonnull(key, getFloat(key));
+  }
+
   @Nullable
   @Override
   public Double getDouble(@Nonnull String key) {
@@ -126,6 +146,11 @@ public class ConfigImpl implements Config {
   public double getDouble(@Nonnull String key, double defaultValue) {
     Double value = getDouble(key);
     return value == null ? defaultValue : value;
+  }
+
+  @Override
+  public double getDoubleOrThrow(@Nonnull String key) {
+    return nonnull(key, getDouble(key));
   }
 
   @Nullable
@@ -150,6 +175,12 @@ public class ConfigImpl implements Config {
     return value == null ? defaultValue : value;
   }
 
+  @Nonnull
+  @Override
+  public BigDecimal getBigDecimalOrThrow(String key) {
+    return nonnull(key, getBigDecimal(key));
+  }
+
   @Override
   public boolean getBooleanOrFalse(@Nonnull String key) {
     return parseBoolean(cleanString(key), false);
@@ -158,6 +189,26 @@ public class ConfigImpl implements Config {
   @Override
   public boolean getBooleanOrTrue(@Nonnull String key) {
     return parseBoolean(cleanString(key), true);
+  }
+
+  @Override
+  public boolean getBooleanOrThrow(@Nonnull String key) {
+    String value = nonnull(key, cleanString(key));
+    value = value.toLowerCase();
+    if (value.equals("yes") || value.equals("true")) {
+      return true;
+    }
+    if (value.equals("no") || value.equals("false")) {
+      return false;
+    }
+    throw new ConfigMissingException("Unrecognized boolean value for config key: " + key);
+  }
+
+  private <T> T nonnull(String key, T value) {
+    if (value == null) {
+      throw new ConfigMissingException("No value for config key: " + key);
+    }
+    return value;
   }
 
   private boolean parseBoolean(String value, boolean defaultValue) {

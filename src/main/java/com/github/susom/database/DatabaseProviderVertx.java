@@ -16,9 +16,10 @@
 
 package com.github.susom.database;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
@@ -26,7 +27,6 @@ import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -82,26 +82,49 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    *   database.pool.size=... How many connections in the connection pool (default 10).
    *   database.driver.class  The driver to initialize with Class.forName(). This will
    *                          be guessed from the database.url if not provided.
+   *   database.flavor        One of the enumerated values in {@link Flavor}. If this
+   *                          is not provided the flavor will be guessed based on the
+   *                          value for database.url, if possible.
    * </pre>
+   *
    * <p>The database flavor will be guessed based on the URL.</p>
+   *
    * <p>A database pool will be created using HikariCP.</p>
+   *
+   * <p>Be sure to retain a copy of the builder so you can call close() later to
+   * destroy the pool. You will most likely want to register a JVM shutdown hook
+   * to make sure this happens. See VertxServer.java in the demo directory for
+   * an example of how to do this.</p>
    */
   @CheckReturnValue
-  public static Builder builder(Vertx vertx, Config config) {
+  public static Builder pooledBuilder(Vertx vertx, Config config) {
     String url = config.getString("database.url");
     if (url == null) {
       throw new DatabaseException("You must provide database.url");
     }
-    Options options = new OptionsDefault(Flavor.fromJdbcUrl(url));
+
     HikariDataSource ds = new HikariDataSource();
     ds.setJdbcUrl(url);
-    ds.setDriverClassName(config.getString("database.driver.class", Flavor.driverForJdbcUrl(url)));
+    String driverClassName = config.getString("database.driver.class", Flavor.driverForJdbcUrl(url));
+    ds.setDriverClassName(driverClassName);
     ds.setUsername(config.getString("database.user"));
     ds.setPassword(config.getString("database.password"));
-    ds.setMaximumPoolSize(config.getInteger("database.pool.size", 10));
+    int poolSize = config.getInteger("database.pool.size", 10);
+    ds.setMaximumPoolSize(poolSize);
     ds.setAutoCommit(false);
 
-    return new BuilderImpl(vertx, () -> {
+    Flavor flavor;
+    String flavorString = config.getString("database.flavor");
+    if (flavorString != null) {
+      flavor = Flavor.valueOf(flavorString);
+    } else {
+      flavor = Flavor.fromJdbcUrl(url);
+    }
+    Options options = new OptionsDefault(flavor);
+
+    log.debug("Created '" + flavor + "' connection pool of size " + poolSize + " using driver " + driverClassName);
+
+    return new BuilderImpl(vertx, ds, () -> {
       try {
         return ds.getConnection();
       } catch (Exception e) {
@@ -332,27 +355,31 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     void transact(DbCodeTx code);
 
     <T> void transactAsync(DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler);
+
+    void close();
   }
 
   private static class BuilderImpl implements Builder {
     private final Vertx vertx;
+    private Closeable pool;
     private final Provider<Connection> connectionProvider;
     private final Options options;
 
-    private BuilderImpl(Vertx vertx, Provider<Connection> connectionProvider, Options options) {
+    private BuilderImpl(Vertx vertx, Closeable pool, Provider<Connection> connectionProvider, Options options) {
       this.vertx = vertx;
+      this.pool = pool;
       this.connectionProvider = connectionProvider;
       this.options = options;
     }
 
     @Override
     public Builder withOptions(OptionsOverride options) {
-      return new BuilderImpl(vertx, connectionProvider, options.withParent(this.options));
+      return new BuilderImpl(vertx, pool, connectionProvider, options.withParent(this.options));
     }
 
     @Override
     public Builder withSqlParameterLogging() {
-      return new BuilderImpl(vertx, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean isLogParameters() {
           return true;
@@ -362,7 +389,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withSqlInExceptionMessages() {
-      return new BuilderImpl(vertx, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean isDetailedExceptions() {
           return true;
@@ -372,7 +399,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withDatePerAppOnly() {
-      return new BuilderImpl(vertx, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean useDatePerAppOnly() {
           return true;
@@ -382,7 +409,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withTransactionControl() {
-      return new BuilderImpl(vertx, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean allowTransactionControl() {
           return true;
@@ -392,7 +419,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withTransactionControlSilentlyIgnored() {
-      return new BuilderImpl(vertx, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean ignoreTransactionControl() {
           return true;
@@ -402,7 +429,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withConnectionAccess() {
-      return new BuilderImpl(vertx, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean allowConnectionAccess() {
           return true;
@@ -433,6 +460,17 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     @Override
     public <T> void transactAsync(DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler) {
       create().transactAsync(code, resultHandler);
+    }
+
+    public void close() {
+      if (pool != null) {
+        try {
+          pool.close();
+        } catch (IOException e) {
+          log.warn("Unable to close connection pool", e);
+        }
+        pool = null;
+      }
     }
   }
 
@@ -548,6 +586,11 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       @Override
       public <T> void transactAsync(DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler) {
         create().transactAsync(code, resultHandler);
+      }
+
+      @Override
+      public void close() {
+        log.debug("Ignoring close call on fakeBuilder");
       }
     };
   }

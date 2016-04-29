@@ -40,7 +40,7 @@ public class VertxLoggingTest {
     Vertx vertx = Vertx.vertx();
 
     Config config = Config.from().value("database.url", "jdbc:derby:target/testdb;create=true").get();
-    Builder db = DatabaseProviderVertx.builder(vertx, config).withSqlParameterLogging();
+    Builder db = DatabaseProviderVertx.pooledBuilder(vertx, config).withSqlParameterLogging();
 
     vertx.createHttpServer()
         .requestHandler(r -> {

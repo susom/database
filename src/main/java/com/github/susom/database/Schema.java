@@ -37,6 +37,8 @@ import com.github.susom.database.Schema.Table.Unique;
 public class Schema {
   private List<Table> tables = new ArrayList<>();
   private List<Sequence> sequences = new ArrayList<>();
+  private boolean indexForeignKeys = true;
+  private String userTableName = "user_principal";
 
   public Sequence addSequence(String name) {
     Sequence sequence = new Sequence(name);
@@ -44,7 +46,24 @@ public class Schema {
     return sequence;
   }
 
-  public static enum ColumnType {
+  public Schema withoutForeignKeyIndexing() {
+    indexForeignKeys = false;
+    return this;
+  }
+
+  /**
+   * Set the table to which the foreign key will be created for
+   * user change tracking ({@link Table#trackCreateTimeAndUser(String)}
+   * and {@link Table#trackUpdateTimeAndUser(String)}).
+   *
+   * @param userTableName the default table name containing users
+   */
+  public Schema userTableName(String userTableName) {
+    this.userTableName = userTableName;
+    return this;
+  }
+
+  public enum ColumnType {
     Integer, Long, Float, Double, BigDecimal, StringVar, StringFixed, Clob, Blob, Date, Boolean
   }
 
@@ -185,6 +204,13 @@ public class Schema {
       return this;
     }
 
+    /**
+     * On databases that support it, indicate you want to strictly order the values returned
+     * from the sequence. This is generally NOT what you want, because it can dramatically
+     * reduce performance (requires locking and synchronization). Also keep in mind it doesn't
+     * guarantee there will not be gaps in the numbers handed out (nothing you can do will
+     * ever prevent that).
+     */
     public Sequence order() {
       order = true;
       return this;
@@ -216,6 +242,14 @@ public class Schema {
     private List<Unique> uniques = new ArrayList<>();
     private Flavor customClauseFlavor;
     private String customClause;
+    private boolean createTracking;
+    private String createTrackingFkName;
+    private String createTrackingFkTable;
+    private boolean updateTracking;
+    private String updateTrackingFkName;
+    private String updateTrackingFkTable;
+    private boolean updateSequence;
+    private boolean historyTable;
 
     public Table(String name) {
       this.name = toName(name);
@@ -250,12 +284,109 @@ public class Schema {
     }
 
     public Schema schema() {
+      if (createTracking) {
+        addColumn("create_time").asDate().table();
+      }
+      if (createTrackingFkName != null) {
+        addColumn("create_user").foreignKey(createTrackingFkName).references(createTrackingFkTable).table();
+      }
+      if (updateTracking || updateSequence) {
+        addColumn("update_time").asDate().table();
+      }
+      if (updateTrackingFkName != null) {
+        addColumn("update_user").foreignKey(updateTrackingFkName).references(updateTrackingFkTable).table();
+      }
+      if (updateSequence) {
+        addColumn("update_sequence").asLong().table();
+      }
+      // Avoid auto-indexing foreigh keys if the index already exists (from pk or explicit index)
+      if (indexForeignKeys) {
+        for (ForeignKey fk : foreignKeys) {
+          if (primaryKey != null && fk.columnNames.equals(primaryKey.columnNames)) {
+            continue;
+          }
+          boolean skip = false;
+          for (Index i : indexes) {
+            if (fk.columnNames.equals(i.columnNames)) {
+              skip = true;
+              break;
+            }
+          }
+          if (!skip) {
+            addIndex(fk.name + "_ix", fk.columnNames.toArray(new String[fk.columnNames.size()]));
+          }
+        }
+      }
       validate();
+      if (historyTable) {
+        String historyTableName = name + "_history";
+        if (historyTableName.length() > 27 && historyTableName.length() <= 30) {
+          historyTableName = name + "_hist";
+        }
+        Table hist = Schema.this.addTable(historyTableName);
+        // History table needs all the same columns as the original
+        hist.columns.addAll(columns);
+        // Add a synthetic column to indicate when the original row has been deleted
+        hist.addColumn("is_deleted").asBoolean().table();
+        List<String> pkColumns = new ArrayList<>();
+        pkColumns.addAll(primaryKey.columnNames);
+        // Index the primary key from the regular table for retrieving history
+        hist.addIndex(historyTableName + "_ix", pkColumns.toArray(new String[pkColumns.size()]));
+        // The primary key for the history table will be that of the original table, plus the update sequence
+        pkColumns.add("update_sequence");
+        hist.addPrimaryKey(historyTableName + "_pk", pkColumns.toArray(new String[pkColumns.size()]));
+        // To perform any validation
+        hist.schema();
+      }
       return Schema.this;
     }
 
     public Table withComment(String comment) {
       this.comment = comment;
+      return this;
+    }
+
+    public Table withStandardPk() {
+      return addColumn(name + "_id").primaryKey().table();
+    }
+
+    public Table trackCreateTime() {
+      createTracking = true;
+      return this;
+    }
+
+    public Table trackCreateTimeAndUser(String fkConstraintName) {
+      return trackCreateTimeAndUser(fkConstraintName, userTableName);
+    }
+
+    public Table trackCreateTimeAndUser(String fkConstraintName, String fkReferencesTable) {
+      createTracking = true;
+      createTrackingFkName = fkConstraintName;
+      createTrackingFkTable = fkReferencesTable;
+      return this;
+    }
+
+    public Table trackUpdateTime() {
+      updateTracking = true;
+      updateSequence = true;
+      return this;
+    }
+
+    public Table trackUpdateTimeAndUser(String fkConstraintName) {
+      return trackUpdateTimeAndUser(fkConstraintName, userTableName);
+    }
+
+    public Table trackUpdateTimeAndUser(String fkConstraintName, String fkReferencesTable) {
+      updateTracking = true;
+      updateSequence = true;
+      updateTrackingFkName = fkConstraintName;
+      updateTrackingFkTable = fkReferencesTable;
+      return this;
+    }
+
+    public Table withHistoryTable() {
+      updateSequence = true;
+      historyTable = true;
       return this;
     }
 
@@ -433,8 +564,21 @@ public class Schema {
         this.name = toName(name);
       }
 
+      /**
+       * Create a boolean column, usually char(1) to hold values 'Y' or 'N'. This
+       * parameterless version does not create any check constraint at the database
+       * level.
+       */
       public Column asBoolean() {
         return asType(ColumnType.Boolean);
+      }
+
+      /**
+       * Create a boolean column, usually char(1) to hold values 'Y' or 'N'. This
+       * version creates a check constraint at the database level with the provided name.
+       */
+      public Column asBoolean(String checkConstraintName) {
+        return asBoolean().check(checkConstraintName, name + " in ('Y', 'N')");
       }
 
       public Column asInteger() {
@@ -502,6 +646,18 @@ public class Schema {
         return Table.this;
       }
 
+      public ForeignKey foreignKey(String constraintName) {
+        if (type == null) {
+          asLong();
+        }
+        return table().addForeignKey(constraintName, name);
+      }
+
+      public Column check(String checkConstraintName, String expression) {
+        table().addCheck(checkConstraintName, expression).table();
+        return this;
+      }
+
       public Column primaryKey() {
         if (type == null) {
           asLong();
@@ -529,10 +685,6 @@ public class Schema {
         return table().schema();
       }
     }
-  }
-
-  public void execute(Database db) {
-    executeOrPrint(db, null);
   }
 
   public void execute(Supplier<Database> db) {

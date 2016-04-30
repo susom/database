@@ -20,7 +20,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import com.github.susom.database.Schema.Table.Check;
@@ -240,8 +242,7 @@ public class Schema {
     private List<Index> indexes = new ArrayList<>();
     private List<Check> checks = new ArrayList<>();
     private List<Unique> uniques = new ArrayList<>();
-    private Flavor customClauseFlavor;
-    private String customClause;
+    private Map<Flavor, String> customClauses = new HashMap<>();
     private boolean createTracking;
     private String createTrackingFkName;
     private String createTrackingFkTable;
@@ -426,8 +427,7 @@ public class Schema {
     }
 
     public Table customTableClause(Flavor flavor, String clause) {
-      customClauseFlavor = flavor;
-      customClause = clause;
+      customClauses.put(flavor, clause);
       return this;
     }
 
@@ -786,8 +786,8 @@ public class Schema {
       }
 
       sql.append("\n)");
-      if (table.customClause != null && flavor == table.customClauseFlavor) {
-        sql.append(" ").append(table.customClause);
+      if (table.customClauses.containsKey(flavor)) {
+        sql.append(" ").append(table.customClauses.get(flavor));
       }
       executeOrPrint(sql, db, script);
       sql = new Sql();

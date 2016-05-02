@@ -398,6 +398,10 @@ public class Schema {
     }
 
     public PrimaryKey addPrimaryKey(String name, String...columnNames) {
+      if (primaryKey != null) {
+        throw new RuntimeException("Only one primary key is allowed. For composite keys use"
+            + " addPrimaryKey(name, c1, c2, ...).");
+      }
       primaryKey = new PrimaryKey(name, columnNames);
       return primaryKey;
     }

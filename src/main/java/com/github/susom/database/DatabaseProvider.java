@@ -16,6 +16,7 @@
 
 package com.github.susom.database;
 
+import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,6 +35,8 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.zaxxer.hikari.HikariDataSource;
 
 /**
  * This is a lazy provider for Database instances. It helps avoid allocating connection
@@ -63,6 +66,53 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
   private DatabaseProvider(DatabaseProvider delegateTo) {
     this.delegateTo = delegateTo;
     this.options = delegateTo.options;
+  }
+
+  /**
+   * Configure the database from the following properties read from the provided configuration:
+   * <br/>
+   * <pre>
+   *   database.url=...       Database connect string (required)
+   *   database.user=...      Authenticate as this user (optional if provided in url)
+   *   database.password=...  User password (optional if user and password provided in
+   *                          url; prompted on standard input if user is provided and
+   *                          password is not)
+   *   database.pool.size=... How many connections in the connection pool (default 10).
+   *   database.driver.class  The driver to initialize with Class.forName(). This will
+   *                          be guessed from the database.url if not provided.
+   *   database.flavor        One of the enumerated values in {@link Flavor}. If this
+   *                          is not provided the flavor will be guessed based on the
+   *                          value for database.url, if possible.
+   * </pre>
+   *
+   * <p>The database flavor will be guessed based on the URL.</p>
+   *
+   * <p>A database pool will be created using HikariCP.</p>
+   *
+   * <p>Be sure to retain a copy of the builder so you can call close() later to
+   * destroy the pool. You will most likely want to register a JVM shutdown hook
+   * to make sure this happens. See VertxServer.java in the demo directory for
+   * an example of how to do this.</p>
+   */
+  @CheckReturnValue
+  public static Builder pooledBuilder(Config config) {
+    return fromPool(createPool(config));
+  }
+
+  /**
+   * Use an externally configured DataSource, Flavor, and optionally a shutdown hook.
+   * The shutdown hook may be null if you don't want calls to Builder.close() to attempt
+   * any shutdown. The DataSource and Flavor are mandatory.
+   */
+  @CheckReturnValue
+  public static Builder fromPool(Pool pool) {
+    return new BuilderImpl(pool.poolShutdown, () -> {
+      try {
+        return pool.dataSource.getConnection();
+      } catch (Exception e) {
+        throw new DatabaseException("Unable to obtain a connection from the DataSource", e);
+      }
+    }, new OptionsDefault(pool.flavor));
   }
 
   /**
@@ -137,7 +187,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
                                            final String user, final String password) {
     Options options = new OptionsDefault(flavor);
 
-    return new BuilderImpl(new Provider<Connection>() {
+    return new BuilderImpl(null, new Provider<Connection>() {
       @Override
       public Connection get() {
         try {
@@ -163,7 +213,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
   public static Builder fromJndi(final Context context, final String lookupKey, Flavor flavor) {
     Options options = new OptionsDefault(flavor);
 
-    return new BuilderImpl(new Provider<Connection>() {
+    return new BuilderImpl(null, new Provider<Connection>() {
       @Override
       public Connection get() {
         DataSource ds;
@@ -760,22 +810,24 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
   }
 
   private static class BuilderImpl implements Builder {
+    private Closeable pool;
     private final Provider<Connection> connectionProvider;
     private final Options options;
 
-    private BuilderImpl(Provider<Connection> connectionProvider, Options options) {
+    private BuilderImpl(Closeable pool, Provider<Connection> connectionProvider, Options options) {
+      this.pool = pool;
       this.connectionProvider = connectionProvider;
       this.options = options;
     }
 
     @Override
     public Builder withOptions(OptionsOverride options) {
-      return new BuilderImpl(connectionProvider, options.withParent(this.options));
+      return new BuilderImpl(pool, connectionProvider, options.withParent(this.options));
     }
 
     @Override
     public Builder withSqlParameterLogging() {
-      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean isLogParameters() {
           return true;
@@ -785,7 +837,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
     @Override
     public Builder withSqlInExceptionMessages() {
-      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean isDetailedExceptions() {
           return true;
@@ -795,7 +847,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
     @Override
     public Builder withDatePerAppOnly() {
-      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean useDatePerAppOnly() {
           return true;
@@ -805,7 +857,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
     @Override
     public Builder withTransactionControl() {
-      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean allowTransactionControl() {
           return true;
@@ -815,7 +867,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
     @Override
     public Builder withTransactionControlSilentlyIgnored() {
-      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean ignoreTransactionControl() {
           return true;
@@ -825,7 +877,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
     @Override
     public Builder withConnectionAccess() {
-      return new BuilderImpl(connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean allowConnectionAccess() {
           return true;
@@ -851,6 +903,17 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     @Override
     public void transact(DbCodeTx tx) {
       create().transact(tx);
+    }
+
+    public void close() {
+      if (pool != null) {
+        try {
+          pool.close();
+        } catch (IOException e) {
+          log.warn("Unable to close connection pool", e);
+        }
+        pool = null;
+      }
     }
   }
 
@@ -1007,5 +1070,46 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     database = null;
     txStarted = false;
     connectionProvider = null;
+  }
+
+  public static class Pool {
+    public DataSource dataSource;
+    public Flavor flavor;
+    public Closeable poolShutdown;
+
+    public Pool(DataSource dataSource, Flavor flavor, Closeable poolShutdown) {
+      this.dataSource = dataSource;
+      this.flavor = flavor;
+      this.poolShutdown = poolShutdown;
+    }
+  }
+
+  public static Pool createPool(Config config) {
+    String url = config.getString("database.url");
+    if (url == null) {
+      throw new DatabaseException("You must provide database.url");
+    }
+
+    HikariDataSource ds = new HikariDataSource();
+    ds.setJdbcUrl(url);
+    String driverClassName = config.getString("database.driver.class", Flavor.driverForJdbcUrl(url));
+    ds.setDriverClassName(driverClassName);
+    ds.setUsername(config.getString("database.user"));
+    ds.setPassword(config.getString("database.password"));
+    int poolSize = config.getInteger("database.pool.size", 10);
+    ds.setMaximumPoolSize(poolSize);
+    ds.setAutoCommit(false);
+
+    Flavor flavor;
+    String flavorString = config.getString("database.flavor");
+    if (flavorString != null) {
+      flavor = Flavor.valueOf(flavorString);
+    } else {
+      flavor = Flavor.fromJdbcUrl(url);
+    }
+
+    log.debug("Created '" + flavor + "' connection pool of size " + poolSize + " using driver " + driverClassName);
+
+    return new Pool(ds, flavor, ds);
   }
 }

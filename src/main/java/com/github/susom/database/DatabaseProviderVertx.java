@@ -28,7 +28,7 @@ import javax.inject.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.zaxxer.hikari.HikariDataSource;
+import com.github.susom.database.DatabaseProvider.Pool;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -98,39 +98,23 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    */
   @CheckReturnValue
   public static Builder pooledBuilder(Vertx vertx, Config config) {
-    String url = config.getString("database.url");
-    if (url == null) {
-      throw new DatabaseException("You must provide database.url");
-    }
+    return fromPool(vertx, DatabaseProvider.createPool(config));
+  }
 
-    HikariDataSource ds = new HikariDataSource();
-    ds.setJdbcUrl(url);
-    String driverClassName = config.getString("database.driver.class", Flavor.driverForJdbcUrl(url));
-    ds.setDriverClassName(driverClassName);
-    ds.setUsername(config.getString("database.user"));
-    ds.setPassword(config.getString("database.password"));
-    int poolSize = config.getInteger("database.pool.size", 10);
-    ds.setMaximumPoolSize(poolSize);
-    ds.setAutoCommit(false);
-
-    Flavor flavor;
-    String flavorString = config.getString("database.flavor");
-    if (flavorString != null) {
-      flavor = Flavor.valueOf(flavorString);
-    } else {
-      flavor = Flavor.fromJdbcUrl(url);
-    }
-    Options options = new OptionsDefault(flavor);
-
-    log.debug("Created '" + flavor + "' connection pool of size " + poolSize + " using driver " + driverClassName);
-
-    return new BuilderImpl(vertx, ds, () -> {
+  /**
+   * Use an externally configured DataSource, Flavor, and optionally a shutdown hook.
+   * The shutdown hook may be null if you don't want calls to Builder.close() to attempt
+   * any shutdown. The DataSource and Flavor are mandatory.
+   */
+  @CheckReturnValue
+  public static Builder fromPool(Vertx vertx, Pool pool) {
+    return new BuilderImpl(vertx, pool.poolShutdown, () -> {
       try {
-        return ds.getConnection();
+        return pool.dataSource.getConnection();
       } catch (Exception e) {
         throw new DatabaseException("Unable to obtain a connection from DriverManager", e);
       }
-    }, options);
+    }, new OptionsDefault(pool.flavor));
   }
 
   /**

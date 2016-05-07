@@ -23,7 +23,7 @@
       <name>Garrick Olson</name>
       <email>garricko@stanford.edu</email>
       <organization>Stanford Medicine</organization>
-      <organizationUrl>http://med.stanford.edu</organizationUrl>
+      <organizationUrl>https://med.stanford.edu</organizationUrl>
     </developer>
   </developers>
 
@@ -51,19 +51,12 @@
     </repository>
   </distributionManagement>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>apache.snapshots</id>
-      <url>http://repository.apache.org/snapshots/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.2</version>
+        <version>3.3</version>
         <configuration>
           <source>8</source>
           <target>8</target>
@@ -73,13 +66,13 @@
         <dependencies>
           <dependency>
             <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-compiler-javac</artifactId>
-            <version>2.4</version>
+            <artifactId>plexus-compiler-javac-errorprone</artifactId>
+            <version>2.5</version>
           </dependency>
           <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-compiler-javac-errorprone</artifactId>
-            <version>2.4</version>
+            <groupId>com.google.errorprone</groupId>
+            <artifactId>error_prone_core</artifactId>
+            <version>2.0.9</version>
           </dependency>
         </dependencies>
       </plugin>

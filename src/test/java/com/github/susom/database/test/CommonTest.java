@@ -40,6 +40,7 @@ import org.junit.Test;
 
 import com.github.susom.database.ConstraintViolationException;
 import com.github.susom.database.Database;
+import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.Row;
@@ -879,6 +880,155 @@ public abstract class CommonTest {
         .argInteger(3).batch().insertBatch();
 
     assertEquals(3, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+  }
+
+  @Test
+  public void batchInsertPkLong() {
+    new Schema().addTable("dbtest")
+        .addColumn("pk").primaryKey().table()
+        .addColumn("s").asString(10).schema().execute(db);
+
+    db.toInsert("insert into dbtest (pk,s) values (?,?)")
+        .argPkLong(1L).argString("hi").batch()
+        .argPkLong(2L).argString("hello").batch()
+        .argPkLong(3L).argString("howdy").batch().insertBatch();
+
+    assertEquals(3, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (?,?)")
+          .argPkLong(1L).argString("hi").batch()
+          // argPkLong in different position ==> error
+          .argString("hello").argPkLong(2L).batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("The argPkLong() calls must be in the same position across batch records", e.getMessage());
+    }
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (?,?)")
+          // multiple pk calls ==> error
+          .argPkLong(1L).argPkLong(1L).batch()
+          .argPkLong(2L).argString("hello").batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("Only call one argPk*() method", e.getMessage());
+    }
+  }
+
+  @Test
+  public void batchInsertPkLongNamed() {
+    new Schema().addTable("dbtest")
+        .addColumn("pk").primaryKey().table()
+        .addColumn("s").asString(10).schema().execute(db);
+
+    db.toInsert("insert into dbtest (pk,s) values (:pk,?)")
+        .argPkLong("pk", 1L).argString("hi").batch()
+        .argPkLong("pk", 2L).argString("hello").batch()
+        .argPkLong("pk", 3L).argString("howdy").batch().insertBatch();
+
+    assertEquals(3, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+
+    db.toInsert("insert into dbtest (pk,s) values (:pk,?)")
+        .batch().argPkLong("pk", 4L).argString("hi").batch()
+        .argString("hello").argPkLong("pk", 5L).insertBatch();
+
+    assertEquals(5, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (:pk,?)")
+          // multiple pk calls ==> error
+          .argPkLong("pk", 1L).argPkLong(1L).batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("Only call one argPk*() method", e.getMessage());
+    }
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (?,?)")
+          .argPkLong("pk", 1L).argString("howdy").batch()
+          // different name for pk on second batch ==> error
+          .argPkLong("na", 2L).argString("hello").batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("The primary key argument name must match across batch rows", e.getMessage());
+    }
+  }
+
+  @Test
+  public void batchInsertPkSeq() {
+    db.dropSequenceQuietly("seq");
+    new Schema().addTable("dbtest")
+        .addColumn("pk").primaryKey().table()
+        .addColumn("s").asString(10).schema()
+        .addSequence("seq").schema().execute(db);
+
+    db.toInsert("insert into dbtest (pk,s) values (?,?)")
+        .argPkSeq("seq").argString("hi").batch()
+        .argPkSeq("seq").argString("hello").batch()
+        .argPkSeq("seq").argString("howdy").batch().insertBatch();
+
+    assertEquals(3, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (?,?)")
+          .argPkSeq("seq").argString("hi").batch()
+          // argPkLong in different position ==> error
+          .argString("hello").argPkSeq("seq").batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("The argPkSeq() calls must be in the same position across batch records", e.getMessage());
+    }
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (?,?)")
+          // multiple pk calls ==> error
+          .argPkSeq("seq").argPkSeq("seq").batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("Only call one argPk*() method", e.getMessage());
+    }
+  }
+
+  @Test
+  public void batchInsertPkSeqNamed() {
+    db.dropSequenceQuietly("seq");
+    new Schema().addTable("dbtest")
+        .addColumn("pk").primaryKey().table()
+        .addColumn("s").asString(10).schema()
+        .addSequence("seq").schema().execute(db);
+
+    db.toInsert("insert into dbtest (pk,s) values (:pk,?)")
+        .argPkSeq("pk", "seq").argString("hi").batch()
+        .argPkSeq("pk", "seq").argString("hello").batch()
+        .argPkSeq("pk", "seq").argString("howdy").batch().insertBatch();
+
+    assertEquals(3, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+
+    db.toInsert("insert into dbtest (pk,s) values (:pk,?)")
+        .batch().argPkSeq("pk", "seq").argString("hi").batch()
+        .argString("hello").argPkSeq("pk", "seq").insertBatch();
+
+    assertEquals(5, db.toSelect("select count(*) from dbtest").queryIntegerOrZero());
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (:pk,?)")
+          // multiple pk calls ==> error
+          .argPkSeq("pk", "seq").argPkSeq("pk", "seq").batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("Only call one argPk*() method", e.getMessage());
+    }
+
+    try {
+      db.toInsert("insert into dbtest (pk,s) values (?,?)")
+          .argPkSeq("pk", "seq").argString("howdy").batch()
+          // different name for pk on second batch ==> error
+          .argPkSeq("na", "seq").argString("hello").batch().insertBatch();
+      fail("Expecting an exception to be thrown");
+    } catch (DatabaseException e) {
+      assertEquals("The primary key argument name must match across batch rows", e.getMessage());
+    }
   }
 
   @Test

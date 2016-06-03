@@ -255,7 +255,8 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   public SqlInsert batch() {
-    if (!parameterList.isEmpty() || !parameterMap.isEmpty()) {
+    if ((parameterList != null && !parameterList.isEmpty())
+        || (parameterMap != null && !parameterMap.isEmpty())) {
       if (batched == null) {
         batched = new ArrayList<>();
       }
@@ -364,8 +365,11 @@ public class SqlInsertImpl implements SqlInsert {
   @Nonnull
   @Override
   public SqlInsert argPkSeq(@Nonnull String sequenceName) {
-    if (hasPk()) {
+    if (hasPk() && batched == null) {
       throw new DatabaseException("Only call one argPk*() method");
+    }
+    if (hasPk() && (!pkSeqName.equals(sequenceName) || pkPos != parameterList.size())) {
+      throw new DatabaseException("The argPkSeq() calls must be in the same position across batch records");
     }
     pkSeqName = sequenceName;
     SqlInsert sqlInsert = positionalArg(new RewriteArg(options.flavor().sequenceNextVal(sequenceName)));
@@ -376,8 +380,11 @@ public class SqlInsertImpl implements SqlInsert {
   @Override
   @Nonnull
   public SqlInsert argPkSeq(@Nonnull String argName, @Nonnull String sequenceName) {
-    if (hasPk()) {
+    if (hasPk() && batched == null) {
       throw new DatabaseException("Only call one argPk*() method");
+    }
+    if (hasPk() && !argName.equals(pkArgName)) {
+      throw new DatabaseException("The primary key argument name must match across batch rows");
     }
     pkArgName = argName;
     pkSeqName = sequenceName;
@@ -387,9 +394,13 @@ public class SqlInsertImpl implements SqlInsert {
   @Override
   @Nonnull
   public SqlInsert argPkLong(String argName, Long arg) {
-    if (hasPk()) {
+    if (hasPk() && batched == null) {
       throw new DatabaseException("Only call one argPk*() method");
     }
+    if (hasPk() && !argName.equals(pkArgName)) {
+      throw new DatabaseException("The primary key argument name must match across batch rows");
+    }
+    pkArgName = argName;
     pkLong = arg;
     return namedArg(argName, adaptor.nullNumeric(arg));
   }
@@ -397,11 +408,16 @@ public class SqlInsertImpl implements SqlInsert {
   @Override
   @Nonnull
   public SqlInsert argPkLong(Long arg) {
-    if (hasPk()) {
+    if (hasPk() && batched == null) {
       throw new DatabaseException("Only call one argPk*() method");
     }
+    if (hasPk() && pkPos != parameterList.size()) {
+      throw new DatabaseException("The argPkLong() calls must be in the same position across batch records");
+    }
     pkLong = arg;
-    return positionalArg(adaptor.nullNumeric(arg));
+    SqlInsert sqlInsert = positionalArg(adaptor.nullNumeric(arg));
+    pkPos = parameterList.size() - 1;
+    return sqlInsert;
   }
 
   private boolean hasPk() {

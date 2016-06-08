@@ -8,22 +8,21 @@ parts of the standard API. It uses standard Java types for all operations (as op
 and acts as a compatibility layer in making every attempt to behave consistently
 with all supported databases.
 
-The operations supported are the typical relational database ones. This is NOT an object-relational
-mapping layer or attempt to create a new language for querying.
+The operations supported are those typical of relational databases, and are expressed as SQL.
+This is NOT an object-relational mapping layer or an attempt to create a new query language.
 
 ### Features
-
-#### No checked exceptions
-
-All SQLExceptions are wrapped into a DatabaseException that inherits from
-RuntimeException. This makes code much cleaner because in server programming there is usually no
-way to recover from an error (it is handled in a generic way by higher level code).
 
 #### No way to control (mess up) resource handling
 
 Connections, prepared statements, result sets,
 and everything else that requires `close()` calls are hidden so there is no opportunity for client
 code to make a mistake and cause resource leaks.
+
+This style of using callbacks also fits nicely with asynchronous programming models.
+Support for [Vert.x](http://vertx.io/) is included (use DatabaseProviderVertx). Internal
+connection pooling is also included, leveraging the
+excellent [HikariCP library](https://brettwooldridge.github.io/HikariCP/).
 
 #### Type safe with null parameters
 
@@ -70,6 +69,12 @@ Parameter setting can also be deferred for convenient dynamic SQL generation:
 
   db.toSelect(sql).query(...);
 ```
+
+#### No checked exceptions
+
+All SQLExceptions are wrapped into a DatabaseException that inherits from
+RuntimeException. This makes code much cleaner because in server programming there is usually no
+way to recover from an error (it is handled in a generic way by higher level code).
 
 #### Correct handling of java.util.Date
 
@@ -135,8 +140,8 @@ well.
 ```
 Get database: 393.282ms(getConn=389.948ms,checkAutoCommit=1.056ms,dbInit=2.273ms)
 DDL: 15.658ms(prep=8.017ms,exec=7.619ms,close=0.021ms) create table dbtest (a numeric)
-Insert: 71.295ms(prep=65.093ms,exec=6.153ms,close=0.048ms) insert into dbtest (a) values (?)|insert into dbtest (a) values (23)
-Query: 38.627ms(prep=27.642ms,exec=9.846ms,read=1.013ms,close=0.125ms) select count(1) from dbtest|select count(1) from dbtest
+Insert: 71.295ms(prep=65.093ms,exec=6.153ms,close=0.048ms) insert into dbtest (a) values (?) ParamSql: insert into dbtest (a) values (23)
+Query: 38.627ms(prep=27.642ms,exec=9.846ms,read=1.013ms,close=0.125ms) select count(1) from dbtest
 ```
 
 #### Allocation of Primary Keys
@@ -147,8 +152,7 @@ way to do it that will be efficient on advanced databases, and still be able to
 transparently fall back to multiple database calls when necessary.
 
 ```java
-  Long pk = db.toInsert(
-      "insert into t (pk,s) values (?,?)")
+  Long pk = db.toInsert("insert into t (pk,s) values (?,?)")
       .argPkSeq("pk_seq")
       .argString("Hi")
       .insertReturningPkSeq("pk");
@@ -162,16 +166,13 @@ inserted a database timestamp and need that value as well to update an object in
       .argPkSeq("pk_seq")
       .argDateNowPerDb()
       .argString("Hi")
-      .insertReturning("t", "pk", new RowsHandler<Foo>() {
-        @Override
-        public Foo process(Rows rs) throws Exception {
+      .insertReturning("t", "pk", rs -> {
           ...
           if (rs.next()) {
             ... = rs.getLongOrNull(1); // value of pk
             ... = rs.getDateOrNull(2); // value of d
           }
           ...
-        }
       }, "d");
 ```
 
@@ -209,18 +210,15 @@ Basic example including setup:
 
 ```java
   String url = "jdbc:derby:testdb;create=true";
-  DatabaseProvider.fromDriverManager(url).transact(new DbRun() {
-    @Override
-    public void run(Provider<Database> dbp) {
-      Database db = dbp.get();
-      db.ddl("drop table t").executeQuietly();
-      db.ddl("create table t (a numeric)").execute();
+  DatabaseProvider.fromDriverManager(url).transact(dbs -> {
+      Database db = dbs.get();
+      db.dropTableQuietly("t");
+      new Schema().addTable("t").addColumn("a").asInteger().schema().execute(db);
       db.toInsert("insert into t (a) values (?)").argInteger(32).insert(1);
       db.toUpdate("update t set a=:val").argInteger("val", 23).update();
 
       Long rows = db.toSelect("select count(1) from t").queryLongOrNull();
       System.out.println("Rows: " + rows);
-    }
   });
 ```
 
@@ -229,14 +227,14 @@ is not because it is left as an exercise for the reader, but because it is handl
 automatically.
 
 For a more realistic server-side example, a container will usually manage creation
-of the Database or Provider<Database>, and business layer code will declare a 
+of the Database or Supplier<Database>, and business layer code will declare a
 dependency on this:
 
 ```java
 public class MyBusiness {
-  private Provider<Database> db;
+  private Supplier<Database> db;
 
-  public MyBusiness(Provider<Database> db) {
+  public MyBusiness(Supplier<Database> db) {
     this.db = db;
   }
 
@@ -252,34 +250,10 @@ public class MyBusiness {
 
   // Note we use only java.util.Date, not java.sql.*
   public List<Date> doMoreStuff(Date after) {
-    return db.get().toSelect("select my_date from a where b > ?").argDate(after)
-           .query(new RowsHandler<List<Date>>() {
-              @Override
-              public List<Date> process(Rows rs) throws Exception {
-                List<Date> result = new ArrayList<>();
-                while (rs.next()) {
-                  result.add(rs.getDateOrNull("my_date"));
-                }
-                return result;
-              }
-           });
+    return db.get().toSelect("select my_date from a where b > ?")
+        .argDate(after).queryMany(r -> rs.getDateOrNull("my_date"));
   }
 }
-```
-
-Note the handlers are Java 8 closure-friendly, so the last method above could be written:
-
-```java
-  public List<Date> doMoreStuff(Date after) {
-    return db.get().toSelect("select my_date from a where b > ?").argDate(after)
-           .query(rs -> {
-              List<Date> result = new ArrayList<>();
-              while (rs.next()) {
-                result.add(rs.getDateOrNull("my_date"));
-              }
-              return result;
-           });
-  }
 ```
 
 Of course there are also convenience methods for simple cases like
@@ -300,7 +274,7 @@ The library is available in the public Maven repository:
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
-  <version>1.3</version>
+  <version>2.0</version>
 </dependency>
 ```
 
@@ -314,11 +288,11 @@ some of the tests:
 
 ### Limitations
 
-The functionality is currently tested with Oracle, Derby, and PostgreSQL. It
-won't work out of the box with other databases right now, but should in the future.
+The functionality is currently tested with Oracle, PostgreSQL, HyperSQL (HSQLDB),
+SQL Server, and Derby. It won't work out of the box with other databases right now,
+but should in the future.
 
-The library is compiled and tested with Java 7, so it won't work with Java 6.
-
-There is currently no support for batch inserts (hopefully coming soon).
+The library is compiled and tested with Java 8, so it won't work with Java 7 and earlier.
+If you really must use Java 7, grab the latest 1.x release of this library.
 
 No fancy things with results (e.g. scrolling or updating result sets).

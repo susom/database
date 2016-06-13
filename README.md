@@ -15,14 +15,79 @@ This is NOT an object-relational mapping layer or an attempt to create a new que
 
 #### No way to control (mess up) resource handling
 
-Connections, prepared statements, result sets,
-and everything else that requires `close()` calls are hidden so there is no opportunity for client
-code to make a mistake and cause resource leaks.
+Connections, prepared statements, and result sets are hidden so
+there is no opportunity for client code to make a mistake and
+cause resource leaks. For example, the following code is complete
+and correct with respect to resources, exceptions, and transactions.
+
+```java
+  String url = "jdbc:hsqldb:file:hsqldb;shutdown=true";
+  Builder dbb = DatabaseProvider.fromDriverManager(url);
+
+  dbb.transact(db -> {
+      String s = db.get().toSelect("select s from t where i=?")
+          .argInteger(5)
+          .queryOneOrThrow(r -> r.getString());
+      System.out.println("Result: " + s);
+  });
+```
 
 This style of using callbacks also fits nicely with asynchronous programming models.
-Support for [Vert.x](http://vertx.io/) is included (use DatabaseProviderVertx). Internal
-connection pooling is also included, leveraging the
-excellent [HikariCP library](https://brettwooldridge.github.io/HikariCP/).
+Support for [Vert.x](http://vertx.io/) is included (use
+[DatabaseProviderVertx](src/main/java/com/github/susom/database/DatabaseProviderVertx.java)).
+There is also a full [Vert.x server example](demo/src/main/java/VertxServer.java).
+
+#### Facilitate static analysis
+
+Annotations are included so you can use the [Checker Framework](http://types.cs.washington.edu/checker-framework/)
+static analysis tool to prove there are no SQL Injection vulnerabilities in your application.
+Make your automated build fail immediately when a vulnerability is introduced.
+
+```java
+  // Checker will fail the build for this
+  db.toSelect("select a from t where b=" + userInput).query(...);
+```
+
+Of course, there are times when you need to dynamically construct SQL,
+so there is a safe way to do that as well:
+
+```java
+  Sql sql = new Sql();
+
+  sql.append("select a from b where c=?").argInteger(1);
+
+  if (d) {
+    sql.append(" and d=?").argString("foo");
+    // Note the following would also fail with Checker
+    //sql.append(" and d=" + userInput);
+  }
+
+  db.toSelect(sql).query(...);
+```
+
+#### Connection pooling
+
+Internal connection pooling is included, leveraging the excellent
+[HikariCP library](https://brettwooldridge.github.io/HikariCP/).
+
+```java
+  String url = "jdbc:hsqldb:file:hsqldb;shutdown=true";
+  Config config = Config.from().value("database.url", url).get();
+  Builder dbb = DatabaseProvider.pooledBuilder(url);
+
+  for (...) {
+    dbb.transact(db -> {
+        ...
+    });
+  }
+
+  // ... much later, on shutdown
+  dbb.close();
+```
+
+Due to the normal lifetime of a connection pool, you are obligated to
+explicitly shutdown the pool (for example, in a JVM shutdown handler)
+when it is no longer needed.
 
 #### Type safe with null parameters
 
@@ -54,20 +119,6 @@ parameters can be mixed anywhere among the positional ones.
       .argString("value for b")
       .argString(":a", "value for a")
       .queryLongOrNull();
-```
-
-Parameter setting can also be deferred for convenient dynamic SQL generation:
-
-```java
-  Sql sql = new Sql();
-
-  sql.append("select a from b where c=?").argInteger(1);
-
-  if (d) {
-    sql.append(" and d=?").argString("foo");
-  }
-
-  db.toSelect(sql).query(...);
 ```
 
 #### No checked exceptions
@@ -209,7 +260,7 @@ API also smooths over some syntax differences like sequence creation.
 Basic example including setup:
 
 ```java
-  String url = "jdbc:derby:testdb;create=true";
+  String url = "jdbc:hsqldb:file:hsqldb;shutdown=true";
   DatabaseProvider.fromDriverManager(url).transact(dbs -> {
       Database db = dbs.get();
       db.dropTableQuietly("t");

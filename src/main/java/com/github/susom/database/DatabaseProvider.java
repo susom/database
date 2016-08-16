@@ -187,19 +187,27 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
                                            final String user, final String password) {
     Options options = new OptionsDefault(flavor);
 
-    return new BuilderImpl(null, new Provider<Connection>() {
-      @Override
-      public Connection get() {
-        try {
-          if (info != null) {
-            return DriverManager.getConnection(url, info);
-          } else if (user != null) {
-            return DriverManager.getConnection(url, user, password);
-          }
-          return DriverManager.getConnection(url);
-        } catch (Exception e) {
-          throw new DatabaseException("Unable to obtain a connection from DriverManager", e);
+    // Make sure DriverManager can locate the driver
+    try {
+      DriverManager.getDriver(url);
+    } catch (SQLException e) {
+      try {
+        Class.forName(Flavor.driverForJdbcUrl(url));
+      } catch (ClassNotFoundException e1) {
+        throw new DatabaseException("Couldn't locate JDBC driver - try setting -Djdbc.drivers=some.Driver", e1);
+      }
+    }
+
+    return new BuilderImpl(null, () -> {
+      try {
+        if (info != null) {
+          return DriverManager.getConnection(url, info);
+        } else if (user != null) {
+          return DriverManager.getConnection(url, user, password);
         }
+        return DriverManager.getConnection(url);
+      } catch (Exception e) {
+        throw new DatabaseException("Unable to obtain a connection from DriverManager", e);
       }
     }, options);
   }

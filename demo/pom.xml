@@ -21,7 +21,12 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
-      <version>3.2.0</version>
+      <version>3.3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.3.9.v20160517</version>
     </dependency>
 
     <dependency>
@@ -70,7 +75,7 @@
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
-      <version>2.4.3</version>
+      <version>2.4.7</version>
       <optional>true</optional>
     </dependency>
   </dependencies>

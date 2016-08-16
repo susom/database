@@ -3,8 +3,6 @@ import java.util.Date;
 import javax.inject.Provider;
 
 import com.github.susom.database.Database;
-import com.github.susom.database.Rows;
-import com.github.susom.database.RowsHandler;
 
 /**
  * Create, read, update, and delete sample database objects.
@@ -44,20 +42,14 @@ public class SampleDao {
   public Sample findSampleById(final Long sampleId, boolean lockRow) {
     return dbp.get().toSelect("select sample_name, update_sequence, update_time from sample where sample_id=?"
         + (lockRow ? " for update" : ""))
-        .argLong(sampleId).query(new RowsHandler<Sample>() {
-      @Override
-      public Sample process(Rows rs) throws Exception {
-        Sample result = null;
-        if (rs.next()) {
-          result = new Sample();
+        .argLong(sampleId).queryOneOrNull(r -> {
+          Sample result = new Sample();
           result.setSampleId(sampleId);
-          result.setName(rs.getStringOrNull());
-          result.setUpdateSequence(rs.getIntegerOrNull());
-          result.setUpdateTime(rs.getDateOrNull());
-        }
-        return result;
-      }
-    });
+          result.setName(r.getStringOrNull());
+          result.setUpdateSequence(r.getIntegerOrNull());
+          result.setUpdateTime(r.getDateOrNull());
+          return result;
+        });
   }
 
   public void updateSample(Sample sample, Long userIdMakingChange) {

@@ -11,7 +11,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Demo of using some com.github.susom.database classes with Vertx and Derby.
+ * Demo of using some com.github.susom.database classes with Vertx and HyperSQL.
  */
 public class VertxServer {
   private static final Logger log = LoggerFactory.getLogger(VertxServer.class);

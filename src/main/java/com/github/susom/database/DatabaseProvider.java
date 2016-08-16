@@ -815,6 +815,8 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
      * @param code the code you want to run as a transaction with a Database
      */
     void transact(DbCodeTx code);
+
+    void close();
   }
 
   private static class BuilderImpl implements Builder {
@@ -1032,6 +1034,11 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
       @Override
       public void transact(DbCodeTx tx) {
         create().transact(tx);
+      }
+
+      @Override
+      public void close() {
+        log.debug("Ignoring close call on fakeBuilder");
       }
     };
   }

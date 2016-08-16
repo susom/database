@@ -26,6 +26,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
@@ -48,6 +49,7 @@ import com.zaxxer.hikari.HikariDataSource;
  */
 public final class DatabaseProvider implements Provider<Database>, Supplier<Database> {
   private static final Logger log = LoggerFactory.getLogger(DatabaseProvider.class);
+  private static final AtomicInteger poolNameCounter = new AtomicInteger(1);
   private DatabaseProvider delegateTo = null;
   private Provider<Connection> connectionProvider;
   private boolean txStarted = false;
@@ -1106,6 +1108,10 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     }
 
     HikariDataSource ds = new HikariDataSource();
+    // If we don't provide a pool name it will automatically generate one, but
+    // the way it does that requires PropertyPermission("*", "read,write") and
+    // will fail if the security sandbox is enabled
+    ds.setPoolName(config.getString("database.pool.name", "HikariPool-" + poolNameCounter.getAndAdd(1)));
     ds.setJdbcUrl(url);
     String driverClassName = config.getString("database.driver.class", Flavor.driverForJdbcUrl(url));
     ds.setDriverClassName(driverClassName);

@@ -99,4 +99,10 @@ public interface Config {
    * @throws ConfigMissingException if no value could be read for the specified key
    */
   boolean getBooleanOrThrow(@Nonnull String key);
+
+  /**
+   * Show where configuration is coming from. This is useful to drop in your logs
+   * for troubleshooting.
+   */
+  String sources();
 }

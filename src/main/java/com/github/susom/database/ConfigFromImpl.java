@@ -6,11 +6,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Access configuration properties from a variety of standard sources,
@@ -19,7 +17,6 @@ import org.slf4j.LoggerFactory;
  * @author garricko
  */
 public class ConfigFromImpl implements ConfigFrom {
-  private static final Logger log = LoggerFactory.getLogger(ConfigFromImpl.class);
   private List<Config> searchPath = new ArrayList<>();
 
   public ConfigFromImpl() {
@@ -32,13 +29,17 @@ public class ConfigFromImpl implements ConfigFrom {
 
   @Override
   public ConfigFrom custom(ConfigStrings keyValueLookup) {
-    searchPath.add(new ConfigImpl(keyValueLookup));
+    return custom(keyValueLookup, "custom()");
+  }
+
+  private ConfigFrom custom(ConfigStrings keyValueLookup, String source) {
+    searchPath.add(new ConfigImpl(keyValueLookup, source));
     return this;
   }
 
   @Override
   public ConfigFrom value(String key, String value) {
-    return custom(k -> k.equals(key) ? value : null);
+    return custom(k -> k.equals(key) ? value : null, "value(" + key + ")");
   }
 
   @Override
@@ -54,12 +55,12 @@ public class ConfigFromImpl implements ConfigFrom {
 
   @Override
   public ConfigFrom systemProperties() {
-    return custom(System::getProperty);
+    return custom(System::getProperty, "systemProperties()");
   }
 
   @Override
   public ConfigFrom properties(Properties properties) {
-    return custom(properties::getProperty);
+    return custom(properties::getProperty, "properties()");
   }
 
   @Override
@@ -89,15 +90,16 @@ public class ConfigFromImpl implements ConfigFrom {
         try {
           Properties properties = new Properties();
           properties.load(new InputStreamReader(new FileInputStream(file), decoder));
-          searchPath.add(new ConfigImpl(properties::getProperty));
-          if (log.isTraceEnabled()) {
-            log.trace("Using properties from file: " + file.getAbsolutePath());
-          }
+          searchPath.add(new ConfigImpl(properties::getProperty, "propertyFile(" + file.getAbsolutePath() + ")"));
         } catch (Exception e) {
-          // Don't care, fallback to system properties
-          if (log.isTraceEnabled()) {
-            log.trace("Unable to load properties from file: " + file.getAbsolutePath(), e);
+          // Put a "fake" provider in so we can see it failed
+          String fileName = file.getName();
+          try {
+            fileName = file.getAbsolutePath();
+          } catch (Exception ignored) {
+            // Fall back to relative name
           }
+          custom(k -> null, "Ignored: propertyFile(" + fileName + ") " + e.getClass().getSimpleName());
         }
       }
     }
@@ -113,7 +115,7 @@ public class ConfigFromImpl implements ConfigFrom {
         }
       }
       return null;
-    }));
+    }, indentedSources("includePrefix" + Arrays.asList(prefixes))));
   }
 
   @Override
@@ -123,7 +125,7 @@ public class ConfigFromImpl implements ConfigFrom {
         return lookup(key);
       }
       return null;
-    }));
+    }, indentedSources("includeRegex(" + regex + ")")));
   }
 
   @Override
@@ -135,7 +137,7 @@ public class ConfigFromImpl implements ConfigFrom {
         }
       }
       return lookup(key);
-    }));
+    }, indentedSources("excludePrefix" + Arrays.asList(prefixes))));
   }
 
   @Override
@@ -145,7 +147,7 @@ public class ConfigFromImpl implements ConfigFrom {
         return null;
       }
       return lookup(key);
-    }));
+    }, indentedSources("excludeRegex(" + regex + ")")));
   }
 
   @Override
@@ -165,7 +167,7 @@ public class ConfigFromImpl implements ConfigFrom {
         }
       }
       return null;
-    }));
+    }, indentedSources("removePrefix" + Arrays.asList(prefixes))));
   }
 
   @Override
@@ -176,12 +178,20 @@ public class ConfigFromImpl implements ConfigFrom {
       } else {
         return null;
       }
-    }));
+    }, indentedSources("addPrefix(" + prefix + ")")));
   }
 
   @Override
   public Config get() {
-    return new ConfigImpl(this::lookup);
+    return new ConfigImpl(this::lookup, indentedSources("Config"));
+  }
+
+  private String indentedSources(String label) {
+    StringBuilder buf = new StringBuilder(label);
+    for (Config config : searchPath) {
+      buf.append(config.sources().replaceAll("(?s)^|\\n", "\n  "));
+    }
+    return buf.toString();
   }
 
   private String lookup(String key) {

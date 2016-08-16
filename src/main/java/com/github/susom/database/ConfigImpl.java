@@ -19,10 +19,12 @@ import org.slf4j.LoggerFactory;
 public class ConfigImpl implements Config {
   private static final Logger log = LoggerFactory.getLogger(ConfigFromImpl.class);
   private final ConfigStrings provider;
+  private final String sources;
   private Set<String> failedKeys = new HashSet<>();
 
-  public ConfigImpl(ConfigStrings provider) {
+  public ConfigImpl(ConfigStrings provider, String sources) {
     this.provider = provider;
+    this.sources = sources;
   }
 
   @Override
@@ -30,6 +32,7 @@ public class ConfigImpl implements Config {
     return cleanString(key);
   }
 
+  @Nonnull
   @Override
   public String getStringOrThrow(@Nonnull String key) {
     return nonnull(key, getString(key));
@@ -202,6 +205,11 @@ public class ConfigImpl implements Config {
       return false;
     }
     throw new ConfigMissingException("Unrecognized boolean value for config key: " + key);
+  }
+
+  @Override
+  public String sources() {
+    return sources;
   }
 
   private <T> T nonnull(String key, T value) {

@@ -8,6 +8,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 
 /**
  * This is a convenience class to work-around issues with using the SLF4J
@@ -34,6 +35,43 @@ public class VertxUtil {
     Map mdc = MDC.getCopyOfContextMap();
 
     vertx.<T>executeBlocking(f -> {
+      try {
+        if (mdc != null) {
+          MDC.setContextMap(mdc);
+        }
+        future.handle(f);
+      } finally {
+        MDC.clear();
+      }
+    }, ordered, h -> {
+      try {
+        if (mdc != null) {
+          MDC.setContextMap(mdc);
+        }
+        handler.handle(h);
+      } finally {
+        MDC.clear();
+      }
+    });
+  }
+
+  /**
+   * Equivalent to {@link Vertx#executeBlocking(Handler, Handler)},
+   * but preserves the {@link MDC} correctly.
+   */
+  public static <T> void executeBlocking(WorkerExecutor executor, Handler<Future<T>> future, Handler<AsyncResult<T>> handler) {
+    executeBlocking(executor, future, true, handler);
+  }
+
+  /**
+   * Equivalent to {@link Vertx#executeBlocking(Handler, boolean, Handler)},
+   * but preserves the {@link MDC} correctly.
+   */
+  public static <T> void executeBlocking(WorkerExecutor executor, Handler<Future<T>> future, boolean ordered,
+                                         Handler<AsyncResult<T>> handler) {
+    Map mdc = MDC.getCopyOfContextMap();
+
+    executor.<T>executeBlocking(f -> {
       try {
         if (mdc != null) {
           MDC.setContextMap(mdc);

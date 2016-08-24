@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
@@ -33,6 +34,7 @@ import com.github.susom.database.DatabaseProvider.Pool;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.WorkerExecutor;
 
 /**
  * This is a lazy provider for Database instances. It helps avoid allocating connection
@@ -44,29 +46,30 @@ import io.vertx.core.Vertx;
  */
 public final class DatabaseProviderVertx implements Supplier<Database> {
   private static final Logger log = LoggerFactory.getLogger(DatabaseProviderVertx.class);
+  private static final AtomicInteger poolNameCounter = new AtomicInteger(1);
+  private WorkerExecutor executor;
   private DatabaseProviderVertx delegateTo = null;
-  private Vertx vertx;
   private Provider<Connection> connectionProvider;
   private boolean txStarted = false;
   private Connection connection = null;
   private Database database = null;
   private final Options options;
 
-  public DatabaseProviderVertx(Vertx vertx, Provider<Connection> connectionProvider, Options options) {
-    if (vertx == null) {
-      throw new IllegalArgumentException("Vertx cannot be null");
+  public DatabaseProviderVertx(WorkerExecutor executor, Provider<Connection> connectionProvider, Options options) {
+    if (executor == null) {
+      throw new IllegalArgumentException("Worker executor cannot be null");
     }
     if (connectionProvider == null) {
       throw new IllegalArgumentException("Connection provider cannot be null");
     }
-    this.vertx = vertx;
+    this.executor = executor;
     this.connectionProvider = connectionProvider;
     this.options = options;
   }
 
   private DatabaseProviderVertx(DatabaseProviderVertx delegateTo) {
     this.delegateTo = delegateTo;
-    this.vertx = delegateTo.vertx;
+    this.executor = delegateTo.executor;
     this.options = delegateTo.options;
   }
 
@@ -108,7 +111,17 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    */
   @CheckReturnValue
   public static Builder fromPool(Vertx vertx, Pool pool) {
-    return new BuilderImpl(vertx, pool.poolShutdown, () -> {
+    WorkerExecutor executor = vertx.createSharedWorkerExecutor("DbWorker-" + poolNameCounter.getAndAdd(1), pool.size);
+    return new BuilderImpl(executor, () -> {
+      try {
+        executor.close();
+      } catch (Exception e) {
+        log.warn("Problem closing database worker executor", e);
+      }
+      if (pool.poolShutdown != null) {
+        pool.poolShutdown.close();
+      }
+    }, () -> {
       try {
         return pool.dataSource.getConnection();
       } catch (Exception e) {
@@ -153,7 +166,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    * loop thread (the same thread that is calling this method).
    */
   public <T> void transactAsync(final DbCodeTyped<T> code, Handler<AsyncResult<T>> resultHandler) {
-    VertxUtil.executeBlocking(vertx, future -> {
+    VertxUtil.executeBlocking(executor,  future -> {
       try {
         T returnValue = null;
         boolean complete = false;
@@ -216,7 +229,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    * loop thread (the same thread that is calling this method).
    */
   public <T> void transactAsync(final DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler) {
-    VertxUtil.executeBlocking(vertx, future -> {
+    VertxUtil.executeBlocking(executor, future -> {
       try {
         T returnValue = null;
         Transaction tx = new TransactionImpl();
@@ -344,13 +357,14 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   }
 
   private static class BuilderImpl implements Builder {
-    private final Vertx vertx;
+    private final WorkerExecutor executor;
     private Closeable pool;
     private final Provider<Connection> connectionProvider;
     private final Options options;
 
-    private BuilderImpl(Vertx vertx, Closeable pool, Provider<Connection> connectionProvider, Options options) {
-      this.vertx = vertx;
+    private BuilderImpl(WorkerExecutor executor, Closeable pool, Provider<Connection> connectionProvider,
+                        Options options) {
+      this.executor = executor;
       this.pool = pool;
       this.connectionProvider = connectionProvider;
       this.options = options;
@@ -358,12 +372,12 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withOptions(OptionsOverride options) {
-      return new BuilderImpl(vertx, pool, connectionProvider, options.withParent(this.options));
+      return new BuilderImpl(executor, pool, connectionProvider, options.withParent(this.options));
     }
 
     @Override
     public Builder withSqlParameterLogging() {
-      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(executor, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean isLogParameters() {
           return true;
@@ -373,7 +387,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withSqlInExceptionMessages() {
-      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(executor, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean isDetailedExceptions() {
           return true;
@@ -383,7 +397,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withDatePerAppOnly() {
-      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(executor, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean useDatePerAppOnly() {
           return true;
@@ -393,7 +407,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withTransactionControl() {
-      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(executor, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean allowTransactionControl() {
           return true;
@@ -403,7 +417,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withTransactionControlSilentlyIgnored() {
-      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(executor, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean ignoreTransactionControl() {
           return true;
@@ -413,7 +427,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public Builder withConnectionAccess() {
-      return new BuilderImpl(vertx, pool, connectionProvider, new OptionsOverride() {
+      return new BuilderImpl(executor, pool, connectionProvider, new OptionsOverride() {
         @Override
         public boolean allowConnectionAccess() {
           return true;
@@ -423,7 +437,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     @Override
     public DatabaseProviderVertx create() {
-      return new DatabaseProviderVertx(vertx, connectionProvider, options);
+      return new DatabaseProviderVertx(executor, connectionProvider, options);
     }
 
     @Override

@@ -1091,11 +1091,13 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
   public static class Pool {
     public DataSource dataSource;
+    public int size;
     public Flavor flavor;
     public Closeable poolShutdown;
 
-    public Pool(DataSource dataSource, Flavor flavor, Closeable poolShutdown) {
+    public Pool(DataSource dataSource, int size, Flavor flavor, Closeable poolShutdown) {
       this.dataSource = dataSource;
+      this.size = size;
       this.flavor = flavor;
       this.poolShutdown = poolShutdown;
     }
@@ -1131,6 +1133,6 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
     log.debug("Created '" + flavor + "' connection pool of size " + poolSize + " using driver " + driverClassName);
 
-    return new Pool(ds, flavor, ds);
+    return new Pool(ds, poolSize, flavor, ds);
   }
 }

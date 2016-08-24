@@ -141,14 +141,15 @@ public class VertxLoggingTest {
             context.assertNull(MDC.get("requestId"));
             MDC.clear();
           });
+          // This should get cleared automatically after this block finishes
           MDC.put("userId", "jim");
         });
+        // This should get cleared automatically after this block finishes
         MDC.put("userId", "jim");
       });
 
-      // Simulate the event loop doing something else while we
-      // are processing, which may mess up the MDC
-      MDC.put("userId", "jim");
+      // Clear here because the next timer execution expects it to be cleared
+      MDC.clear();
     });
   }
 }

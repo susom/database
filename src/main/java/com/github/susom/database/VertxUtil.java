@@ -19,6 +19,34 @@ import io.vertx.core.WorkerExecutor;
  */
 public class VertxUtil {
   /**
+   * Wrap a Handler in a way that will preserve the SLF4J MDC context.
+   * The context from the current thread at the time of this method call
+   * will be cached and restored within the wrapper at the time the
+   * handler is invoked.
+   */
+  public static <T> Handler<T> mdc(Handler<T> handler) {
+    Map mdc = MDC.getCopyOfContextMap();
+
+    return t -> {
+      Map restore = MDC.getCopyOfContextMap();
+      try {
+        if (mdc == null) {
+          MDC.clear();
+        } else {
+          MDC.setContextMap(mdc);
+        }
+        handler.handle(t);
+      } finally {
+        if (restore == null) {
+          MDC.clear();
+        } else {
+          MDC.setContextMap(restore);
+        }
+      }
+    };
+  }
+
+  /**
    * Equivalent to {@link Vertx#executeBlocking(Handler, Handler)},
    * but preserves the {@link MDC} correctly.
    */
@@ -32,27 +60,7 @@ public class VertxUtil {
    */
   public static <T> void executeBlocking(Vertx vertx, Handler<Future<T>> future, boolean ordered,
                                          Handler<AsyncResult<T>> handler) {
-    Map mdc = MDC.getCopyOfContextMap();
-
-    vertx.<T>executeBlocking(f -> {
-      try {
-        if (mdc != null) {
-          MDC.setContextMap(mdc);
-        }
-        future.handle(f);
-      } finally {
-        MDC.clear();
-      }
-    }, ordered, h -> {
-      try {
-        if (mdc != null) {
-          MDC.setContextMap(mdc);
-        }
-        handler.handle(h);
-      } finally {
-        MDC.clear();
-      }
-    });
+    vertx.executeBlocking(mdc(future), ordered, mdc(handler));
   }
 
   /**
@@ -69,26 +77,6 @@ public class VertxUtil {
    */
   public static <T> void executeBlocking(WorkerExecutor executor, Handler<Future<T>> future, boolean ordered,
                                          Handler<AsyncResult<T>> handler) {
-    Map mdc = MDC.getCopyOfContextMap();
-
-    executor.<T>executeBlocking(f -> {
-      try {
-        if (mdc != null) {
-          MDC.setContextMap(mdc);
-        }
-        future.handle(f);
-      } finally {
-        MDC.clear();
-      }
-    }, ordered, h -> {
-      try {
-        if (mdc != null) {
-          MDC.setContextMap(mdc);
-        }
-        handler.handle(h);
-      } finally {
-        MDC.clear();
-      }
-    });
+    executor.executeBlocking(mdc(future), ordered, mdc(handler));
   }
 }

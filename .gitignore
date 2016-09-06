@@ -5,5 +5,5 @@ classes
 .idea
 local.properties
 .vagrant
-
+.DS_Store
 dependency-reduced-pom.xml

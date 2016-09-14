@@ -161,22 +161,37 @@ public interface SqlInsert {
    */
   SqlInsert batch();
 
-  @CheckReturnValue
+  /**
+   * Perform the insert into the database without any verification of how many rows
+   * were affected.
+   *
+   * @return the number of rows affected
+   */
   int insert();
 
+  /**
+   * Perform the insert into the database. This will automatically verify
+   * that the specified number of rows was affected, and throw a {@link WrongNumberOfRowsException}
+   * if it does not match.
+   */
   void insert(int expectedRowsUpdated);
 
   /**
    * Insert multiple rows in one database call. This will automatically verify
-   * that exactly 1 row is inserted for each row of parameters.
+   * that exactly 1 row is affected for each row of parameters.
    */
   void insertBatch();
 
   /**
    * Insert multiple rows in one database call. This returns the results for
    * each row so you can check them yourself.
+   *
+   * @return an array with an element for each row in the batch; the value
+   *         of each array indicates how many rows were affected; note that
+   *         some database/driver combinations do now return this information
+   *         (for example, older versions of Oracle return -2 rather than the
+   *         number of rows)
    */
-  @CheckReturnValue
   int[] insertBatchUnchecked();
 
   /**

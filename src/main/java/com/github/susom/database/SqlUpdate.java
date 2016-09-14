@@ -163,13 +163,15 @@ public interface SqlUpdate {
   @CheckReturnValue
   SqlUpdate apply(Apply apply);
 
-  @CheckReturnValue
+  /**
+   * Execute the SQL update and return the number of rows was affected.
+   */
   int update();
 
   /**
-   * Execute the SQL update and check that the expected number of rows was updated.
+   * Execute the SQL update and check that the expected number of rows was affected.
    *
-   * @throws WrongNumberOfRowsException if the number of rows updated did not match
+   * @throws WrongNumberOfRowsException if the number of rows affected did not match
    *         the value provided
    */
   void update(int expectedRowsUpdated);

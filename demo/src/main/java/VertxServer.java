@@ -2,6 +2,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.susom.database.Config;
+import com.github.susom.database.ConfigFrom;
 import com.github.susom.database.DatabaseProviderVertx;
 import com.github.susom.database.DatabaseProviderVertx.Builder;
 import com.github.susom.database.Metric;
@@ -25,7 +26,7 @@ public class VertxServer {
 
     // Set up Vertx and database access
     Vertx vertx = Vertx.vertx();
-    Config config = Config.from().custom(jsonConfig::getString).get();
+    Config config = ConfigFrom.firstOf().custom(jsonConfig::getString).get();
     Builder dbb = DatabaseProviderVertx.pooledBuilder(vertx, config)
         .withSqlInExceptionMessages()
         .withSqlParameterLogging();

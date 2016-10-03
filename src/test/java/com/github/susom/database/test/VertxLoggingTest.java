@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import com.github.susom.database.Config;
+import com.github.susom.database.ConfigFrom;
 import com.github.susom.database.DatabaseProviderVertx;
 import com.github.susom.database.DatabaseProviderVertx.Builder;
 
@@ -39,7 +40,7 @@ public class VertxLoggingTest {
 
     Vertx vertx = Vertx.vertx();
 
-    Config config = Config.from().value("database.url", "jdbc:derby:target/testdb;create=true").get();
+    Config config = ConfigFrom.firstOf().value("database.url", "jdbc:derby:target/testdb;create=true").get();
     Builder db = DatabaseProviderVertx.pooledBuilder(vertx, config).withSqlParameterLogging();
 
     vertx.createHttpServer()

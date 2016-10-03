@@ -24,6 +24,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.susom.database.Config;
+import com.github.susom.database.ConfigFrom;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.Schema;
@@ -41,7 +42,7 @@ public class HsqldbTest extends CommonTest {
   @Override
   protected DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception {
     String propertiesFile = System.getProperty("local.properties", "local.properties");
-    Config config = Config.from()
+    Config config = ConfigFrom.firstOf()
         .systemProperties()
         .propertyFile(propertiesFile)
         .excludePrefix("database.")

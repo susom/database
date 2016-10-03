@@ -2,6 +2,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.susom.database.Config;
+import com.github.susom.database.ConfigFrom;
 import com.github.susom.database.DatabaseProviderVertx;
 import com.github.susom.database.DatabaseProviderVertx.Builder;
 import com.github.susom.database.Metric;
@@ -33,7 +34,7 @@ public class VertxServerFastAndSlow {
   private final Object lock = new Object();
 
   public void run() throws Exception {
-    Config config = Config.from().value("database.url", "jdbc:hsqldb:file:target/hsqldb;shutdown=true").get();
+    Config config = ConfigFrom.firstOf().value("database.url", "jdbc:hsqldb:file:target/hsqldb;shutdown=true").get();
     Vertx vertx = Vertx.vertx();
     Builder fastDb = DatabaseProviderVertx.pooledBuilder(vertx, config);
     Builder slowDb = DatabaseProviderVertx.pooledBuilder(vertx, config);

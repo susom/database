@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Access configuration properties from a variety of standard sources,
@@ -28,11 +30,11 @@ public class ConfigFromImpl implements ConfigFrom {
   }
 
   @Override
-  public ConfigFrom custom(ConfigStrings keyValueLookup) {
-    return custom(keyValueLookup, "custom()");
+  public ConfigFrom custom(Function<String, String> keyValueLookup) {
+    return custom(keyValueLookup::apply, "custom()");
   }
 
-  private ConfigFrom custom(ConfigStrings keyValueLookup, String source) {
+  private ConfigFrom custom(Function<String, String> keyValueLookup, String source) {
     searchPath.add(new ConfigImpl(keyValueLookup, source));
     return this;
   }
@@ -49,13 +51,18 @@ public class ConfigFromImpl implements ConfigFrom {
   }
 
   @Override
-  public ConfigFrom config(ConfigFrom config) {
+  public ConfigFrom config(Supplier<Config> config) {
     return config(config.get());
   }
 
   @Override
   public ConfigFrom systemProperties() {
     return custom(System::getProperty, "systemProperties()");
+  }
+
+  @Override
+  public ConfigFrom env() {
+    return custom(System::getenv, "env()");
   }
 
   @Override
@@ -107,6 +114,31 @@ public class ConfigFromImpl implements ConfigFrom {
   }
 
   @Override
+  public ConfigFrom rename(String configKey, String newKey) {
+    return new ConfigFromImpl(new ConfigImpl(key -> {
+      if (key.equals(configKey)) {
+        return null;
+      }
+      if (key.equals(newKey)) {
+        return lookup(configKey);
+      }
+      return lookup(key);
+    }, indentedSources("rename(" + configKey + " -> " + newKey + ")")));
+  }
+
+  @Override
+  public ConfigFrom includeKeys(String... keys) {
+    return new ConfigFromImpl(new ConfigImpl(key -> {
+      for (String k : keys) {
+        if (key.equals(k)) {
+          return lookup(key);
+        }
+      }
+      return null;
+    }, indentedSources("includeKeys" + Arrays.asList(keys))));
+  }
+
+  @Override
   public ConfigFrom includePrefix(String... prefixes) {
     return new ConfigFromImpl(new ConfigImpl(key -> {
       for (String prefix : prefixes) {
@@ -126,6 +158,18 @@ public class ConfigFromImpl implements ConfigFrom {
       }
       return null;
     }, indentedSources("includeRegex(" + regex + ")")));
+  }
+
+  @Override
+  public ConfigFrom excludeKeys(String... keys) {
+    return new ConfigFromImpl(new ConfigImpl(key -> {
+      for (String k : keys) {
+        if (key.equals(k)) {
+          return null;
+        }
+      }
+      return lookup(key);
+    }, indentedSources("excludeKeys" + Arrays.asList(keys))));
   }
 
   @Override

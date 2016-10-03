@@ -3,6 +3,7 @@ package com.github.susom.database;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -18,11 +19,11 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfigImpl implements Config {
   private static final Logger log = LoggerFactory.getLogger(ConfigFromImpl.class);
-  private final ConfigStrings provider;
+  private final Function<String, String> provider;
   private final String sources;
   private Set<String> failedKeys = new HashSet<>();
 
-  public ConfigImpl(ConfigStrings provider, String sources) {
+  public ConfigImpl(Function<String, String> provider, String sources) {
     this.provider = provider;
     this.sources = sources;
   }
@@ -235,7 +236,7 @@ public class ConfigImpl implements Config {
   private String cleanString(String key) {
     String value = null;
     try {
-      value = provider.get(key);
+      value = provider.apply(key);
       if (value != null) {
         value = value.trim();
         if (value.length() == 0) {

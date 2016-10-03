@@ -1,6 +1,8 @@
 package com.github.susom.database;
 
 import java.math.BigDecimal;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -12,7 +14,7 @@ import javax.annotation.Nullable;
  *
  * @author garricko
  */
-public interface Config {
+public interface Config extends Function<String, String>, Supplier<Config> {
   /**
    * Convenience method for fluent syntax.
    *
@@ -21,6 +23,8 @@ public interface Config {
   static @Nonnull ConfigFrom from() {
     return new ConfigFromImpl();
   }
+
+  // TODO add: String originalKey(String key) to find out the key before prefixing or other manipulation
 
   /**
    * @return a trimmed, non-empty string, or null
@@ -34,6 +38,18 @@ public interface Config {
   @Nonnull String getStringOrThrow(@Nonnull String key);
 
   @Nonnull String getString(String key, @Nonnull String defaultValue);
+
+  /**
+   * Same as {@link #getString(String)}. Useful for passing configs around
+   * without static dependencies.
+   */
+  @Override
+  default String apply(String key) {
+    return getString(key);
+  }
+
+  @Override
+  default Config get() { return this; }
 
   @Nullable Integer getInteger(@Nonnull String key);
 

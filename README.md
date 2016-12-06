@@ -35,7 +35,8 @@ and correct with respect to resources, exceptions, and transactions.
 This style of using callbacks also fits nicely with asynchronous programming models.
 Support for [Vert.x](http://vertx.io/) is included (use
 [DatabaseProviderVertx](src/main/java/com/github/susom/database/DatabaseProviderVertx.java)).
-There is also a full [Vert.x server example](demo/src/main/java/VertxServer.java).
+There is also a simple [Vert.x server example](demo/src/main/java/VertxServer.java) and
+a more sophisticated [example with concurrency](demo/src/main/java/VertxServerFastAndSlow.java).
 
 #### Facilitate static analysis
 

@@ -642,6 +642,131 @@ public enum Flavor {
     public String sequenceOptions() {
       return " as bigint";
     }
+  }, mysql {
+    @Override
+    public String typeInteger() {
+      return "integer";
+    }
+
+    @Override
+    public String typeBoolean() {
+      return "char(1)";
+    }
+
+    @Override
+    public String typeLong() {
+      return "bigint";
+    }
+
+    @Override
+    public String typeFloat() {
+      return "double";
+    }
+
+    @Override
+    public String typeDouble() {
+      return "double";
+    }
+
+    @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "decimal(" + size + "," + precision + ")";
+    }
+
+    @Override
+    public String typeStringVar(int bytes) {
+      return "varchar(" + bytes + ")";
+    }
+
+    @Override
+    public String typeStringFixed(int bytes) {
+      return "char(" + bytes + ")";
+    }
+
+    @Override
+    public String typeClob() {
+      return "longtext";
+    }
+
+    @Override
+    public String typeBlob() {
+      return "longblob";
+    }
+
+    @Override
+    public String typeDate() {
+      return "datetime(3)";
+    }
+
+    @Override
+    public boolean useStringForClob() {
+      return true;
+    }
+
+    @Override
+    public boolean useBytesForBlob() {
+      return true;
+    }
+
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      return "next value for " + sequenceName + "";
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      return "select " + sequenceNextVal(sequenceName) + fromAny();
+    }
+
+    @Override
+    public String sequenceDrop(String dbtestSeq) {
+      return "drop sequence if exists " + dbtestSeq;
+    }
+
+    @Override
+    public String sequenceOrderClause(boolean order) {
+      return "";
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      return cycle ? " cycle" : " no cycle";
+    }
+
+    @Override
+    public String fromAny() {
+      return "";
+    }
+
+    @Override
+    public boolean supportsInsertReturning() {
+      return false;
+    }
+
+    @Override
+    public String dbTimeMillis() {
+      return "localtimestamp(3)";
+    }
+
+    @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      return "";
+    }
+
+    @Override
+    public String dateAsSqlFunction(Date date, Calendar calendar) {
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+      dateFormat.setCalendar(calendar);
+      // TODO can't seem to find the right conversion here that doesn't truncate millis
+//      return "from_unixtime(" + date.getTime() + "*0.001)";
+      return "convert('" + dateFormat.format(date) + "', datetime(3))";
+//      return "cast(timestamp(3) '" + dateFormat.format(date) + "' as timestamp(3) without time zone)";
+    }
+
+    @Override
+    public String sequenceOptions() {
+      return " as bigint";
+    }
   };
 
   public abstract String typeInteger();
@@ -712,6 +837,8 @@ public enum Flavor {
       return hsqldb;
     } else if (url.startsWith("jdbc:derby:")) {
       return derby;
+    } else if (url.startsWith("jdbc:mysql:")) {
+      return mysql;
     } else {
       throw new DatabaseException("Cannot determine database flavor from url");
     }
@@ -728,6 +855,8 @@ public enum Flavor {
       return "org.hsqldb.jdbc.JDBCDriver";
     } else if (url.startsWith("jdbc:derby:")) {
       return "org.apache.derby.jdbc.EmbeddedDriver";
+    } else if (url.startsWith("jdbc:mysql:")) {
+      return "com.mysql.jdbc.Driver";
     } else {
       throw new DatabaseException("Cannot determine database driver class from url");
     }

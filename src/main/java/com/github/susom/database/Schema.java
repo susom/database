@@ -109,6 +109,7 @@ public class Schema {
           break;
         case Types.REAL:
         case 100: // Oracle proprietary it seems
+        case Types.DECIMAL:
           table.addColumn(names[i]).asFloat();
           break;
         case Types.DOUBLE:
@@ -131,10 +132,12 @@ public class Schema {
         case Types.BINARY:
         case Types.VARBINARY:
         case Types.BLOB:
+        case Types.LONGVARBINARY:
           table.addColumn(names[i]).asBlob();
           break;
         case Types.CLOB:
         case Types.NCLOB:
+        case Types.LONGVARCHAR:
           table.addColumn(names[i]).asClob();
           break;
         case Types.TIMESTAMP:
@@ -298,6 +301,7 @@ public class Schema {
         addColumn("update_user").foreignKey(updateTrackingFkName).references(updateTrackingFkTable).table();
       }
       if (updateSequence) {
+        // TODO: Should this be not null? Along with the corresponding history column?
         addColumn("update_sequence").asLong().table();
       }
       // Avoid auto-indexing foreigh keys if the index already exists (from pk or explicit index)
@@ -334,6 +338,7 @@ public class Schema {
         // Index the primary key from the regular table for retrieving history
         hist.addIndex(historyTableName + "_ix", pkColumns.toArray(new String[pkColumns.size()]));
         // The primary key for the history table will be that of the original table, plus the update sequence
+        // TODO not null constraint?
         pkColumns.add("update_sequence");
         hist.addPrimaryKey(historyTableName + "_pk", pkColumns.toArray(new String[pkColumns.size()]));
         // To perform any validation
@@ -385,6 +390,7 @@ public class Schema {
       return this;
     }
 
+    // TODO document all of these methods (what they do, how to use them)
     public Table withHistoryTable() {
       updateSequence = true;
       historyTable = true;
@@ -746,6 +752,12 @@ public class Schema {
             break;
           case Date:
             sql.append(flavor.typeDate());
+            if (flavor == Flavor.mysql) {
+              // MySQL defaults to null implying current time unless explicitly allowed
+              if (!column.notNull) {
+                sql.append(" null default null");
+              }
+            }
             break;
           case Clob:
             sql.append(flavor.typeClob());

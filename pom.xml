@@ -136,6 +136,8 @@
             <exclude>**/*SqlServer*</exclude>
             <!-- Separate profile to test HyperSQL Database: mvn -Phsqldb test -->
             <exclude>**/*Hsqldb*</exclude>
+            <!-- Separate profile to test MySQL Database: mvn -Pmysql test -->
+            <exclude>**/*MySql*</exclude>
           </excludes>
         </configuration>
       </plugin>

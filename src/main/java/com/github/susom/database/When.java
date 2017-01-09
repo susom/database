@@ -52,6 +52,14 @@ public class When {
     }
     return this;
   }
+  
+  @Nonnull
+  public When sqlserver(@Nonnull String sql){
+	  if(actualFlavor == Flavor.sqlserver) {
+		  chosen = sql;
+	  }
+	  return this;
+  }
 
   @Nonnull
   public String other(@Nonnull String sql) {

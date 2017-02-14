@@ -1510,7 +1510,7 @@ public abstract class CommonTest {
   public Retryable retry = new Retryable();
 
   /**
-   * Make sure database times are inserted will at least millisecond precision.
+   * Make sure database times are inserted with at least millisecond precision.
    * This test is non-deterministic since it is checking the timestamp provided
    * by the database, so we use a retry mechanism to give it three attempts.
    */

@@ -38,7 +38,7 @@ public interface Row {
    * column names to uppercase, while PostgreSQL normally converts column
    * names to lowercase. If you do use this method, you might want to either
    * call toUppercase()/toLowercase() or ensure the SQL explicitly specifies
-   * parameters with AS "FOO" (including quotes) to ensure you desired name
+   * parameters with AS "FOO" (including quotes) to ensure your desired name
    * will be honored.
    */
   @Nonnull

@@ -339,7 +339,7 @@ public class DatabaseTest {
     control.verify();
   }
 
-  @Test
+  @Test @Retry
   public void logFormatNoDebugSql() throws Exception {
     System.out.println(new DatabaseImpl(createNiceMock(DatabaseMock.class), options)
         .toSelect("select a from b where c=?")

@@ -6,7 +6,7 @@
 
   <groupId>database-demo</groupId>
   <artifactId>database-demo</artifactId>
-  <version>2.2</version>
+  <version>2.3-SNAPSHOT</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,7 +16,7 @@
     <dependency>
       <groupId>com.github.susom</groupId>
       <artifactId>database</artifactId>
-      <version>2.2</version>
+      <version>2.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>

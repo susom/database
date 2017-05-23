@@ -130,6 +130,10 @@ public interface SqlSelect {
   @CheckReturnValue
   SqlSelect apply(Apply apply);
 
+  @Nonnull
+  @CheckReturnValue
+  SqlSelect fetchSize(int fetchSize);
+
   @Nullable
   @CheckReturnValue
   Boolean queryBooleanOrNull();

@@ -53,6 +53,7 @@ public class SqlSelectImpl implements SqlSelect {
   private Map<String, Object> parameterMap; // !null ==> named :abc args
   private int timeoutSeconds = -1; // -1 ==> no timeout
   private int maxRows = -1; // -1 ==> unlimited
+  private int fetchSize = -1; // -1 ==> do not call setFetchSize()
 
   public SqlSelectImpl(Connection connection, DatabaseMock mock, String sql, Options options) {
     this.connection = connection;
@@ -212,6 +213,13 @@ public class SqlSelectImpl implements SqlSelect {
   @Override
   public SqlSelect apply(Apply apply) {
     apply.apply(this);
+    return this;
+  }
+
+  @Nonnull
+  @Override
+  public SqlSelect fetchSize(int rows) {
+    fetchSize = rows;
     return this;
   }
 
@@ -667,6 +675,10 @@ public class SqlSelectImpl implements SqlSelect {
 
         if (maxRows > 0) {
           ps.setMaxRows(maxRows);
+        }
+
+        if (fetchSize >= 0) {
+          ps.setFetchSize(fetchSize);
         }
 
         adaptor.addParameters(ps, parameters);

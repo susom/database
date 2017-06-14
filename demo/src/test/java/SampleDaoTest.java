@@ -20,9 +20,9 @@ import static org.mockito.Mockito.*;
  */
 public class SampleDaoTest {
   @Mock
-  DatabaseMock db;
-  Date now = new Date();
-  SampleDao sampleDao;
+  private DatabaseMock db;
+  private Date now = new Date();
+  private SampleDao sampleDao;
 
   @Before
   public void initializeMocks() {

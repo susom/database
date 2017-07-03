@@ -225,11 +225,20 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
     return this.sql.lastIndexOf(str, fromIndex);
   }
 
+  /**
+   * Appends the bit of sql and notes that a list, or a sublist, has started.
+   *
+   * Each list started must have be ended. "Lists" are only to support using listSeparator(sep)
+   */
   public Sql listStart(/*@Untainted*/ String sql) {
     listFirstItem.push(true);
     return append(sql);
   }
 
+  /**
+   * Appends the passed bit of sql only if a previous item has already been appended,
+   * and notes that the list is not empty.
+   */
   public Sql listSeparator(/*@Untainted*/ String sql) {
     if (listFirstItem.peek()) {
       listFirstItem.pop();
@@ -239,6 +248,7 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
       return append(sql);
     }
   }
+
 
   public Sql listEnd(/*@Untainted*/ String sql) {
     listFirstItem.pop();

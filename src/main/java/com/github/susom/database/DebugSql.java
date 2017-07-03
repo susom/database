@@ -102,6 +102,8 @@ public class DebugSql {
             buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
           } else if (argToPrint instanceof SecretArg) {
             buf.append("<secret>");
+          } else if (argToPrint instanceof StringReader) {
+            appendStringReaderToBuf(buf, (StringReader)argToPrint, options);
           } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
             buf.append("<").append(argToPrint.getClass().getName()).append(">");
           } else if (argToPrint instanceof byte[]) {
@@ -119,6 +121,39 @@ public class DebugSql {
       buf.append(" (first in batch of ");
       buf.append(batchSize);
       buf.append(')');
+    }
+  }
+
+  private static void appendStringReaderToBuf(StringBuilder buf, StringReader rdr, Options options) {
+    int maxLength = options.maxStringLengthParam(); // seems to be 4k
+    char stringBuf[] = new char[maxLength];
+    int numBytesRead = -1;
+    String contents = null;
+    try {
+      rdr.reset();
+      numBytesRead = rdr.read(stringBuf, 0, maxLength);
+      if (numBytesRead == maxLength && rdr.ready()) {  // more than we're willing to print
+        int num = (maxLength > 100) ? 100 : maxLength;
+        contents = String.valueOf(stringBuf, 0, num); // don't need to output all...
+        while (rdr.ready()) {
+          numBytesRead += rdr.read(stringBuf, 0, maxLength);
+        }
+        contents += "...[totalLength="+numBytesRead+"]";
+      } else if (numBytesRead > 0) {
+        contents = String.valueOf(stringBuf, 0, numBytesRead);
+      }
+    } catch (Exception e) {
+      contents = rdr.toString();
+      if (contents != null && contents.length() > maxLength) {
+        contents = contents.substring(0, maxLength/8) + "...[totalLength = "+contents.length()+"]";
+      }
+    }
+    if (contents == null || contents.isEmpty()) {
+      buf.append("''");
+    } else {
+      buf.append("'");
+      buf.append(removeTabs(escapeSingleQuoted(contents)));
+      buf.append(numBytesRead < maxLength ? "'" : "...'");
     }
   }
 
@@ -144,42 +179,37 @@ public class DebugSql {
 
   public static void logSuccess(String sqlType, Logger log, Metric metric, String sql, Object[] args, Options options) {
     if (log.isDebugEnabled()) {
-      StringBuilder buf = new StringBuilder();
-      buf.append(sqlType).append(": ");
-      metric.printMessage(buf);
-      buf.append('\t');
-      printSql(buf, sql, args, options);
-      log.debug(buf.toString());
+      String msg = logMiddle('\t', sqlType, metric, null, sql, args, options);
+      log.debug(msg);
     }
   }
 
   public static void logWarning(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
                           Options options, Throwable t) {
     if (log.isWarnEnabled()) {
-      StringBuilder buf = new StringBuilder();
-      if (errorCode != null) {
-        buf.append("errorCode=").append(errorCode).append(" ");
-      }
-      buf.append(sqlType).append(": ");
-      metric.printMessage(buf);
-      buf.append(" ");
-      printSql(buf, sql, args, options);
-      log.warn(buf.toString(), t);
+      String msg = logMiddle('\t', sqlType, metric, errorCode, sql, args, options);
+      log.warn(msg, t);
     }
   }
 
   public static void logError(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
                         Options options, Throwable t) {
     if (log.isErrorEnabled()) {
-      StringBuilder buf = new StringBuilder();
-      if (errorCode != null) {
-        buf.append("errorCode=").append(errorCode).append(" ");
-      }
-      buf.append(sqlType).append(": ");
-      metric.printMessage(buf);
-      buf.append(" ");
-      printSql(buf, sql, args, options);
-      log.error(buf.toString(), t);
+      String msg = logMiddle(' ', sqlType, metric, errorCode, sql, args, options);
+      log.error(msg, t);
     }
+  }
+
+  private static String logMiddle(char separator, String sqlType, Metric metric,
+                                 String errorCode, String sql, Object[] args, Options options) {
+    StringBuilder buf = new StringBuilder();
+    if (errorCode != null) {
+      buf.append("errorCode=").append(errorCode).append(" ");
+    }
+    buf.append(sqlType).append(": ");
+    metric.printMessage(buf);
+    buf.append(separator);
+    printSql(buf, sql, args, options);
+    return buf.toString();
   }
 }

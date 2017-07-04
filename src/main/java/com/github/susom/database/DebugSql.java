@@ -103,6 +103,7 @@ public class DebugSql {
           } else if (argToPrint instanceof SecretArg) {
             buf.append("<secret>");
           } else if (argToPrint instanceof StringReader) {
+            buf.append("<").append(argToPrint.getClass().getName()).append(">");
             appendStringReaderToBuf(buf, (StringReader)argToPrint, options);
           } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
             buf.append("<").append(argToPrint.getClass().getName()).append(">");
@@ -135,8 +136,9 @@ public class DebugSql {
       if (numBytesRead == maxLength && rdr.ready()) {  // more than we're willing to print
         int num = (maxLength > 100) ? 100 : maxLength;
         contents = String.valueOf(stringBuf, 0, num); // don't need to output all...
-        while (rdr.ready()) {
-          numBytesRead += rdr.read(stringBuf, 0, maxLength);
+        int n = 1;
+        while (n > 0 && rdr.ready()) {
+          numBytesRead += (n = rdr.read(stringBuf, 0, maxLength));
         }
         contents += "...[totalLength="+numBytesRead+"]";
       } else if (numBytesRead > 0) {

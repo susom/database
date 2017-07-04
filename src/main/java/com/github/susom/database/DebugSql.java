@@ -187,7 +187,7 @@ public class DebugSql {
   public static void logWarning(String sqlType, Logger log, Metric metric, String errorCode, String sql, Object[] args,
                           Options options, Throwable t) {
     if (log.isWarnEnabled()) {
-      String msg = logMiddle('\t', sqlType, metric, errorCode, sql, args, options);
+      String msg = logMiddle(' ', sqlType, metric, errorCode, sql, args, options);
       log.warn(msg, t);
     }
   }

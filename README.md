@@ -338,11 +338,16 @@ some of the tests:
 
 [CommonTest.java](https://github.com/susom/database/blob/master/src/test/java/com/github/susom/database/test/CommonTest.java)
 
-### Limitations
+There are also a variety of samples in [the demo directory](https://github.com/susom/database/tree/master/demo/src/main/java).
+
+### Database Support and Limitations
 
 The functionality is currently tested with Oracle, PostgreSQL, HyperSQL (HSQLDB),
 SQL Server, and Derby. It won't work out of the box with other databases right now,
-but should in the future.
+but might in the future. If you want pure Java, use HyperSQL rather than Derby. If
+you are really into MySQL/MariaDB, take a look at the "mysql" branch, but be warned
+it is early stages and got a little stuck because of significant feature gaps in
+that database (e.g. no sequences).
 
 The library is compiled and tested with Java 8, so it won't work with Java 7 and earlier.
 If you really must use Java 7, grab the latest 1.x release of this library.

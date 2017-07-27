@@ -140,8 +140,9 @@ public interface Options {
 
   /**
    * The maximum number of characters to print in debug SQL for a given String type
-   * query parameter. If it exceeds this length the value will be truncated and a
-   * "..." will be appended.
+   * insert/update/query parameter. If it exceeds this length, the parameter value
+   * will be truncated at the max and a "..." will be appended. Note this affects
+   * both {@code argString()} and {@code argClobString()} methods.
    */
   int maxStringLengthParam();
 }

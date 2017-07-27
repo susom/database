@@ -652,7 +652,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
   }
 
   /**
-   * You most likely want to use {@link com.github.susom.database.DatabaseProvider.Builder#transact(DbRun)}
+   * You most likely want to use {@link com.github.susom.database.DatabaseProvider.Builder#transact(DbCodeTx)}
    * instead!
    *
    * @deprecated Replace with {@link #transact(DbCodeTx)} and a call to
@@ -787,9 +787,24 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
      * This method runs the provided block of code, and commits the transaction
      * after either successful completion of the block or an exceptional condition.
      *
+     * <p>Here is a typical usage:</p>
+     * <pre>
+     * {@code}
+     * dbp.transact(new DbRun() {
+     *  {@literal @}Override
+     *   public void run(Provider&lt;Database> dbp) throws Exception {
+     *     dbp.get().doSomething();
+     *   }
+     * });
+     * {@code}
+     * </pre>
+     *
      * @deprecated Replace with {@link #transact(DbCodeTx)} and a call to
-     *             {@link Transaction#setRollbackOnError(boolean)}
-     *             providing a value of {@code false}.
+     *             {@link Transaction#setRollbackOnError(boolean) setRollbackOnError(false)}
+     *             if you want exactly the same transaction semantics. More likely you want
+     *             to replace it with a call to {@link #transact(DbCode)}.
+     * @see #transact(DbCode)
+     * @see #transact(DbCodeTx)
      */
     @Deprecated
     void transact(DbRun run);
@@ -797,11 +812,19 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     /**
      * This is a convenience method to eliminate the need for explicitly
      * managing the resources (and error handling) for this class. After
-     * the run block is complete commit() will be called unless either the
-     * {@link DbCode#run(Supplier)} method threw a {@link Throwable}.
+     * the run block is complete the transaction will commit unless the
+     * {@link DbCode#run(Supplier) run(Supplier)} method threw a {@link Throwable}.
+     *
+     * <p>Here is a typical usage:
+     * <pre>
+     *   dbp.transact(dbs -> {
+     *     List<String> r = dbs.get().toSelect("select a from b where c=?").argInteger(1).queryStrings();
+     *   });
+     * </pre>
+     * </p>
      *
      * @param code the code you want to run as a transaction with a Database
-     * @see {@link #transact(DbCodeTx)} if you want to explicitly manage
+     * @see #transact(DbCodeTx) if you want to explicitly manage
      *      when the transaction commits or rolls back
      */
     void transact(DbCode code);
@@ -813,6 +836,16 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
      * {@link DbCodeTx#run(Supplier, Transaction)} method threw a {@link Throwable}
      * while {@link Transaction#isRollbackOnError()} returns true, or
      * {@link Transaction#isRollbackOnly()} returns a true value.
+     *
+     * <p>Here is a typical usage:
+     * <pre>
+     *   dbp.transact((dbs, tx) -> {
+     *     tx.setRollbackOnError(false);
+     *     dbs.get().toInsert("...").argInteger(1).insert(1);
+     *     ...some stuff that might fail...
+     *   });
+     * </pre>
+     * </p>
      *
      * @param code the code you want to run as a transaction with a Database
      */

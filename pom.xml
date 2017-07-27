@@ -5,7 +5,7 @@
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
   <packaging>jar</packaging>
-  <version>2.3-SNAPSHOT</version>
+  <version>2.3</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>Simplified API for accessing JDBC data sources.</description>

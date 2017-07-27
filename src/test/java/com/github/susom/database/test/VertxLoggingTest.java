@@ -51,7 +51,7 @@ public class VertxLoggingTest {
           db.transactAsync(dbs -> {
             Context context2 = Vertx.currentContext();
             log.debug("Request inside blocking2: " + context2);
-            context.assertNotEquals(context1, context2);
+            context.assertEquals(context1, context2);
             return null;
           }, result -> {
             Context context3 = Vertx.currentContext();
@@ -61,7 +61,7 @@ public class VertxLoggingTest {
             db.transactAsync(dbs -> {
               Context context4 = Vertx.currentContext();
               log.debug("Request inside blocking4: " + context4);
-              context.assertNotEquals(context1, context4);
+              context.assertEquals(context1, context4);
               return null;
             }, result2 -> {
               Context context5 = Vertx.currentContext();
@@ -70,7 +70,7 @@ public class VertxLoggingTest {
               db.transactAsync(dbs -> {
                 Context context6 = Vertx.currentContext();
                 log.debug("Request inside blocking6: " + context6);
-                context.assertNotEquals(context1, context6);
+                context.assertEquals(context1, context6);
                 return null;
               }, result3 -> {
                 Context context7 = Vertx.currentContext();

@@ -219,13 +219,13 @@ public class SqlInsertImpl implements SqlInsert {
   @Override
   @Nonnull
   public SqlInsert argClobString(String arg) {
-    return positionalArg(adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
+    return positionalArg(adaptor.nullClobReader(arg == null ? null : new InternalStringReader(arg)));
   }
 
   @Override
   @Nonnull
   public SqlInsert argClobString(@Nonnull String argName, String arg) {
-    return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
+    return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new InternalStringReader(arg)));
   }
 
   @Override

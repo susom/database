@@ -18,7 +18,6 @@ package com.github.susom.database;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -102,9 +101,16 @@ public class DebugSql {
             buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
           } else if (argToPrint instanceof SecretArg) {
             buf.append("<secret>");
-          } else if (argToPrint instanceof StringReader) {
-            buf.append("<").append(argToPrint.getClass().getName()).append(">");
-            appendStringReaderToBuf(buf, (StringReader)argToPrint, options);
+          } else if (argToPrint instanceof InternalStringReader) {
+            String argToPrintString = ((InternalStringReader) argToPrint).getString();
+            int maxLength = options.maxStringLengthParam();
+            if (argToPrintString.length() > maxLength && maxLength > 0) {
+              buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
+            } else {
+              buf.append("'");
+              buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
+              buf.append("'");
+            }
           } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
             buf.append("<").append(argToPrint.getClass().getName()).append(">");
           } else if (argToPrint instanceof byte[]) {
@@ -122,40 +128,6 @@ public class DebugSql {
       buf.append(" (first in batch of ");
       buf.append(batchSize);
       buf.append(')');
-    }
-  }
-
-  private static void appendStringReaderToBuf(StringBuilder buf, StringReader rdr, Options options) {
-    int maxLength = options.maxStringLengthParam(); // seems to be 4k
-    char stringBuf[] = new char[maxLength];
-    int numBytesRead = -1;
-    String contents = null;
-    try {
-      rdr.reset();
-      numBytesRead = rdr.read(stringBuf, 0, maxLength);
-      if (numBytesRead == maxLength && rdr.ready()) {  // more than we're willing to print
-        int num = (maxLength > 100) ? 100 : maxLength;
-        contents = String.valueOf(stringBuf, 0, num); // don't need to output all...
-        int n = 1;
-        while (n > 0 && rdr.ready()) {
-          numBytesRead += (n = rdr.read(stringBuf, 0, maxLength));
-        }
-        contents += "...[totalLength="+numBytesRead+"]";
-      } else if (numBytesRead > 0) {
-        contents = String.valueOf(stringBuf, 0, numBytesRead);
-      }
-    } catch (Exception e) {
-      contents = rdr.toString();
-      if (contents != null && contents.length() > maxLength) {
-        contents = contents.substring(0, maxLength/8) + "...[totalLength = "+contents.length()+"]";
-      }
-    }
-    if (contents == null || contents.isEmpty()) {
-      buf.append("''");
-    } else {
-      buf.append("'");
-      buf.append(removeTabs(escapeSingleQuoted(contents)));
-      buf.append(numBytesRead < maxLength ? "'" : "...'");
     }
   }
 

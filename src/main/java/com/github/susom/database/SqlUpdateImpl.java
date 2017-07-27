@@ -212,13 +212,13 @@ public class SqlUpdateImpl implements SqlUpdate {
   @Override
   @Nonnull
   public SqlUpdate argClobString(@Nullable String arg) {
-    return positionalArg(adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
+    return positionalArg(adaptor.nullClobReader(arg == null ? null : new InternalStringReader(arg)));
   }
 
   @Override
   @Nonnull
   public SqlUpdate argClobString(@Nonnull String argName, @Nullable String arg) {
-    return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new StringReader(arg)));
+    return namedArg(argName, adaptor.nullClobReader(arg == null ? null : new InternalStringReader(arg)));
   }
 
   @Override

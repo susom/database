@@ -844,7 +844,11 @@ public class Schema {
     for (Table table : tables) {
       for (Index index : table.indexes) {
         Sql sql = new Sql();
-        sql.append("create index ");
+        sql.append("create ");
+        if (index.unique) {
+          sql.append("unique ");
+        }
+        sql.append("index ");
         sql.append(index.name);
         sql.append(" on ");
         sql.append(table.name);

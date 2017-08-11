@@ -27,6 +27,11 @@ public class VertxUtil {
    * on the thread that calls it.
    */
   public static <T> Handler<T> mdc(final Handler<T> handler) {
+    if (handler == null) {
+      // Throw here instead of getting NPE inside the handler so we can see the stack trace
+      throw new IllegalArgumentException("handler may not be null");
+    }
+
     final Map mdc = MDC.getCopyOfContextMap();
 
     return t -> {
@@ -58,8 +63,18 @@ public class VertxUtil {
    * event loop.
    */
   public static <T> Handler<T> mdcEventLoop(final Handler<T> handler) {
+    if (handler == null) {
+      // Throw here instead of getting NPE inside the handler so we can see the stack trace
+      throw new IllegalArgumentException("handler may not be null");
+    }
+
     final Map mdc = MDC.getCopyOfContextMap();
     final Context context = Vertx.currentContext();
+
+    if (context == null) {
+      // Throw here instead of getting NPE inside the handler so we can see the stack trace
+      throw new IllegalStateException("Expecting to be on an Vert.x event loop context");
+    }
 
     return t -> context.runOnContext((v) -> {
       Map restore = MDC.getCopyOfContextMap();

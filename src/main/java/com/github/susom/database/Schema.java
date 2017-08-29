@@ -402,6 +402,11 @@ public class Schema {
         throw new RuntimeException("Only one primary key is allowed. For composite keys use"
             + " addPrimaryKey(name, c1, c2, ...).");
       }
+      for (Column c: columns) {
+        if (c.name.equalsIgnoreCase(name)) {
+          throw new RuntimeException("For table: " + this.name + " primary key name should not be a column name: " + name);
+        }
+      }
       primaryKey = new PrimaryKey(name, columnNames);
       return primaryKey;
     }

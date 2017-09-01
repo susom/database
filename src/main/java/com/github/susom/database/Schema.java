@@ -284,6 +284,20 @@ public class Schema {
       }
     }
 
+    /**
+     * Returns true if the lists are the same or the second is a subset of the first, starting at the beginning.
+     */
+    private boolean startsWithOrEquals(List<String> larger, List<String>smaller) {
+      int ssize = smaller.size();
+      if (larger.size() < ssize) {
+        return false;
+      }
+      if (larger.size() == ssize) {
+        return larger.equals(smaller);
+      }
+      return smaller.equals(larger.subList(0, ssize));
+    }
+
     public Schema schema() {
       if (createTracking) {
         addColumn("create_time").asDate().table();
@@ -303,12 +317,12 @@ public class Schema {
       // Avoid auto-indexing foreigh keys if the index already exists (from pk or explicit index)
       if (indexForeignKeys) {
         for (ForeignKey fk : foreignKeys) {
-          if (primaryKey != null && fk.columnNames.equals(primaryKey.columnNames)) {
+          if (primaryKey != null && startsWithOrEquals(primaryKey.columnNames, fk.columnNames)) {
             continue;
           }
           boolean skip = false;
           for (Index i : indexes) {
-            if (fk.columnNames.equals(i.columnNames)) {
+            if (startsWithOrEquals(i.columnNames, fk.columnNames)) {
               skip = true;
               break;
             }

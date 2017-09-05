@@ -19,10 +19,7 @@ package com.github.susom.database;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 import com.github.susom.database.Schema.Table.Check;
@@ -284,20 +281,6 @@ public class Schema {
       }
     }
 
-    /**
-     * Returns true if the lists are the same or the second is a subset of the first, starting at the beginning.
-     */
-    private boolean startsWithOrEquals(List<String> larger, List<String>smaller) {
-      int ssize = smaller.size();
-      if (larger.size() < ssize) {
-        return false;
-      }
-      if (larger.size() == ssize) {
-        return larger.equals(smaller);
-      }
-      return smaller.equals(larger.subList(0, ssize));
-    }
-
     public Schema schema() {
       if (createTracking) {
         addColumn("create_time").asDate().table();
@@ -314,15 +297,15 @@ public class Schema {
       if (updateSequence) {
         addColumn("update_sequence").asLong().table();
       }
-      // Avoid auto-indexing foreigh keys if the index already exists (from pk or explicit index)
+      // Avoid auto-indexing foreigh keys if an index already exists (the first columns of the pk or explicit index)
       if (indexForeignKeys) {
         for (ForeignKey fk : foreignKeys) {
-          if (primaryKey != null && startsWithOrEquals(primaryKey.columnNames, fk.columnNames)) {
+          if (primaryKey != null && 0 == Collections.indexOfSubList(primaryKey.columnNames, fk.columnNames)) {
             continue;
           }
           boolean skip = false;
           for (Index i : indexes) {
-            if (startsWithOrEquals(i.columnNames, fk.columnNames)) {
+            if (0 == Collections.indexOfSubList(i.columnNames, fk.columnNames)) {
               skip = true;
               break;
             }

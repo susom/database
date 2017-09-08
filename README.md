@@ -1,6 +1,7 @@
 ## Easier, Safer Database Access
 
 [![Build Status](https://travis-ci.org/susom/database.svg?branch=master)](https://travis-ci.org/susom/database)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database)
 
 The point of this project is to provide a simplified way of accessing databases. It is a
 wrapper around the JDBC driver, and tries to hide some of the more error-prone, unsafe, and non-portable

@@ -32,10 +32,10 @@ public class VertxUtil {
       throw new IllegalArgumentException("handler may not be null");
     }
 
-    final Map mdc = MDC.getCopyOfContextMap();
+    final Map<String, String> mdc = MDC.getCopyOfContextMap();
 
     return t -> {
-      Map restore = MDC.getCopyOfContextMap();
+      Map<String, String> restore = MDC.getCopyOfContextMap();
       try {
         if (mdc == null) {
           MDC.clear();
@@ -68,7 +68,7 @@ public class VertxUtil {
       throw new IllegalArgumentException("handler may not be null");
     }
 
-    final Map mdc = MDC.getCopyOfContextMap();
+    final Map<String, String> mdc = MDC.getCopyOfContextMap();
     final Context context = Vertx.currentContext();
 
     if (context == null) {
@@ -77,7 +77,7 @@ public class VertxUtil {
     }
 
     return t -> context.runOnContext((v) -> {
-      Map restore = MDC.getCopyOfContextMap();
+      Map<String, String> restore = MDC.getCopyOfContextMap();
       try {
         if (mdc == null) {
           MDC.clear();

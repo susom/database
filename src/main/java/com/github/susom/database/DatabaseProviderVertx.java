@@ -332,8 +332,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
      * {@link DbCode#run(Supplier)} method threw a {@link Throwable}.
      *
      * @param code the code you want to run as a transaction with a Database
-     * @see {@link #transact(DbCodeTx)} if you want to explicitly manage
-     *      when the transaction commits or rolls back
+     * @see #transact(DbCodeTx)
      */
     void transact(DbCode code);
 

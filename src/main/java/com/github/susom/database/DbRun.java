@@ -58,9 +58,7 @@ public abstract class DbRun implements Transaction {
 
   /**
    * By default the transaction behavior (whether commit() or rollback() is called)
-   * after run() is specified by how this code block is invoked. For example, see
-   * {@link DatabaseProvider#transactCommitOnly(DbRun)}, {@link DatabaseProvider#transactRollbackOnly(DbRun)},
-   * and {@link DatabaseProvider#transactRollbackOnError(DbRun)}. Depending on the
+   * after run() is specified by how this code block is invoked. Depending on the
    * context, you may be able to request different behavior using this method. See
    * documentation of these transact*() methods for details.
    *
@@ -85,9 +83,7 @@ public abstract class DbRun implements Transaction {
    * rather than commit, use this method.</p>
    *
    * <p>By default the transaction behavior (whether commit() or rollback() is called)
-   * after run() is specified by how this code block is invoked. For example, see
-   * {@link DatabaseProvider#transactCommitOnly(DbRun)}, {@link DatabaseProvider#transactRollbackOnly(DbRun)},
-   * and {@link DatabaseProvider#transactRollbackOnError(DbRun)}. Depending on the
+   * after run() is specified by how this code block is invoked. Depending on the
    * context, you may be able to request different behavior using this method. See
    * documentation of these transact*() methods for details.</p>
    *

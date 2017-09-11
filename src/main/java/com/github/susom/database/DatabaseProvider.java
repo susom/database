@@ -824,8 +824,7 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
      * </p>
      *
      * @param code the code you want to run as a transaction with a Database
-     * @see #transact(DbCodeTx) if you want to explicitly manage
-     *      when the transaction commits or rolls back
+     * @see #transact(DbCodeTx)
      */
     void transact(DbCode code);
 

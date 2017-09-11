@@ -7,8 +7,8 @@ before_script:
   - psql -U postgres -c "create user test with password 'test';"
   - psql -c 'create database test owner test;' -U postgres
 script:
-  - mvn -e test
-  - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql test
+  - mvn -e -P hsqldb verify
+  - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
 after_failure:
   - echo "\n=== SUREFIRE REPORTS ===\n"
   - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done

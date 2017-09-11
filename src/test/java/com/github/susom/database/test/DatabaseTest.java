@@ -58,6 +58,7 @@ import static org.junit.matchers.JUnitMatchers.containsString;
  * @author garricko
  */
 @RunWith(JUnit4.class)
+@SuppressWarnings("ReturnValueIgnored")
 public class DatabaseTest {
   static {
     // Initialize logging

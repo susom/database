@@ -4,6 +4,8 @@ jdk:
 addons:
   postgresql: "9.3"
 before_script:
+  - export TZ=America/Los_Angeles
+  - date
   - psql -U postgres -c "create user test with password 'test';"
   - psql -c 'create database test owner test;' -U postgres
 script:

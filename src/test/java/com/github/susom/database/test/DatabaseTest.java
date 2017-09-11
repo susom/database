@@ -50,7 +50,7 @@ import com.github.susom.database.OptionsOverride;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
-import static org.junit.matchers.JUnitMatchers.containsString;
+import static org.hamcrest.CoreMatchers.containsString;
 
 /**
  * Unit tests for the Database and Sql implementation classes.

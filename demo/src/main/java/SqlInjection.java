@@ -25,10 +25,13 @@ public class SqlInjection extends DerbyExample {
     db.toInsert(sql.sql()).insert(1);
     System.out.println(db.toSelect(sql).queryLongOrNull());
 
+    // These are ok (no use of tainted input)
     db.toInsert(someSql().sql()).insert(1);
     db.toInsert("" + db.when()).insert(1);
     db.toInsert("" + db.when().derby("a")).insert(1);
     db.toInsert(db.when().derby("a").other("b")).insert(1);
+
+    // But this is another illegal use
     db.toInsert(db.when().derby(tainted).other("")).insert(1);
   }
 

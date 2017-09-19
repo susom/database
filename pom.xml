@@ -52,6 +52,13 @@
   </distributionManagement>
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>io.packagecloud.maven.wagon</groupId>
+        <artifactId>maven-packagecloud-wagon</artifactId>
+        <version>0.0.6</version>
+      </extension>
+    </extensions>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -479,6 +486,20 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>packagecloud</id>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>packagecloud</id>
+          <url>packagecloud+https://packagecloud.io/garricko/travis</url>
+        </snapshotRepository>
+        <repository>
+          <id>packagecloud</id>
+          <url>packagecloud+https://packagecloud.io/garricko/travis</url>
+        </repository>
+      </distributionManagement>
     </profile>
 
     <profile>

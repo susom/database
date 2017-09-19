@@ -14,6 +14,8 @@ with all supported databases.
 The operations supported are those typical of relational databases, and are expressed as SQL.
 This is NOT an object-relational mapping layer or an attempt to create a new query language.
 
+If you are looking for convenient utilities built on top of this library, try https://github.com/susom/database-goodies.
+
 ### Features
 
 #### No way to control (mess up) resource handling

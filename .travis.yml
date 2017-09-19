@@ -11,8 +11,9 @@ before_script:
 # Skip the default mvn command because we want to set the profile explicitly
 install: true
 script:
-  - cp .travis.settings.xml $HOME/.m2/settings.xml && mvn -Ppackagecloud -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
-  - mvn -Ppackagecloud -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify deploy
+  - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
+  - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
+  - cp .travis.settings.xml $HOME/.m2/settings.xml && mvn -Ppackagecloud -e -DskipTests deploy
 after_failure:
   - echo "\n=== SUREFIRE REPORTS ===\n"
   - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done

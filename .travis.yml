@@ -8,6 +8,8 @@ before_script:
   - date
   - psql -U postgres -c "create user test with password 'test';"
   - psql -c 'create database test owner test;' -U postgres
+# Skip the default mvn command because we want to set the profile explicitly
+install: true
 script:
   - cp .travis.settings.xml $HOME/.m2/settings.xml && mvn -Ppackagecloud -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
   - mvn -Ppackagecloud -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify deploy

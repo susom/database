@@ -331,7 +331,7 @@ The library is available in the public Maven repository:
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
-  <version>2.4</version>
+  <version>2.5</version>
 </dependency>
 ```
 

@@ -6,7 +6,7 @@
 
   <groupId>database-demo</groupId>
   <artifactId>database-demo</artifactId>
-  <version>2.5-SNAPSHOT</version>
+  <version>3.0-SNAPSHOT</version>
 
   <properties>
     <checkerframework.version>2.1.14</checkerframework.version>
@@ -22,7 +22,7 @@
     <dependency>
       <groupId>com.github.susom</groupId>
       <artifactId>database</artifactId>
-      <version>2.5-SNAPSHOT</version>
+      <version>3.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>

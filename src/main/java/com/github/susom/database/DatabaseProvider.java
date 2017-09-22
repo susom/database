@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
-import javax.inject.Provider;
 import javax.naming.Context;
 import javax.sql.DataSource;
 
@@ -47,17 +46,17 @@ import com.zaxxer.hikari.HikariDataSource;
  *
  * @author garricko
  */
-public final class DatabaseProvider implements Provider<Database>, Supplier<Database> {
+public final class DatabaseProvider implements Supplier<Database> {
   private static final Logger log = LoggerFactory.getLogger(DatabaseProvider.class);
   private static final AtomicInteger poolNameCounter = new AtomicInteger(1);
   private DatabaseProvider delegateTo = null;
-  private Provider<Connection> connectionProvider;
+  private Supplier<Connection> connectionProvider;
   private boolean txStarted = false;
   private Connection connection = null;
   private Database database = null;
   private final Options options;
 
-  public DatabaseProvider(Provider<Connection> connectionProvider, Options options) {
+  public DatabaseProvider(Supplier<Connection> connectionProvider, Options options) {
     if (connectionProvider == null) {
       throw new IllegalArgumentException("Connection provider cannot be null");
     }
@@ -223,20 +222,17 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
   public static Builder fromJndi(final Context context, final String lookupKey, Flavor flavor) {
     Options options = new OptionsDefault(flavor);
 
-    return new BuilderImpl(null, new Provider<Connection>() {
-      @Override
-      public Connection get() {
-        DataSource ds;
-        try {
-          ds = (DataSource) context.lookup(lookupKey);
-        } catch (Exception e) {
-          throw new DatabaseException("Unable to locate the DataSource in JNDI using key " + lookupKey, e);
-        }
-        try {
-          return ds.getConnection();
-        } catch (Exception e) {
-          throw new DatabaseException("Unable to obtain a connection from JNDI DataSource " + lookupKey, e);
-        }
+    return new BuilderImpl(null, () -> {
+      DataSource ds;
+      try {
+        ds = (DataSource) context.lookup(lookupKey);
+      } catch (Exception e) {
+        throw new DatabaseException("Unable to locate the DataSource in JNDI using key " + lookupKey, e);
+      }
+      try {
+        return ds.getConnection();
+      } catch (Exception e) {
+        throw new DatabaseException("Unable to obtain a connection from JNDI DataSource " + lookupKey, e);
       }
     }, options);
   }
@@ -651,33 +647,6 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     }
   }
 
-  /**
-   * You most likely want to use {@link com.github.susom.database.DatabaseProvider.Builder#transact(DbCodeTx)}
-   * instead!
-   *
-   * @deprecated Replace with {@link #transact(DbCodeTx)} and a call to
-   *             {@link Transaction#setRollbackOnError(boolean)}
-   *             providing a value of {@code false}.
-   */
-  @Deprecated
-  public void transact(DbRun run) {
-    boolean complete = false;
-    try {
-      run.run(this);
-      complete = true;
-    } catch (ThreadDeath|DatabaseException t) {
-      throw t;
-    } catch (Throwable t) {
-      throw new DatabaseException("Error during transaction", t);
-    } finally {
-      if (run.isRollbackOnly() || (run.isRollbackOnError() && !complete)) {
-        rollbackAndClose();
-      } else {
-        commitAndClose();
-      }
-    }
-  }
-
   public void transact(final DbCode code) {
     boolean complete = false;
     try {
@@ -784,32 +753,6 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     DatabaseProvider create();
 
     /**
-     * This method runs the provided block of code, and commits the transaction
-     * after either successful completion of the block or an exceptional condition.
-     *
-     * <p>Here is a typical usage:</p>
-     * <pre>
-     * {@code}
-     * dbp.transact(new DbRun() {
-     *  {@literal @}Override
-     *   public void run(Provider&lt;Database> dbp) throws Exception {
-     *     dbp.get().doSomething();
-     *   }
-     * });
-     * {@code}
-     * </pre>
-     *
-     * @deprecated Replace with {@link #transact(DbCodeTx)} and a call to
-     *             {@link Transaction#setRollbackOnError(boolean) setRollbackOnError(false)}
-     *             if you want exactly the same transaction semantics. More likely you want
-     *             to replace it with a call to {@link #transact(DbCode)}.
-     * @see #transact(DbCode)
-     * @see #transact(DbCodeTx)
-     */
-    @Deprecated
-    void transact(DbRun run);
-
-    /**
      * This is a convenience method to eliminate the need for explicitly
      * managing the resources (and error handling) for this class. After
      * the run block is complete the transaction will commit unless the
@@ -855,10 +798,10 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
 
   private static class BuilderImpl implements Builder {
     private Closeable pool;
-    private final Provider<Connection> connectionProvider;
+    private final Supplier<Connection> connectionProvider;
     private final Options options;
 
-    private BuilderImpl(Closeable pool, Provider<Connection> connectionProvider, Options options) {
+    private BuilderImpl(Closeable pool, Supplier<Connection> connectionProvider, Options options) {
       this.pool = pool;
       this.connectionProvider = connectionProvider;
       this.options = options;
@@ -932,11 +875,6 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
     @Override
     public DatabaseProvider create() {
       return new DatabaseProvider(connectionProvider, options);
-    }
-
-    @Override
-    public void transact(DbRun run) {
-      create().transact(run);
     }
 
     @Override
@@ -1053,11 +991,6 @@ public final class DatabaseProvider implements Provider<Database>, Supplier<Data
       @Override
       public DatabaseProvider create() {
         return new DatabaseProvider(DatabaseProvider.this);
-      }
-
-      @Override
-      public void transact(DbRun dbRun) {
-        create().transact(dbRun);
       }
 
       @Override

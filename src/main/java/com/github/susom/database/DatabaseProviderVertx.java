@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
-import javax.inject.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,13 +48,13 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   private static final AtomicInteger poolNameCounter = new AtomicInteger(1);
   private WorkerExecutor executor;
   private DatabaseProviderVertx delegateTo = null;
-  private Provider<Connection> connectionProvider;
+  private Supplier<Connection> connectionProvider;
   private boolean txStarted = false;
   private Connection connection = null;
   private Database database = null;
   private final Options options;
 
-  public DatabaseProviderVertx(WorkerExecutor executor, Provider<Connection> connectionProvider, Options options) {
+  public DatabaseProviderVertx(WorkerExecutor executor, Supplier<Connection> connectionProvider, Options options) {
     if (executor == null) {
       throw new IllegalArgumentException("Worker executor cannot be null");
     }
@@ -358,10 +357,10 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   private static class BuilderImpl implements Builder {
     private final WorkerExecutor executor;
     private Closeable pool;
-    private final Provider<Connection> connectionProvider;
+    private final Supplier<Connection> connectionProvider;
     private final Options options;
 
-    private BuilderImpl(WorkerExecutor executor, Closeable pool, Provider<Connection> connectionProvider,
+    private BuilderImpl(WorkerExecutor executor, Closeable pool, Supplier<Connection> connectionProvider,
                         Options options) {
       this.executor = executor;
       this.pool = pool;

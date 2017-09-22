@@ -1,6 +1,5 @@
 import java.util.Date;
-
-import javax.inject.Provider;
+import java.util.function.Supplier;
 
 import com.github.susom.database.Database;
 
@@ -8,9 +7,9 @@ import com.github.susom.database.Database;
  * Create, read, update, and delete sample database objects.
  */
 public class SampleDao {
-  private final Provider<Database> dbp;
+  private final Supplier<Database> dbp;
 
-  public SampleDao(Provider<Database> dbp) {
+  public SampleDao(Supplier<Database> dbp) {
     this.dbp = dbp;
   }
 

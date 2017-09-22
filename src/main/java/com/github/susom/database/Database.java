@@ -23,14 +23,13 @@ import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Syntax;
-import javax.inject.Provider;
 
 /**
  * Primary class for accessing a relational (SQL) database.
  *
  * @author garricko
  */
-public interface Database extends Provider<Database>, Supplier<Database> {
+public interface Database extends Supplier<Database> {
   /**
    * Create a SQL "insert" statement for further manipulation and execution.
    * Note this call does not actually execute the SQL.

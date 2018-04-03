@@ -845,7 +845,9 @@ public class Schema {
         }
         sql.listEnd(") references ");
         sql.append(fk.foreignTable);
-        if (fk.onDeleteCascade) sql.append(" on delete cascade");
+        if (fk.onDeleteCascade) {
+          sql.append(" on delete cascade");
+        }
         executeOrPrint(sql, db, script);
       }
     }

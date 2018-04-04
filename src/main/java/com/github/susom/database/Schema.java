@@ -297,7 +297,7 @@ public class Schema {
       if (updateSequence) {
         addColumn("update_sequence").asLong().table();
       }
-      // Avoid auto-indexing foreigh keys if an index already exists (the first columns of the pk or explicit index)
+      // Avoid auto-indexing foreign keys if an index already exists (the first columns of the pk or explicit index)
       if (indexForeignKeys) {
         for (ForeignKey fk : foreignKeys) {
           if (primaryKey != null && 0 == Collections.indexOfSubList(primaryKey.columnNames, fk.columnNames)) {
@@ -482,6 +482,7 @@ public class Schema {
     public class ForeignKey {
       private final String name;
       private final List<String> columnNames = new ArrayList<>();
+      private boolean onDeleteCascade = false;
       public String foreignTable;
 
       public ForeignKey(String name, String[] columnNames) {
@@ -493,6 +494,11 @@ public class Schema {
 
       public ForeignKey references(String tableName) {
         foreignTable = toName(tableName);
+        return this;
+      }
+
+      public ForeignKey onDeleteCascade() {
+        onDeleteCascade = true;
         return this;
       }
 
@@ -839,6 +845,9 @@ public class Schema {
         }
         sql.listEnd(") references ");
         sql.append(fk.foreignTable);
+        if (fk.onDeleteCascade) {
+          sql.append(" on delete cascade");
+        }
         executeOrPrint(sql, db, script);
       }
     }

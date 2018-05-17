@@ -665,6 +665,26 @@ public final class DatabaseProvider implements Supplier<Database> {
     }
   }
 
+  public <T> T transactReturning(final DbCodeTyped<T> code) {
+    T result;
+    boolean complete = false;
+    try {
+      result = code.run(this);
+      complete = true;
+    } catch (ThreadDeath|DatabaseException t) {
+      throw t;
+    } catch (Throwable t) {
+      throw new DatabaseException("Error during transaction", t);
+    } finally {
+      if (!complete) {
+        rollbackAndClose();
+      } else {
+        commitAndClose();
+      }
+    }
+    return result;
+  }
+
   public void transact(final DbCodeTx code) {
     Transaction tx = new TransactionImpl();
     tx.setRollbackOnError(true);
@@ -762,6 +782,7 @@ public final class DatabaseProvider implements Supplier<Database> {
      * <pre>
      *   dbp.transact(dbs -> {
      *     List<String> r = dbs.get().toSelect("select a from b where c=?").argInteger(1).queryStrings();
+     *     ... do something with the results ...
      *   });
      * </pre>
      * </p>
@@ -770,6 +791,19 @@ public final class DatabaseProvider implements Supplier<Database> {
      * @see #transact(DbCodeTx)
      */
     void transact(DbCode code);
+
+    /**
+     * This method is the same as {@link #transact(DbCode)} but allows a return value.
+     *
+     * <p>Here is a typical usage:
+     * <pre>
+     *   List<String> r = dbp.transact(dbs -> {
+     *     return dbs.get().toSelect("select a from b where c=?").argInteger(1).queryStrings();
+     *   });
+     * </pre>
+     * </p>
+     */
+    <T> T transactReturning(DbCodeTyped<T> code);
 
     /**
      * This is a convenience method to eliminate the need for explicitly
@@ -880,6 +914,11 @@ public final class DatabaseProvider implements Supplier<Database> {
     @Override
     public void transact(DbCode tx) {
       create().transact(tx);
+    }
+
+    @Override
+    public <T> T transactReturning(DbCodeTyped<T> tx) {
+      return create().transactReturning(tx);
     }
 
     @Override
@@ -996,6 +1035,11 @@ public final class DatabaseProvider implements Supplier<Database> {
       @Override
       public void transact(DbCode tx) {
         create().transact(tx);
+      }
+
+      @Override
+      public <T> T transactReturning(DbCodeTyped<T> tx) {
+        return create().transactReturning(tx);
       }
 
       @Override

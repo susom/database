@@ -158,6 +158,30 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     }
   }
 
+  public <T> T transactReturning(final DbCodeTyped<T> code) {
+    if (io.vertx.core.Context.isOnEventLoopThread()) {
+      throw new DatabaseException("Do not call transact() from event loop threads; use transactAsync() instead");
+    }
+
+    T result;
+    boolean complete = false;
+    try {
+      result = code.run(this);
+      complete = true;
+    } catch (ThreadDeath | DatabaseException t) {
+      throw t;
+    } catch (Throwable t) {
+      throw new DatabaseException("Error during transaction", t);
+    } finally {
+      if (!complete) {
+        rollbackAndClose();
+      } else {
+        commitAndClose();
+      }
+    }
+    return result;
+  }
+
   /**
    * Execute a transaction on a Vert.x worker thread, with default semantics (commit if
    * the code completes successfully, or rollback if it throws an error). The provided
@@ -167,7 +191,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   public <T> void transactAsync(final DbCodeTyped<T> code, Handler<AsyncResult<T>> resultHandler) {
     VertxUtil.executeBlocking(executor,  future -> {
       try {
-        T returnValue = null;
+        T returnValue;
         boolean complete = false;
         try {
           returnValue = code.run(this);
@@ -327,13 +351,34 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     /**
      * This is a convenience method to eliminate the need for explicitly
      * managing the resources (and error handling) for this class. After
-     * the run block is complete commit() will be called unless either the
+     * the run block is complete the transaction will commit unless either the
      * {@link DbCode#run(Supplier)} method threw a {@link Throwable}.
+     *
+     * <p>Here is a typical usage:
+     * <pre>
+     *   dbp.transact(dbs -> {
+     *     List<String> r = dbs.get().toSelect("select a from b where c=?").argInteger(1).queryStrings();
+     *   });
+     * </pre>
+     * </p>
      *
      * @param code the code you want to run as a transaction with a Database
      * @see #transact(DbCodeTx)
      */
     void transact(DbCode code);
+
+    /**
+     * This method is the same as {@link #transact(DbCode)} but allows a return value.
+     *
+     * <p>Here is a typical usage:
+     * <pre>
+     *   List<String> r = dbp.transact(dbs -> {
+     *     return dbs.get().toSelect("select a from b where c=?").argInteger(1).queryStrings();
+     *   });
+     * </pre>
+     * </p>
+     */
+    <T> T transactReturning(DbCodeTyped<T> code);
 
     <T> void transactAsync(DbCodeTyped<T> code, Handler<AsyncResult<T>> resultHandler);
 
@@ -441,6 +486,11 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     @Override
     public void transact(DbCode tx) {
       create().transact(tx);
+    }
+
+    @Override
+    public <T> T transactReturning(DbCodeTyped<T> tx) {
+      return create().transactReturning(tx);
     }
 
     @Override
@@ -567,6 +617,11 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       @Override
       public void transact(DbCode tx) {
         create().transact(tx);
+      }
+
+      @Override
+      public <T> T transactReturning(DbCodeTyped<T> tx) {
+        return create().transactReturning(tx);
       }
 
       @Override

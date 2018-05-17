@@ -71,6 +71,22 @@ public class ConfigFromImpl implements ConfigFrom {
   }
 
   @Override
+  public ConfigFrom defaultPropertyFiles() {
+    return defaultPropertyFiles("properties", "conf/app.properties", "local.properties", "sample.properties");
+  }
+
+  @Override
+  public ConfigFrom defaultPropertyFiles(String systemPropertyKey, String... filenames) {
+    return defaultPropertyFiles(systemPropertyKey, Charset.defaultCharset().newDecoder(), filenames);
+  }
+
+  @Override
+  public ConfigFrom defaultPropertyFiles(String systemPropertyKey, CharsetDecoder decoder, String... filenames) {
+    String properties = System.getProperty(systemPropertyKey, String.join(File.pathSeparator, filenames));
+    return propertyFile(Charset.defaultCharset().newDecoder(), properties.split(File.pathSeparator));
+  }
+
+  @Override
   public ConfigFrom propertyFile(String... filenames) {
     return propertyFile(Charset.defaultCharset().newDecoder(), filenames);
   }

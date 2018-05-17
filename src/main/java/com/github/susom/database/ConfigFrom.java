@@ -46,6 +46,35 @@ public interface ConfigFrom extends Supplier<Config> {
 
   ConfigFrom config(Supplier<Config> config);
 
+  /**
+   * Adds a set of properties files to read from, which can be overridden by a system property "properties".
+   * Equivalent to:
+   * <pre>
+   *   defaultPropertyFiles("properties", "conf/app.properties", "local.properties", "sample.properties")
+   * </pre>
+   */
+  ConfigFrom defaultPropertyFiles();
+
+  /**
+   * Adds a set of properties files to read from, which can be overridden by a specified system property.
+   * Equivalent to:
+   * <pre>
+   *   defaultPropertyFiles(systemPropertyKey, Charset.defaultCharset().newDecoder(), filenames)
+   * </pre>
+   */
+  ConfigFrom defaultPropertyFiles(String systemPropertyKey, String... filenames);
+
+  /**
+   * Adds a set of properties files to read from, which can be overridden by a specified system property.
+   * Equivalent to:
+   * <pre>
+   *   propertyFile(Charset.defaultCharset().newDecoder(),
+   *       System.getProperty(systemPropertyKey, String.join(File.pathSeparator, filenames))
+   *       .split(File.pathSeparator));
+   * </pre>
+   */
+  ConfigFrom defaultPropertyFiles(String systemPropertyKey, CharsetDecoder decoder, String... filenames);
+
   ConfigFrom propertyFile(String... filenames);
 
   ConfigFrom propertyFile(CharsetDecoder decoder, String... filenames);

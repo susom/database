@@ -1,0 +1,171 @@
+#
+# cloudbuild.yaml for building and testing susom/database repo with different databases
+#
+
+# Google Cloud KMS KeyRing and CryptoKey are created for encrypting credentials of SourceClear, Docker Store, Proxy and Maven Repo
+# Container Builder service account is granted access to the CryptoKey.
+# Run the following command in shell or terminal window to encrpt SourceClear, Docker Store, Proxy and Maven Repo credentials
+# MY_SECRET=<enter-your-credential>
+# echo -n $MY_SECRET | gcloud kms encrypt --plaintext-file=- --ciphertext-file=- \
+# --location=global --keyring=[KEYRING-NAME] --key=[KEY-NAME] | base64
+
+# See below link for more information on using Google Cloud KMS:
+# https://cloud.google.com/container-builder/docs/securing-builds/use-encrypted-secrets-credentials#encrypting_an_environment_variable_using_the_cryptokey
+
+secrets:
+- kmsKeyName: 'projects/[GCP-PROJECT-ID]/locations/global/keyRings/[GCP-KMS-KEYRING-NAME]/cryptoKeys/[GCP-KMS-KEY-NAME]'
+  secretEnv:
+    #SRCCLR_API_TOKEN: [ENCRYPTED-SOURCECLEAR-AGENT-API-TOKEN]
+    DOCKER_USERNAME: [ENCRYPTED-DOCKER-USERNAME]
+    DOCKER_PASSWORD: [ENCRYPTED-DOCKER-PASSWORD]
+    PROXY_USERNAME: [ENCRYPTED-PROXY-USERNAME]
+    PROXY_PASSWORD: [ENCRYPTED-PROXY-PASSWORD]
+    MAVEN_USERNAME: [ENCRYPTED-MAVEN-USERNAME]
+    MAVEN_PASSWORD: [ENCRYPTED-MAVEN-PASSWORD]
+
+# Build Steps:
+steps:
+
+#
+# Steps for building and testing susom/database with Oracle DB
+#
+
+# Copying customized build files
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', "cp ./pom_proxy.xml ./pom.xml"]
+
+# Authenticating to Docker Store
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker login --username=$$DOCKER_USERNAME --password=$$DOCKER_PASSWORD']
+  secretEnv: ['DOCKER_USERNAME', 'DOCKER_PASSWORD']
+
+# Creating a separate network
+# It is required for communication between Oracle DB server and APP server
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker network create $$ORACLEDB_NET']
+  env: ['ORACLEDB_NET=stanford-oracledb']
+
+# Creating an Oracle DB server 
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', "docker run -d --name $$ORACLEDB_SERVER --net $$ORACLEDB_NET \
+         -v /workspace:/workspace $$ORACLEDB_IMAGE"]
+  env: ['ORACLEDB_IMAGE=store/oracle/database-enterprise:12.2.0.1-slim', 'ORACLEDB_SERVER=oracle-dbserver',
+        'ORACLEDB_NET=stanford-oracledb']
+
+# Checking the health of Oracle DB server
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', './check_oracledb_health.sh']
+  env: ['DB_HLTH_CHK_MAX_RETRY=7', 'DB_HLTH_CHK_SLEEP=20', 'ORACLEDB_SERVER=oracle-dbserver']
+
+# Running Integration Tests using APP test server
+- name: 'gcr.io/cloud-builders/docker'
+  volumes:
+  - name: 'm2'
+    path: '/mvn_local_repo'
+  entrypoint: 'bash'
+  args: ['-c', "docker run -e ORACLEDB_SERVER -e PROXY_USERNAME -e PROXY_PASSWORD -e MAVEN_USERNAME -e MAVEN_PASSWORD \
+         -e MAVEN_ID -e PROXY_HOST -e MAVEN_HOST -e MAVEN_PORT \
+         --name $$APP_TEST_SERVER --net $$ORACLEDB_NET \
+         -v /workspace:/workspace -v /mvn_local_repo:/root/.m2 --entrypoint 'bash' $$APP_TEST_IMAGE -c 'cd /workspace; \
+         cp settings.xml ~/.m2/settings.xml; ./run_oracle.test.sh'"]
+  env: ['APP_TEST_SERVER=oracledb-app-test-server', 'ORACLEDB_NET=stanford-oracledb',
+        'APP_TEST_IMAGE=gcr.io/cloud-builders/mvn', 'ORACLEDB_SERVER=oracle-dbserver',
+        'MAVEN_ID=nexus', 'PROXY_HOST=x.x.x.x', 'MAVEN_HOST=x.x.x.x', 'MAVEN_PORT=xxxx']
+  secretEnv: ['PROXY_USERNAME', 'PROXY_PASSWORD', 'MAVEN_USERNAME', 'MAVEN_PASSWORD']
+
+# Deploying using APP deploy server
+- name: 'gcr.io/cloud-builders/docker'
+  volumes:
+  - name: 'm2'
+    path: '/mvn_local_repo'
+  entrypoint: 'bash'
+  args: ['-c', "docker run -e PROXY_USERNAME -e PROXY_PASSWORD -e MAVEN_USERNAME -e MAVEN_PASSWORD \
+         -e MAVEN_ID -e PROXY_HOST -e MAVEN_HOST -e MAVEN_PORT \
+         --name $$APP_DEPLOY_SERVER --net $$ORACLEDB_NET \
+         -v /workspace:/workspace -v /mvn_local_repo:/root/.m2 --entrypoint 'bash' $$APP_DEPLOY_IMAGE \
+         -c 'cd /workspace; mvn -Poracle12 -e -DskipTests deploy'"]
+  #args: ['-c', "docker run -e PROXY_USERNAME -e PROXY_PASSWORD -e MAVEN_USERNAME -e MAVEN_PASSWORD \
+  #       -e MAVEN_ID -e PROXY_HOST -e MAVEN_HOST -e MAVEN_PORT -e SRCCLR_API_TOKEN \
+  #       --name $$APP_DEPLOY_SERVER --net $$ORACLEDB_NET \
+  #       -v /workspace:/workspace -v /mvn_local_repo:/root/.m2 --entrypoint 'bash' $$APP_DEPLOY_IMAGE \
+  #       -c 'apt-get update; apt-get install curl -y; cd /workspace; \
+  #       mvn -Poracle12 -e -DskipTests deploy; curl -sSL https://download.sourceclear.com/ci.sh | sh;'"]
+  env: ['APP_DEPLOY_SERVER=oracledb-app-deploy-server', 'ORACLEDB_NET=stanford-oracledb',
+        'APP_DEPLOY_IMAGE=gcr.io/cloud-builders/mvn', 'MAVEN_ID=nexus', 'PROXY_HOST=x.x.x.x',
+        'MAVEN_HOST=x.x.x.x', 'MAVEN_PORT=xxxx']
+  #secretEnv: ['SRCCLR_API_TOKEN', 'PROXY_USERNAME', 'PROXY_PASSWORD', 'MAVEN_USERNAME', 'MAVEN_PASSWORD']
+  secretEnv: ['PROXY_USERNAME', 'PROXY_PASSWORD', 'MAVEN_USERNAME', 'MAVEN_PASSWORD']
+
+#
+# Steps for building and testing susom/database with Postgres
+#
+
+# Creating a separate network
+# It is required for communication between Postgres server and APP server
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', 'docker network create $$POSTGRES_NET']
+  env: ['POSTGRES_NET=stanford-postgres']
+
+# Creating a Postgres server 
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', "docker run -d --name $$POSTGRES_SERVER --net $$POSTGRES_NET \
+         -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_DB \
+         -v /workspace:/workspace $$POSTGRES_IMAGE"]
+  env: ['POSTGRES_IMAGE=postgres:9.3', 'POSTGRES_USER=test', 'POSTGRES_PASSWORD=test', 'POSTGRES_DB=test',
+        'POSTGRES_SERVER=postgres-dbserver', 'POSTGRES_NET=stanford-postgres']
+
+# Checking the health of Postgres server
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', "docker exec -e POSTGRES_SERVER -e DB_HLTH_CHK_MAX_RETRY \
+         -e DB_HLTH_CHK_SLEEP $$POSTGRES_SERVER /workspace/check_postgres_health.sh"]
+  env: ['DB_HLTH_CHK_MAX_RETRY=7', 'DB_HLTH_CHK_SLEEP=20', 'POSTGRES_SERVER=postgres-dbserver']
+
+# Running Integration Tests using APP test server
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args: ['-c', "docker run -e POSTGRES_SERVER -e PROXY_USERNAME -e PROXY_PASSWORD -e MAVEN_USERNAME -e MAVEN_PASSWORD \
+         -e MAVEN_ID -e PROXY_HOST -e MAVEN_HOST -e MAVEN_PORT \
+         -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_DB \
+         --name $$APP_TEST_SERVER --net $$POSTGRES_NET \
+         -v /workspace:/workspace --entrypoint 'bash' $$APP_TEST_IMAGE \
+         -c 'cd /workspace; export TZ=America/Los_Angeles; \
+         mvn -e -Dpostgres.database.url=jdbc:postgresql://$$POSTGRES_SERVER:5432/$$POSTGRES_DB \
+         -Dpostgres.database.user=$$POSTGRES_USER -Dpostgres.database.password=$$POSTGRES_PASSWORD -P postgresql verify'"]
+  env: ['APP_TEST_SERVER=postgres-app-test-server', 'POSTGRES_NET=stanford-postgres',
+        'APP_TEST_IMAGE=gcr.io/cloud-builders/mvn', 'POSTGRES_SERVER=postgres-dbserver',
+        'POSTGRES_USER=test', 'POSTGRES_PASSWORD=test', 'POSTGRES_DB=test',
+        'MAVEN_ID=nexus', 'PROXY_HOST=x.x.x.x', 'MAVEN_HOST=x.x.x.x', 'MAVEN_PORT=xxxx']
+  secretEnv: ['PROXY_USERNAME', 'PROXY_PASSWORD', 'MAVEN_USERNAME', 'MAVEN_PASSWORD']
+
+# Deploying using APP deploy server
+- name: 'gcr.io/cloud-builders/docker'
+  volumes:
+  - name: 'm2'
+    path: '/mvn_local_repo'
+  entrypoint: 'bash'
+  args: ['-c', "docker run -e PROXY_USERNAME -e PROXY_PASSWORD -e MAVEN_USERNAME -e MAVEN_PASSWORD \
+         -e MAVEN_ID -e PROXY_HOST -e MAVEN_HOST -e MAVEN_PORT \
+         --name $$APP_DEPLOY_SERVER --net $$POSTGRES_NET \
+         -v /workspace:/workspace -v /mvn_local_repo:/root/.m2 --entrypoint 'bash' $$APP_DEPLOY_IMAGE \
+         -c 'cd /workspace; mvn -DskipTests -Ppostgresql deploy'"]
+  #args: ['-c', "docker run -e PROXY_USERNAME -e PROXY_PASSWORD -e MAVEN_USERNAME -e MAVEN_PASSWORD \
+  #       -e MAVEN_ID -e PROXY_HOST -e MAVEN_HOST -e MAVEN_PORT -e SRCCLR_API_TOKEN \
+  #       --name $$APP_DEPLOY_SERVER --net $$POSTGRES_NET \
+  #       -v /workspace:/workspace -v /mvn_local_repo:/root/.m2 --entrypoint 'bash' $$APP_DEPLOY_IMAGE \
+  #       -c 'apt-get update; apt-get install curl -y; cd /workspace; \
+  #        mvn -DskipTests -Ppostgresql deploy; curl -sSL https://download.sourceclear.com/ci.sh | sh'"]
+  env: ['APP_DEPLOY_SERVER=postgres-app-build-server', 'POSTGRES_NET=stanford-postgres',
+        'APP_DEPLOY_IMAGE=gcr.io/cloud-builders/mvn', 'MAVEN_ID=nexus', 'PROXY_HOST=x.x.x.x',
+        'MAVEN_HOST=x.x.x.x', 'MAVEN_PORT=xxxx']
+  #secretEnv: ['SRCCLR_API_TOKEN', 'PROXY_USERNAME', 'PROXY_PASSWORD', 'MAVEN_USERNAME', 'MAVEN_PASSWORD']
+  secretEnv: ['PROXY_USERNAME', 'PROXY_PASSWORD', 'MAVEN_USERNAME', 'MAVEN_PASSWORD']
+
+timeout: 1200s

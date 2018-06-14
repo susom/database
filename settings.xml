@@ -1,0 +1,57 @@
+<settings>
+
+  <proxies>
+    <proxy>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>${env.PROXY_HOST}</host>
+      <port>3128</port>
+      <username>${env.PROXY_USERNAME}</username>
+      <password>${env.PROXY_PASSWORD}</password>
+    </proxy>
+  </proxies>
+
+  <servers>
+    <server>
+      <id>${env.MAVEN_ID}</id>
+      <username>${env.MAVEN_USERNAME}</username>
+      <password>${env.MAVEN_PASSWORD}</password>
+    </server>
+  </servers>
+
+  <mirrors>
+    <mirror>
+      <id>${env.MAVEN_ID}</id>
+      <mirrorOf>*</mirrorOf>
+      <url>http://${env.MAVEN_HOST}:${env.MAVEN_PORT}/repository/maven-public/</url>
+    </mirror>
+  </mirrors>
+
+  <profiles>
+    <profile>
+      <id>${env.MAVEN_ID}</id>
+      <!--Enable snapshots for the built in central repo to direct -->
+      <!--all requests to nexus via the mirror -->
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>http://central</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+      </repositories>
+     <pluginRepositories>
+        <pluginRepository>
+          <id>central</id>
+          <url>http://central</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+  <activeProfiles>
+    <!--make the profile active all the time -->
+    <activeProfile>${env.MAVEN_ID}</activeProfile>
+  </activeProfiles>
+</settings>

@@ -131,11 +131,14 @@ steps:
 # Running Integration Tests using APP test server
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
+  volumes:
+  - name: 'm2'
+    path: '/mvn_local_repo'
   args: ['-c', "docker run -e POSTGRES_SERVER -e PROXY_USERNAME -e PROXY_PASSWORD -e MAVEN_USERNAME -e MAVEN_PASSWORD \
          -e MAVEN_ID -e PROXY_HOST -e MAVEN_HOST -e MAVEN_PORT \
          -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_DB \
          --name $$APP_TEST_SERVER --net $$POSTGRES_NET \
-         -v /workspace:/workspace --entrypoint 'bash' $$APP_TEST_IMAGE \
+         -v /workspace:/workspace -v /mvn_local_repo:/root/.m2 --entrypoint 'bash' $$APP_TEST_IMAGE \
          -c 'cd /workspace; export TZ=America/Los_Angeles; \
          mvn -e -Dpostgres.database.url=jdbc:postgresql://$$POSTGRES_SERVER:5432/$$POSTGRES_DB \
          -Dpostgres.database.user=$$POSTGRES_USER -Dpostgres.database.password=$$POSTGRES_PASSWORD -P postgresql verify'"]

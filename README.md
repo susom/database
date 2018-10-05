@@ -1,8 +1,6 @@
 ## Easier, Safer Database Access
 
 [![Build Status](https://travis-ci.org/susom/database.svg?branch=master)](https://travis-ci.org/susom/database)
-[![Dependency Status](https://www.versioneye.com/user/projects/59b30c53368b080014d2555e/badge.svg?style=flat)](https://www.versioneye.com/user/projects/59b30c53368b080014d2555e)
-[![Dependency Status](https://www.versioneye.com/user/projects/59ba2caf6725bd06dd5721c9/badge.svg?style=flat)](https://www.versioneye.com/user/projects/59ba2caf6725bd06dd5721c9)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database)
 
 The point of this project is to provide a simplified way of accessing databases. It is a

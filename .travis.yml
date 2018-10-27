@@ -6,6 +6,14 @@ jdk:
   - oraclejdk8
 addons:
   postgresql: "9.6"
+  srcclr: true
+before_install:
+  # Disable SourceClear except on scheduled builds
+  - |
+    if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
+    then
+      export NOSCAN=1
+    fi
 before_script:
   - export TZ=America/Los_Angeles
   - date

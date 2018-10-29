@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Access configuration properties from a variety of standard sources,
@@ -246,6 +248,10 @@ public class ConfigFromImpl implements ConfigFrom {
     return new ConfigImpl(this::lookup, indentedSources("Config"));
   }
 
+  public Config getWithEnvironmentSubstitution() {
+    return new ConfigImpl(this::lookupWithEnvSubst, indentedSources("Config"));
+  }
+
   private String indentedSources(String label) {
     StringBuilder buf = new StringBuilder(label);
     for (Config config : searchPath) {
@@ -263,4 +269,25 @@ public class ConfigFromImpl implements ConfigFrom {
     }
     return null;
   }
+
+  private String lookupWithEnvSubst(String key) {
+      for (Config config : searchPath) {
+          String value = config.getString(key);
+          if (value != null) {
+              // matches ${ENV_VAR_NAME} or $ENV_VAR_NAME
+              Pattern p = Pattern.compile("\\$\\{(\\w+)\\}|\\$(\\w+)");
+              Matcher m = p.matcher(value);
+              StringBuffer sb = new StringBuffer();
+              while (m.find()) {
+                  String envVarName = null == m.group(1) ? m.group(2) : m.group(1);
+                  String envVarValue = System.getenv(envVarName);
+                  m.appendReplacement(sb, null == envVarValue ? "" : envVarValue);
+              }
+              m.appendTail(sb);
+              return sb.toString();
+          }
+      }
+      return null;
+  }
+
 }

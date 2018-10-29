@@ -5,7 +5,9 @@ import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.util.Properties;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import com.github.susom.database.Config;
 import com.github.susom.database.ConfigFrom;
@@ -18,6 +20,10 @@ import static org.junit.Assert.*;
  * @author garricko
  */
 public class ConfigTest {
+
+  @Rule
+  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Test
   public void testSystemProperties() throws Exception {
     System.setProperty("foo", "bar");
@@ -37,6 +43,20 @@ public class ConfigTest {
     Config config = ConfigFrom.firstOf().properties(properties).get();
 
     assertEquals("bar", config.getString("foo"));
+    assertNull(config.getString("unknown"));
+    assertEquals("default", config.getString("unknown", "default"));
+  }
+
+  @Test
+  public void testEnvironmentSubstitution() throws Exception {
+    environmentVariables.set("BAR", "baz");
+
+    Properties properties = new Properties();
+    properties.setProperty("foo", "${BAR}");
+
+    Config config = ConfigFrom.firstOf().properties(properties).getWithEnvironmentSubstitution();
+
+    assertEquals("baz", config.getString("foo"));
     assertNull(config.getString("unknown"));
     assertEquals("default", config.getString("unknown", "default"));
   }

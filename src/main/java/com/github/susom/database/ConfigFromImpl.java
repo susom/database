@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Access configuration properties from a variety of standard sources,
@@ -242,6 +244,29 @@ public class ConfigFromImpl implements ConfigFrom {
   }
 
   @Override
+  public ConfigFrom substitutions(Config config) {
+    return new ConfigFromImpl(new ConfigImpl(key -> {
+      String value = lookup(key);
+      if (value != null) {
+        // matches ${ENV_VAR_NAME} or $ENV_VAR_NAME
+        Pattern p = Pattern.compile("(?<!\\$)\\$(?!\\$)\\{(\\w+)\\}|(?<!\\$)\\$(?!\\$)(\\w+)");
+        Matcher m = p.matcher(value);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+          String envVarName = null == m.group(1) ? m.group(2) : m.group(1);
+          String envVarValue = config.getString(envVarName);
+          m.appendReplacement(sb, null == envVarValue ? "" : envVarValue);
+        }
+        m.appendTail(sb);
+        // Allow escaping literal $ with $$
+        return sb.toString().replaceAll("(\\${2})", "\\$");
+      } else {
+        return null;
+      }
+    }, indentedSources("substitutions(" + config.sources() + ")")));
+  }
+
+  @Override
   public Config get() {
     return new ConfigImpl(this::lookup, indentedSources("Config"));
   }
@@ -263,4 +288,5 @@ public class ConfigFromImpl implements ConfigFrom {
     }
     return null;
   }
+
 }

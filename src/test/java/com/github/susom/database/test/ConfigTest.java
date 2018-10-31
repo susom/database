@@ -5,7 +5,9 @@ import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.util.Properties;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import com.github.susom.database.Config;
 import com.github.susom.database.ConfigFrom;
@@ -18,6 +20,10 @@ import static org.junit.Assert.*;
  * @author garricko
  */
 public class ConfigTest {
+
+  @Rule
+  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Test
   public void testSystemProperties() throws Exception {
     System.setProperty("foo", "bar");
@@ -39,6 +45,31 @@ public class ConfigTest {
     assertEquals("bar", config.getString("foo"));
     assertNull(config.getString("unknown"));
     assertEquals("default", config.getString("unknown", "default"));
+  }
+
+  @Test
+  public void testEnvironmentSubstitution() throws Exception {
+    environmentVariables.set("FOO", "bar");
+    environmentVariables.set("PREFIX_FOO", "baz");
+
+    Config env = ConfigFrom.firstOf().env().get();
+
+    // Test curly brace substitution and escaped $
+    Config config = ConfigFrom.firstOf().value("test", "${FOO}-$$").substitutions(env).get();
+    assertEquals("bar-$", config.getString("test"));
+
+    // Test without curly braces
+    config = ConfigFrom.firstOf().value("test", "$FOO-$$-$FOO").substitutions(env).get();
+    assertEquals("bar-$-bar", config.getString("test"));
+
+    // Test non-existing env var
+    config = ConfigFrom.firstOf().value("test", "abc${XXQQXX}def").substitutions(env).get();
+    assertEquals("abcdef", config.getString("test"));
+
+    // Test filtering environment variables with a regex
+    env = ConfigFrom.firstOf().env().includeRegex("PREFIX_.*").get();
+    config = ConfigFrom.firstOf().value("test", "${PREFIX_FOO}-${FOO}").substitutions(env).get();
+    assertEquals("baz-", config.getString("test"));
   }
 
   @Test

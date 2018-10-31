@@ -49,16 +49,27 @@ public class ConfigTest {
 
   @Test
   public void testEnvironmentSubstitution() throws Exception {
-    environmentVariables.set("BAR", "baz");
+    environmentVariables.set("FOO", "bar");
+    environmentVariables.set("PREFIX_FOO", "baz");
 
-    Properties properties = new Properties();
-    properties.setProperty("foo", "${BAR}");
+    Config env = ConfigFrom.firstOf().env().get();
 
-    Config config = ConfigFrom.firstOf().properties(properties).getWithEnvironmentSubstitution();
+    // Test curly brace substitution and escaped $
+    Config config = ConfigFrom.firstOf().value("test", "${FOO}-$$").substitutions(env).get();
+    assertEquals("bar-$", config.getString("test"));
 
-    assertEquals("baz", config.getString("foo"));
-    assertNull(config.getString("unknown"));
-    assertEquals("default", config.getString("unknown", "default"));
+    // Test without curly braces
+    config = ConfigFrom.firstOf().value("test", "$FOO-$$-$FOO").substitutions(env).get();
+    assertEquals("bar-$-bar", config.getString("test"));
+
+    // Test non-existing env var
+    config = ConfigFrom.firstOf().value("test", "abc${XXQQXX}def").substitutions(env).get();
+    assertEquals("abcdef", config.getString("test"));
+
+    // Test filtering environment variables with a regex
+    env = ConfigFrom.firstOf().env().includeRegex("PREFIX_.*").get();
+    config = ConfigFrom.firstOf().value("test", "${PREFIX_FOO}-${FOO}").substitutions(env).get();
+    assertEquals("baz-", config.getString("test"));
   }
 
   @Test

@@ -101,8 +101,8 @@ public interface ConfigFrom extends Supplier<Config> {
 
   ConfigFrom addPrefix(String prefix);
 
-  Config get();
+  ConfigFrom substitutions(Config config);
 
-  Config getWithEnvironmentSubstitution();
+  Config get();
 
 }

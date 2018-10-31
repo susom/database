@@ -244,12 +244,31 @@ public class ConfigFromImpl implements ConfigFrom {
   }
 
   @Override
-  public Config get() {
-    return new ConfigImpl(this::lookup, indentedSources("Config"));
+  public ConfigFrom substitutions(Config config) {
+    return new ConfigFromImpl(new ConfigImpl(key -> {
+      String value = lookup(key);
+      if (value != null) {
+        // matches ${ENV_VAR_NAME} or $ENV_VAR_NAME
+        Pattern p = Pattern.compile("(?<!\\$)\\$(?!\\$)\\{(\\w+)\\}|(?<!\\$)\\$(?!\\$)(\\w+)");
+        Matcher m = p.matcher(value);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+          String envVarName = null == m.group(1) ? m.group(2) : m.group(1);
+          String envVarValue = config.getString(envVarName);
+          m.appendReplacement(sb, null == envVarValue ? "" : envVarValue);
+        }
+        m.appendTail(sb);
+        // Allow escaping literal $ with $$
+        return sb.toString().replaceAll("(\\${2})", "\\$");
+      } else {
+        return null;
+      }
+    }, indentedSources("substitutions(" + config.sources() + ")")));
   }
 
-  public Config getWithEnvironmentSubstitution() {
-    return new ConfigImpl(this::lookupWithEnvSubst, indentedSources("Config"));
+  @Override
+  public Config get() {
+    return new ConfigImpl(this::lookup, indentedSources("Config"));
   }
 
   private String indentedSources(String label) {
@@ -268,26 +287,6 @@ public class ConfigFromImpl implements ConfigFrom {
       }
     }
     return null;
-  }
-
-  private String lookupWithEnvSubst(String key) {
-      for (Config config : searchPath) {
-          String value = config.getString(key);
-          if (value != null) {
-              // matches ${ENV_VAR_NAME} or $ENV_VAR_NAME
-              Pattern p = Pattern.compile("\\$\\{(\\w+)\\}|\\$(\\w+)");
-              Matcher m = p.matcher(value);
-              StringBuffer sb = new StringBuffer();
-              while (m.find()) {
-                  String envVarName = null == m.group(1) ? m.group(2) : m.group(1);
-                  String envVarValue = System.getenv(envVarName);
-                  m.appendReplacement(sb, null == envVarValue ? "" : envVarValue);
-              }
-              m.appendTail(sb);
-              return sb.toString();
-          }
-      }
-      return null;
   }
 
 }

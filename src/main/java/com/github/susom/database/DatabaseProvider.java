@@ -954,7 +954,9 @@ public final class DatabaseProvider implements Supplier<Database> {
     Metric metric = new Metric(log.isDebugEnabled());
     try {
       connection = connectionProvider.get();
-      txStarted = true;
+      if (!options.flavor().autoCommitOnly()) {
+        txStarted = true;
+      }
       metric.checkpoint("getConn");
       try {
         // Generally check autocommit before setting because databases like
@@ -965,11 +967,13 @@ public final class DatabaseProvider implements Supplier<Database> {
         // (the getAutoCommit() call here will return false and then it will blow up
         // on commit complaining you can't commit with autocommit on)
 //        if (options.flavor() == Flavor.postgresql || !connection.getAutoCommit()) {
+        if (!options.flavor().autoCommitOnly()) {
           connection.setAutoCommit(false);
           metric.checkpoint("setAutoCommit");
 //        } else {
 //          metric.checkpoint("checkAutoCommit");
 //        }
+        }
       } catch (SQLException e) {
         throw new DatabaseException("Unable to check/set autoCommit for the connection", e);
       }

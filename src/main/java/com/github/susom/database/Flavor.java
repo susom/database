@@ -149,6 +149,11 @@ public enum Flavor {
     public String sequenceOptions() {
       return " as bigint";
     }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
   },
   sqlserver {
     @Override
@@ -274,6 +279,11 @@ public enum Flavor {
     public String sequenceOptions() {
       return "";
     }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
   },
   oracle {
     @Override
@@ -396,6 +406,11 @@ public enum Flavor {
     @Override
     public String sequenceOptions() {
       return "";
+    }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
     }
   },
   postgresql {
@@ -520,6 +535,11 @@ public enum Flavor {
     public String sequenceOptions() {
       return "";
     }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
   }, hsqldb {
     @Override
     public String typeInteger() {
@@ -642,7 +662,142 @@ public enum Flavor {
     public String sequenceOptions() {
       return " as bigint";
     }
-  };
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
+  },
+  /// NOTE: no support for DDL with bigquery driver
+  bigquery {
+    @Override
+    public String typeInteger() {
+      return "int64";
+    }
+
+    @Override
+    public String typeBoolean() {
+      return "bool";
+    }
+
+    @Override
+    public String typeLong() {
+      return "int64";
+    }
+
+    @Override
+    public String typeFloat() {
+      return "float64";
+    }
+
+    @Override
+    public String typeDouble() {
+      return "float64";
+    }
+
+    @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "numeric";
+    }
+
+    @Override
+    public String typeStringVar(int bytes) {
+      return "string";
+    }
+
+    @Override
+    public String typeStringFixed(int bytes) {
+      return "string";
+    }
+
+    @Override
+    public String typeClob() {
+      return "string";
+    }
+
+    @Override
+    public String typeBlob() {
+      return "bytes";
+    }
+
+    @Override
+    public String typeDate() {
+      return "date";
+    }
+
+    @Override
+    public boolean useStringForClob() {
+      return true;
+    }
+
+    @Override
+    public boolean useBytesForBlob() {
+      return true;
+    }
+
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      throw new UnsupportedOperationException("BigQuery does not support sequences");
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      throw new UnsupportedOperationException("BigQuery does not support sequences");
+    }
+
+    @Override
+    public String sequenceDrop(String dbtestSeq) {
+      throw new UnsupportedOperationException("BigQuery does not support sequences");
+    }
+
+    @Override
+    public boolean supportsInsertReturning() {
+      return false;
+    }
+
+    @Override
+    public String dbTimeMillis() {
+      return "current_timestamp";
+    }
+
+    @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      throw new UnsupportedOperationException("BigQuery does not support sequences");
+    }
+
+    @Override
+    public String sequenceOrderClause(boolean order) {
+      throw new UnsupportedOperationException("BigQuery does not support sequences");
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      throw new UnsupportedOperationException("BigQuery does not support sequences");
+    }
+
+    @Override
+    public String fromAny() {
+      return "";
+    }
+
+    @Override
+    public String dateAsSqlFunction(Date date, Calendar calendar) {
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
+      dateFormat.setCalendar(calendar);
+      return "timestamp '" + dateFormat.format(date) + "'";
+    }
+
+    @Override
+    public String sequenceOptions() {
+      return "";
+    }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return true;
+    }
+  }
+  ;
 
   public abstract String typeInteger();
 
@@ -701,6 +856,8 @@ public enum Flavor {
 
   public abstract String sequenceOptions();
 
+  public abstract boolean autoCommitOnly();
+
   public static Flavor fromJdbcUrl(String url) {
     if (url.startsWith("jdbc:postgresql:")) {
       return postgresql;
@@ -712,6 +869,8 @@ public enum Flavor {
       return hsqldb;
     } else if (url.startsWith("jdbc:derby:")) {
       return derby;
+    } else if (url.startsWith("jdbc:bigquery:")) {
+      return bigquery;
     } else {
       throw new DatabaseException("Cannot determine database flavor from url");
     }
@@ -728,6 +887,8 @@ public enum Flavor {
       return "org.hsqldb.jdbc.JDBCDriver";
     } else if (url.startsWith("jdbc:derby:")) {
       return "org.apache.derby.jdbc.EmbeddedDriver";
+    } else if (url.startsWith("jdbc:bigquery:")) {
+      return "com.simba.googlebigquery.jdbc42.Driver";
     } else {
       throw new DatabaseException("Cannot determine database driver class from url");
     }

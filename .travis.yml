@@ -28,7 +28,7 @@ script:
   - |
     if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]
     then
-      cp .travis.settings.xml $HOME/.m2/settings.xml && mvn -Ppackagecloud -e -DskipTests deploy
+      cp .travis.settings.xml $HOME/.m2/settings.xml && mvn -e -DskipTests deploy
     fi
 after_failure:
   - echo "\n=== SUREFIRE REPORTS ===\n"

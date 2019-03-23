@@ -4,8 +4,9 @@
                       http://maven.apache.org/xsd/settings-1.0.0.xsd">
   <servers>
     <server>
-      <id>packagecloud</id>
-      <password>${env.PACKAGECLOUD_TOKEN}</password>
+      <id>io.cloudrepo.rit-public-snapshot</id>
+      <username>${env.REPO_USERNAME}</username>
+      <password>${env.REPO_API_TOKEN}</password>
     </server>
   </servers>
 </settings>

@@ -42,8 +42,8 @@
 
   <distributionManagement>
     <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>io.cloudrepo.rit-public-snapshot</id>
+      <url>https://susom.mycloudrepo.io/repositories/rit-public-snapshot</url>
     </snapshotRepository>
     <repository>
       <id>ossrh</id>
@@ -498,20 +498,6 @@
           </plugin>
         </plugins>
       </build>
-    </profile>
-
-    <profile>
-      <id>packagecloud</id>
-      <distributionManagement>
-        <snapshotRepository>
-          <id>packagecloud</id>
-          <url>packagecloud+https://packagecloud.io/garricko/travis</url>
-        </snapshotRepository>
-        <repository>
-          <id>packagecloud</id>
-          <url>packagecloud+https://packagecloud.io/garricko/travis</url>
-        </repository>
-      </distributionManagement>
     </profile>
 
     <profile>

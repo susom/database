@@ -693,39 +693,29 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
     }
   }
 
-
-public static String[] tidyColumnNames(String[] names) {
-   Set<String> uniqueNames = new LinkedHashSet<>();
-   for (String name : names) {
-     if (name == null || name.length() == 0) {
-       name = "column_" + (uniqueNames.size() + 1);
-     }
-     name = name.replaceAll("[^a-zA-Z0-9]", " ");
-     name = name.replaceAll("([a-z])([A-Z])", "$1_$2");
-     name = name.trim().toLowerCase();
-     name = name.replaceAll("\\s", "_");
-     if (Character.isDigit(name.charAt(0))) {
-       name = "a" + name;
-     }
-     if (name.length() > 63) {
-       name = name.substring(0, 62);
-     }
-     int i = 2;
-     String uniqueName = name;
-     while (uniqueNames.contains(uniqueName)) {
-       if (name.length() > 61) {
-         name = name.substring(0, 60);
-       }
-       if (i > 9 && name.length() > 60) {
-         name = name.substring(0, 59);
-       }
-       uniqueName = name + "_" + i++;
-     }
-     name = uniqueName;
-     uniqueNames.add(name);
-   }
-   return uniqueNames.toArray(new String[uniqueNames.size()]);
- }
+  public static String[] tidyColumnNames(String[] names) {
+    Set<String> uniqueNames = new LinkedHashSet<>();
+    for (String name : names) {
+      if (name == null || name.length() == 0) {
+        name = "column_" + (uniqueNames.size() + 1);
+      }
+      name = name.replaceAll("[^a-zA-Z0-9]", " ");
+      name = name.replaceAll("([a-z])([A-Z])", "$1_$2");
+      name = name.trim().toLowerCase();
+      name = name.replaceAll("\\s", "_");
+      if (Character.isDigit(name.charAt(0))) {
+        name = "a" + name;
+      }
+      int i = 2;
+      String uniqueName = name;
+      while (uniqueNames.contains(uniqueName)) {
+        uniqueName = name + "_" + i++;
+      }
+      name = uniqueName;
+      uniqueNames.add(name);
+    }
+    return uniqueNames.toArray(new String[uniqueNames.size()]);
+  }
 
   @Override
   public boolean equals(Object o) {

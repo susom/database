@@ -706,18 +706,9 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
       if (Character.isDigit(name.charAt(0))) {
         name = "a" + name;
       }
-      if (name.length() > 29) {
-        name = name.substring(0, 28);
-      }
       int i = 2;
       String uniqueName = name;
       while (uniqueNames.contains(uniqueName)) {
-        if (name.length() > 27) {
-          name = name.substring(0, 26);
-        }
-        if (i > 9 && name.length() > 26) {
-          name = name.substring(0, 25);
-        }
         uniqueName = name + "_" + i++;
       }
       name = uniqueName;

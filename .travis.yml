@@ -1,35 +1,83 @@
 language: java
+
 cache:
   directories:
     - $HOME/.m2
+
 jdk:
   - oraclejdk8
+
+stages:
+  - test
+  - name: deploy-snapshots
+    if: branch = master AND type = push
+  - name: release-check
+    if: (branch =~ /^ctjoreilly.*/)
+  - name: release
+    if: (branch =~ /^ctjoreilly.*/)
+
 addons:
   postgresql: "9.6"
   srcclr: true
+
 before_install:
+  # Ensure the settings we want to use are in place before running the default mvn install
+  - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
   # Disable SourceClear except on scheduled builds
   - |
     if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
     then
       export NOSCAN=1
     fi
-before_script:
-  - export TZ=America/Los_Angeles
-  - date
-  - psql -U postgres -c "create user test with password 'test';"
-  - psql -c 'create database test owner test;' -U postgres
-# Skip the default mvn command because we want to set the profile explicitly
-install: true
-script:
-  - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
-  - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
-  # Deploy Maven artifacts, but only from regular master builds
-  - |
-    if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]
-    then
-      cp .travis.settings.xml $HOME/.m2/settings.xml && mvn -e -DskipTests deploy
-    fi
-after_failure:
-  - echo "\n=== SUREFIRE REPORTS ===\n"
-  - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
+
+
+jobs:
+  include:
+    - stage: test
+      before_script:
+        - export TZ=America/Los_Angeles
+        - date
+        - psql -U postgres -c "create user test with password 'test';"
+        - psql -c 'create database test owner test;' -U postgres
+      # Skip the default mvn command because we want to set the profile explicitly
+      install: true
+      script:
+        - echo "test"
+        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
+        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
+        # Deploy Maven artifacts, but only from regular master builds
+        - |
+          if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" == "false" ]
+          then
+            cp .travis.settings.xml $HOME/.m2/settings.xml && mvn -e -DskipTests deploy
+          fi
+      after_failure:
+        - echo "\n=== SUREFIRE REPORTS ===\n"
+        - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
+    - stage: deploy-snapshots
+      script:
+        - echo "deploy-snapshots"
+        # When push to master occurs, all the versions should be -SNAPSHOTs and we will auto-deploy
+        - mvn --batch-mode -e -DskipTests=true deploy
+    - stage: release-check
+      script:
+        - echo "release-check"
+        # Ensure we don't have any external SNAPSHOT dependencies
+        - mvn --batch-mode release:prepare -DskipTests=true -DdryRun=true
+    - stage: release
+      services:
+        - docker
+      script:
+        - echo "release"
+        # Git fix based on: https://github.com/sbt/sbt-release/issues/210
+        - echo "Fixing git setup for $TRAVIS_BRANCH in preparation for release"
+        - git checkout ${TRAVIS_BRANCH}
+        - git branch -u origin/${TRAVIS_BRANCH}
+        - git config branch.${TRAVIS_BRANCH}.remote origin
+        - git config branch.${TRAVIS_BRANCH}.merge refs/heads/${TRAVIS_BRANCH}
+        # Prepare for signing artifacts as part of release process
+        - openssl aes-256-cbc -K $encrypted_87419bae1a1a_key -iv $encrypted_87419bae1a1a_iv -in travis/codesigning.asc.enc -out travis/codesigning.asc -d
+        - gpg --fast-import travis/signingkey.asc
+        # Perform mvn release steps
+        - mvn --batch-mode release:prepare -DskipTests=true -DscmCommentPrefix="[maven-release-plugin][skip travis]" # NOTE: this stop's travis from building based on the tag's commit/push.
+        - mvn --batch-mode release:perform

@@ -8,5 +8,10 @@
       <username>${env.REPO_USERNAME}</username>
       <password>${env.REPO_API_TOKEN}</password>
     </server>
+    <server>
+      <id>ossrh</id>
+      <username>${env.OSSRH_JIRA_USERNAME}</username>
+      <password>${env.OSSRH_JIRA_PASSWORD}</password>
+    </server>
   </servers>
 </settings>

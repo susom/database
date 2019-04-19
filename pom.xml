@@ -216,6 +216,11 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- NOTE: We are using the maven release plugin to deploy to Maven Central, see:
+           https://central.sonatype.org/pages/apache-maven.html#performing-a-release-deployment-with-the-maven-release-plugin
+           for explanation as to why the useReleaseProfile is set to false.
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>

@@ -16,10 +16,6 @@ stages:
   - name: release
     if: (branch =~ /^ctjoreilly.*/)
 
-addons:
-  postgresql: "9.6"
-  srcclr: true
-
 before_install:
   # Ensure the settings we want to use are in place before running the default mvn install
   - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
@@ -34,6 +30,9 @@ before_install:
 jobs:
   include:
     - stage: test
+      addons:
+        postgresql: "9.6"
+        srcclr: true
       before_script:
         - export TZ=America/Los_Angeles
         - date

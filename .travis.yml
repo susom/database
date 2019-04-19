@@ -12,9 +12,9 @@ stages:
   - name: deploy-snapshots
     if: branch = master AND type = push
   - name: release-check
-    if: (branch =~ /^ctjoreilly.*/)
+    if: (branch =~ /^release.*/)
   - name: release
-    if: (branch =~ /^ctjoreilly.*/)
+    if: (branch =~ /^release.*/)
 
 before_install:
   # Ensure the settings we want to use are in place before running the default mvn install

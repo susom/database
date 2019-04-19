@@ -68,6 +68,7 @@ jobs:
         - git config branch.${TRAVIS_BRANCH}.remote origin
         - git config branch.${TRAVIS_BRANCH}.merge refs/heads/${TRAVIS_BRANCH}
         # Prepare for signing artifacts as part of release process
+        # NOTE: based on http://www.debonair.io/post/maven-cd/
         - openssl aes-256-cbc -K $encrypted_87419bae1a1a_key -iv $encrypted_87419bae1a1a_iv -in travis/codesigning.asc.enc -out travis/codesigning.asc -d
         - gpg --fast-import travis/codesigning.asc
         # Perform mvn release steps

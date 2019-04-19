@@ -57,8 +57,6 @@ jobs:
         # Ensure we don't have any external SNAPSHOT dependencies
         - mvn --batch-mode release:prepare -DskipTests=true -DdryRun=true
     - stage: release
-      services:
-        - docker
       script:
         - echo "release"
         # Git fix based on: https://github.com/sbt/sbt-release/issues/210

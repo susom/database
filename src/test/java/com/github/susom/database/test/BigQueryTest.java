@@ -84,7 +84,7 @@ public class BigQueryTest extends CommonTest {
     });
     db = dbp.get();
     // Delete any existing table
-    bigquery.delete(datasetName, "dbtest");
+    bigquery.delete(TableId.of(datasetName, "dbtest"));
   }
 
 

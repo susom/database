@@ -474,24 +474,40 @@
         <dependency>
           <groupId>com.simba.googlebigquery</groupId>
           <artifactId>jdbc42-driver</artifactId>
-          <version>1.1.9.1012</version>
+          <version>1.2.0.1000</version>
           <!--
           Install the driver in local repo using:
           mvn install:install-file -Dfile=GoogleBigQueryJDBC42.jar -DgroupId=com.simba.googlebigquery \
-           -DartifactId=jdbc42-driver -Dversion=1.1.9.1012 -Dpackaging=jar
+           -DartifactId=jdbc42-driver -Dversion=1.2.0.1000 -Dpackaging=jar
            -->
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>com.google.apis</groupId>
           <artifactId>google-api-services-bigquery</artifactId>
-          <version>v2-rev400-1.24.1</version>
+          <version>v2-rev20190423-1.28.0</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>com.google.cloud</groupId>
           <artifactId>google-cloud-bigquery</artifactId>
-          <version>1.62.0</version>
+          <version>1.74.0</version>
+          <scope>test</scope>
+        </dependency>
+        <!--
+        Additional direct dependencies of the Simba driver, based on jdeps
+        -->
+        <dependency>
+          <groupId>joda-time</groupId>
+          <artifactId>joda-time</artifactId>
+          <version>2.10.1</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+          <version>1.8.2</version>
+          <scope>test</scope>
         </dependency>
       </dependencies>
     </profile>

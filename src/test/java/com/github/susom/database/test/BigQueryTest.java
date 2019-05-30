@@ -21,6 +21,7 @@ import com.github.susom.database.Schema;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigquery.*;
+import org.junit.AssumptionViolatedException;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -28,16 +29,18 @@ import org.junit.Test;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.*;
 
 /**
  * BigQuery support in the library is limited to query.  The currently available JDBC driver has serious limitations
@@ -68,6 +71,7 @@ import static org.junit.Assume.assumeTrue;
 public class BigQueryTest extends CommonTest {
   private com.google.cloud.bigquery.BigQuery bigquery;
   private final String datasetName = "bqdbtest";
+  private final String tableName = "dbtest";
 
   @Override
   public void setupJdbc() throws Exception {
@@ -84,7 +88,9 @@ public class BigQueryTest extends CommonTest {
     });
     db = dbp.get();
     // Delete any existing table
-    bigquery.delete(TableId.of(datasetName, "dbtest"));
+    if (bigquery.delete(TableId.of(datasetName, tableName))) {
+      System.out.println("deleted existing table");
+    }
   }
 
 
@@ -128,14 +134,14 @@ public class BigQueryTest extends CommonTest {
         System.getProperty("database.url", properties.getProperty("database.url", defaultUrl)),
         System.getProperty("database.user", properties.getProperty("database.user")),
         System.getProperty("database.password", properties.getProperty("database.password"))
-    ).withSqlParameterLogging().withSqlInExceptionMessages().withOptions(options).create();
+    ).withSqlParameterLogging().withSqlInExceptionMessages().withOptions(options).withConnectionAccess().create();
   }
 
   @Override
   @Test
   public void selectNewTable() {
 //    new Schema()
-//        .addTable("dbtest")
+//        .addTable(tableName)
 //        .addColumn("nbr_integer").asInteger()/*.primaryKey()*/.table()
 //        .addColumn("nbr_long").asLong().table()
 //        .addColumn("nbr_float").asFloat().table()
@@ -149,44 +155,73 @@ public class BigQueryTest extends CommonTest {
 
     // Create new table
     com.google.cloud.bigquery.Schema schema = com.google.cloud.bigquery.Schema.of(
-        Field.of("nbr_integer", LegacySQLTypeName.INTEGER),
-        Field.of("nbr_long", LegacySQLTypeName.INTEGER),
-        Field.of("nbr_float", LegacySQLTypeName.FLOAT),
-        Field.of("nbr_double", LegacySQLTypeName.FLOAT),
-        Field.of("nbr_big_decimal", LegacySQLTypeName.NUMERIC),
-        Field.of("str_varchar", LegacySQLTypeName.STRING),
-        Field.of("str_fixed", LegacySQLTypeName.STRING),
-        Field.of("str_lob", LegacySQLTypeName.STRING),
-        Field.of("bin_blob", LegacySQLTypeName.BYTES),
-        Field.of("date_millis", LegacySQLTypeName.DATETIME)
+        Field.newBuilder("nbr_integer", StandardSQLTypeName.INT64).build(),
+        Field.newBuilder("nbr_long", StandardSQLTypeName.INT64).build(),
+        Field.newBuilder("nbr_float", StandardSQLTypeName.FLOAT64).build(),
+        Field.newBuilder("nbr_double", StandardSQLTypeName.FLOAT64).build(),
+        Field.newBuilder("nbr_big_decimal", StandardSQLTypeName.NUMERIC).build(),
+        Field.newBuilder("str_varchar", StandardSQLTypeName.STRING).build(),
+        Field.newBuilder("str_fixed", StandardSQLTypeName.STRING).build(),
+        Field.newBuilder("str_lob", StandardSQLTypeName.STRING).build(),
+        Field.newBuilder("bin_blob", StandardSQLTypeName.BYTES).build(),
+        Field.newBuilder("date_millis", StandardSQLTypeName.DATETIME).build()
     );
-    com.google.cloud.bigquery.Table table = bigquery.create(TableInfo.of(TableId.of(datasetName, "dbtest"), StandardTableDefinition.of(schema)));
+    com.google.cloud.bigquery.Table table = bigquery.create(
+        TableInfo.of(TableId.of(datasetName, tableName), StandardTableDefinition.of(schema))
+    );
     assumeTrue(table.exists());
+    assumeThat(table.getNumRows().intValue(), equalTo(0));
 
     BigDecimal bigDecimal = new BigDecimal("5.3");
-    Map<String, Object> insertContent = new HashMap<>();
-    insertContent.put("nbr_integer", 1);
-    insertContent.put("nbr_long", 2L);
-    insertContent.put("nbr_float", 3.2F);
-    insertContent.put("nbr_double", 4.2);
-    insertContent.put("nbr_big_decimal", bigDecimal);
-    insertContent.put("str_varchar", "Hello");
-    insertContent.put("str_fixed", "T");
-    insertContent.put("str_lob", "World");
-    insertContent.put("bin_blob", Base64.getEncoder().encodeToString("More".getBytes()));
     LocalDate localDate = LocalDate.of(2019, 2, 17);
     Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    insertContent.put("date_millis", DateTimeFormatter.ISO_DATE.format(localDate));
-    InsertAllRequest insertAllRequest =
-        InsertAllRequest.newBuilder(table, InsertAllRequest.RowToInsert.of(insertContent)).
-            setIgnoreUnknownValues(false).setSkipInvalidRows(false).build();
-    assumeFalse(insertAllRequest.skipInvalidRows() || insertAllRequest.ignoreUnknownValues());
-    InsertAllResponse insertAllResponse = bigquery.insertAll(insertAllRequest);
-    assumeFalse(insertAllResponse.hasErrors());
+
+    try {
+      bigquery.query(QueryJobConfiguration.newBuilder(
+          "insert into bqdbtest.dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, bin_blob, date_millis) values (1, 2, 3.2, 4.2, 5.3, 'Hello', 'T', 'World', B'More', '2019-02-17')"
+      ).build());
+    } catch (InterruptedException e) {
+      throw new AssumptionViolatedException("setup failure", e);
+    }
+
+    assumeThat(table.reload(BigQuery.TableOption.fields(BigQuery.TableField.NUM_ROWS)).getNumRows().intValue(), equalTo(1));
+
+    // DEBUG TEST
+    java.util.Date testDate = db.toSelect("select date_millis from " + tableName +
+        " where date_millis=:date and str_fixed=:sf and str_varchar=:s and nbr_big_decimal=5.3 and " +
+        "abs(nbr_double-:d)<0.01 and abs(nbr_float-:f)<0.01 and nbr_long=:l and nbr_integer=:i").
+        argDate("date", date).
+        argString("sf", "T").
+        argString("s", "Hello").
+        argInteger("i", 1).
+        argLong("l", 2L).
+        argFloat("f", 3.2f).
+        argDouble("d", 4.2).
+//        argBigDecimal("bd", bigDecimal).
+        queryDateOrNull();
+    try {
+      TableResult queryResult = bigquery.query(QueryJobConfiguration.newBuilder("select date_millis from bqdbtest.dbtest where nbr_big_decimal=@bd").addNamedParameter("bd", QueryParameterValue.numeric(bigDecimal)).build());
+      System.out.println(queryResult);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    {
+      try {
+        PreparedStatement ps = db.underlyingConnection().prepareStatement("select date_millis from bqdbtest.dbtest where nbr_big_decimal=?");
+        ps.setBigDecimal(1, bigDecimal);
+        java.sql.ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+          System.out.println(rs.getTimestamp("date_millis"));
+        }
+      } catch (SQLException e) {
+        e.printStackTrace();
+      }
+    }
+    System.out.println(testDate);
 
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -234,7 +269,7 @@ public class BigQueryTest extends CommonTest {
     // Repeat the above query, using the various methods that automatically infer the column
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -253,7 +288,7 @@ public class BigQueryTest extends CommonTest {
     });
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -269,7 +304,7 @@ public class BigQueryTest extends CommonTest {
         return null;
       }
     });
-    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -278,7 +313,7 @@ public class BigQueryTest extends CommonTest {
         return null;
       }
     });
-    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -287,7 +322,7 @@ public class BigQueryTest extends CommonTest {
         return null;
       }
     });
-    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -296,7 +331,7 @@ public class BigQueryTest extends CommonTest {
         return null;
       }
     });
-    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -305,7 +340,7 @@ public class BigQueryTest extends CommonTest {
         return null;
       }
     });
-    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -314,7 +349,7 @@ public class BigQueryTest extends CommonTest {
         return null;
       }
     });
-    db.toSelect("select str_lob, bin_blob from dbtest").query(new RowsHandler<Void>() {
+    db.toSelect("select str_lob, bin_blob from " + tableName).query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -324,16 +359,16 @@ public class BigQueryTest extends CommonTest {
       }
     });
 
-    assertEquals(new Long(1), db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
+    assertEquals(new Long(1), db.toSelect("select count(*) from " + tableName + " where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
         + "and str_fixed=:sf and date_millis=:date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
-        .argDate("date", now).queryLongOrNull());
-    List<Long> result = db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
+        .argDate("date", date).queryLongOrNull());
+    List<Long> result = db.toSelect("select count(*) from " + tableName + " where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
         + "and str_fixed=:sf and date_millis=:date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
-        .argDate("date", now).queryLongs();
+        .argDate("date", date).queryLongs();
     assertEquals(1, result.size());
     assertEquals(new Long(1), result.get(0));
   }

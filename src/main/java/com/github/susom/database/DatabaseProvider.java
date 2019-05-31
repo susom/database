@@ -1066,8 +1066,8 @@ public final class DatabaseProvider implements Supplier<Database> {
       } catch (Exception e) {
         throw new DatabaseException("Unable to commit the transaction", e);
       }
-      close();
     }
+    close();
   }
 
   public void rollbackAndClose() {
@@ -1082,8 +1082,8 @@ public final class DatabaseProvider implements Supplier<Database> {
       } catch (Exception e) {
         log.error("Unable to rollback the transaction", e);
       }
-      close();
     }
+    close();
   }
 
   private void close() {

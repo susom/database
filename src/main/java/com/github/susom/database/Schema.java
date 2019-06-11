@@ -121,6 +121,12 @@ public class Schema {
           } else if (precision1 == 19 && scale == 0) {
             // Oracle reports long as numeric
             table.addColumn(names[i]).asLong();
+          } else if (precision1 == 126 && scale == -127) {
+            // this clause was added to support ETL from MSSQL Server
+            table.addColumn(names[i]).asFloat();
+          } else if (precision1 == 0 && scale == -127) {
+            // this clause was also added to support ETL from MSSQL Server
+            table.addColumn(names[i]).asInteger();
           } else {
             table.addColumn(names[i]).asBigDecimal(precision1, scale);
           }

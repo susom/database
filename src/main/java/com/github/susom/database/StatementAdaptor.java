@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import com.github.susom.database.MixedParameterSql.SecretArg;
 
 import oracle.jdbc.OraclePreparedStatement;
+import org.slf4j.LoggerFactory;
 
 /**
  * Deal with mapping parameters into prepared statements.
@@ -80,6 +82,8 @@ public class StatementAdaptor {
         } else {
           ps.setNull(i + 1, sqlNull.getType());
         }
+      } else if (parameter instanceof java.sql.Date) {
+        ps.setDate( i + 1, (java.sql.Date) parameter);
       } else if (parameter instanceof Date) {
         // this will correct the millis and nanos according to the JDBC spec
         // if a correct Timestamp is passed in, this will detect that and leave it alone
@@ -180,6 +184,15 @@ public class StatementAdaptor {
       return new SqlNull(Types.TIMESTAMP);
     }
     return new Timestamp(arg.getTime());
+  }
+
+  public Object nullDbDate(LocalDate arg) {
+    if (arg == null) {
+      return new SqlNull(Types.DATE);
+    }
+    Logger log = LoggerFactory.getLogger("StatementAdapter.class");
+    log.info("nullDbDate converting arg"+arg.toString()+ " to " + java.sql.Date.valueOf(arg));
+    return java.sql.Date.valueOf(arg);
   }
 
   public Object nullNumeric(Number arg) {

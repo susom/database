@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -641,6 +643,26 @@ public class RowStub {
         return toDate(rows.get(row)[columnIndexByName(columnName)]);
       }
 
+      @Nullable
+      @Override
+      public LocalDate getDbDateOrNull() {
+        return toDbDate(rows.get(row)[++col]);
+      }
+
+      @Nullable
+      @Override
+      public LocalDate getDbDateOrNull(int columnOneBased) {
+        col = columnOneBased;
+        return toDbDate(rows.get(row)[columnOneBased-1]);
+      }
+
+      @Nullable
+      @Override
+      public LocalDate getDbDateOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
+        return toDbDate(rows.get(row)[columnIndexByName(columnName)]);
+      }
+
       private void requireColumnNames() {
         if (columnNames == null) {
           throw new DatabaseException("Column names were not provided for this stub");
@@ -742,6 +764,17 @@ public class RowStub {
           throw new DatabaseException("Didn't understand date string: " + s);
         }
         return (Date) o;
+      }
+
+      private LocalDate toDbDate(Object o) {
+        if (o instanceof String) {
+          String s = (String) o;
+          if (s.length() == "yyyy-MM-dd".length()) {
+            return LocalDate.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+          }
+          throw new DatabaseException("Didn't understand date string: " + s);
+        }
+        return (LocalDate) o;
       }
     };
   }

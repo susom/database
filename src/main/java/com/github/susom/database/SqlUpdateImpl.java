@@ -22,6 +22,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -153,6 +154,18 @@ public class SqlUpdateImpl implements SqlUpdate {
   @Nonnull
   public SqlUpdate argDate(@Nonnull String argName, @Nullable Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
+  }
+
+  @Override
+  @Nonnull
+  public SqlUpdate argDbDate(@Nullable LocalDate arg) {
+    return positionalArg(adaptor.nullDbDate(arg));
+  }
+
+  @Override
+  @Nonnull
+  public SqlUpdate argDbDate(@Nonnull String argName, @Nullable LocalDate arg) {
+    return namedArg(argName, adaptor.nullDbDate(arg));
   }
 
   @Nonnull

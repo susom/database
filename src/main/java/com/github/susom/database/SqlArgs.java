@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -41,7 +42,7 @@ import javax.annotation.Nullable;
 public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   public enum ColumnType {
     Integer, Long, Float, Double, BigDecimal, String, ClobString, ClobStream,
-    BlobBytes, BlobStream, Date, DateNowPerApp, DateNowPerDb, Boolean
+    BlobBytes, BlobStream, Date, DbDate, DateNowPerApp, DateNowPerDb, Boolean
   }
 
   private static class Invocation {
@@ -171,6 +172,18 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   @Nonnull
   public SqlArgs argDate(@Nonnull String argName, @Nullable Date arg) {
     invocations.add(new Invocation(ColumnType.Date, argName, arg));
+    return this;
+  }
+
+  @Nonnull
+  public SqlArgs argDbDate(@Nullable LocalDate arg) {
+    invocations.add(new Invocation(ColumnType.DbDate, null, arg));
+    return this;
+  }
+
+  @Nonnull
+  public SqlArgs argDbDate(@Nonnull String argName, @Nullable LocalDate arg) {
+    invocations.add(new Invocation(ColumnType.DbDate, argName, arg));
     return this;
   }
 
@@ -477,6 +490,13 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
           insert.argDate(i.argName, (Date) i.arg);
         }
         break;
+      case DbDate:
+        if (i.argName == null) {
+          insert.argDbDate((LocalDate) i.arg);
+        } else {
+          insert.argDbDate(i.argName, (LocalDate) i.arg);
+        }
+        break;
       case DateNowPerApp:
         if (i.argName == null) {
           insert.argDateNowPerApp();
@@ -671,6 +691,9 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         case Types.NCLOB:
           args.argClobString(names[i], r.getClobStringOrNull());
           break;
+        case Types.DATE:
+            args.argDbDate(names[i], r.getDbDateOrNull());
+            break;
         case Types.TIMESTAMP:
           args.argDate(names[i], r.getDateOrNull());
           break;

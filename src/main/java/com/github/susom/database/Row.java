@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -443,4 +444,16 @@ public interface Row {
 
   @Nullable
   Date getDateOrNull(String columnName);
+
+  /**
+   * Return a real database Date, with no timestamp
+   */
+  @Nullable
+  LocalDate getDbDateOrNull();
+
+  @Nullable
+  LocalDate getDbDateOrNull(int columnOneBased);
+
+  @Nullable
+  LocalDate getDbDateOrNull(String columnName);
 }

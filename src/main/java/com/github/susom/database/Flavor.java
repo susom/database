@@ -84,6 +84,9 @@ public enum Flavor {
     }
 
     @Override
+    public String typeDbDate() { return "date"; }
+
+    @Override
     public boolean useStringForClob() {
       return false;
     }
@@ -184,6 +187,11 @@ public enum Flavor {
     @Override
     public String typeDate() {
       return "datetime2(3)";
+    }
+
+    @Override
+    public String typeDbDate() {
+      return "date";
     }
 
     @Override
@@ -309,6 +317,11 @@ public enum Flavor {
     @Override
     public String typeDate() {
       return "timestamp(3)";
+    }
+
+    @Override
+    public String typeDbDate() {
+      return "date";
     }
 
     @Override
@@ -455,6 +468,11 @@ public enum Flavor {
     }
 
     @Override
+    public String typeDbDate() {
+      return "date";
+    }
+
+    @Override
     public boolean useStringForClob() {
       return true;
     }
@@ -577,6 +595,9 @@ public enum Flavor {
     }
 
     @Override
+    public String typeDbDate() { return "date"; }
+
+    @Override
     public boolean useStringForClob() {
       return true;
     }
@@ -665,6 +686,8 @@ public enum Flavor {
   public abstract String typeBlob();
 
   public abstract String typeDate();
+
+  public abstract String typeDbDate();
 
   public abstract boolean useStringForClob();
 

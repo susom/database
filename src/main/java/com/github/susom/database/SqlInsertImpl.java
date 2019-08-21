@@ -24,6 +24,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -160,6 +161,16 @@ public class SqlInsertImpl implements SqlInsert {
   @Nonnull
   public SqlInsert argDate(@Nonnull String argName, Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
+  }
+
+  @Override
+  @Nonnull
+  public SqlInsert argDbDate(@Nonnull String argName, LocalDate arg) { return namedArg(argName, adaptor.nullDbDate(arg)); }
+
+  @Override
+  @Nonnull
+  public SqlInsert argDbDate(LocalDate arg) {
+    return positionalArg(adaptor.nullDbDate(arg));
   }
 
   @Nonnull

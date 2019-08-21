@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -157,6 +158,18 @@ public class SqlSelectImpl implements SqlSelect {
   @Override
   public SqlSelect argDate(@Nonnull String argName, Date arg) {
     return namedArg(argName, adaptor.nullDate(arg));
+  }
+
+  @Nonnull
+  @Override
+  public SqlSelect argDbDate(LocalDate arg) {
+    return positionalArg(adaptor.nullDbDate(arg));
+  }
+
+  @Nonnull
+  @Override
+  public SqlSelect argDbDate(@Nonnull String argName, LocalDate arg) {
+    return namedArg(argName, adaptor.nullDbDate(arg));
   }
 
   @Nonnull
@@ -543,6 +556,38 @@ public class SqlSelectImpl implements SqlSelect {
         List<Date> result = new ArrayList<>();
         while (rs.next()) {
           Date value = rs.getDateOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
+        }
+        return result;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public LocalDate queryDbDateOrNull() {
+    return queryWithTimeout(new RowsHandler<LocalDate>() {
+      @Override
+      public LocalDate process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getDbDateOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Nonnull
+  @Override
+  public List<LocalDate> queryDbDates() {
+    return queryWithTimeout(new RowsHandler<List<LocalDate>>() {
+      @Override
+      public List<LocalDate> process(Rows rs) throws Exception {
+        List<LocalDate> result = new ArrayList<>();
+        while (rs.next()) {
+          LocalDate value = rs.getDbDateOrNull(1);
           if (value != null) {
             result.add(value);
           }

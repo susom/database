@@ -17,6 +17,7 @@
 package com.github.susom.database;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -93,6 +94,14 @@ public interface SqlSelect {
   @Nonnull
   @CheckReturnValue
   SqlSelect argDate(@Nonnull String argName, Date arg);
+
+  @Nonnull
+  @CheckReturnValue
+  SqlSelect argDbDate(LocalDate arg);
+
+  @Nonnull
+  @CheckReturnValue
+  SqlSelect argDbDate(@Nonnull String argName, LocalDate arg);
 
   @Nonnull
   @CheckReturnValue
@@ -229,6 +238,14 @@ public interface SqlSelect {
   @Nonnull
   @CheckReturnValue
   List<Date> queryDates();
+
+  @Nullable
+  @CheckReturnValue
+  LocalDate queryDbDateOrNull();
+
+  @Nonnull
+  @CheckReturnValue
+  List<LocalDate> queryDbDates();
 
   /**
    * This is the most generic and low-level way to iterate the query results.

@@ -158,14 +158,14 @@ public class SqlUpdateImpl implements SqlUpdate {
 
   @Override
   @Nonnull
-  public SqlUpdate argDbDate(@Nullable LocalDate arg) {
-    return positionalArg(adaptor.nullDbDate(arg));
+  public SqlUpdate argLocalDate(@Nullable LocalDate arg) {
+    return positionalArg(adaptor.nullLocalDate(arg));
   }
 
   @Override
   @Nonnull
-  public SqlUpdate argDbDate(@Nonnull String argName, @Nullable LocalDate arg) {
-    return namedArg(argName, adaptor.nullDbDate(arg));
+  public SqlUpdate argLocalDate(@Nonnull String argName, @Nullable LocalDate arg) {
+    return namedArg(argName, adaptor.nullLocalDate(arg));
   }
 
   @Nonnull

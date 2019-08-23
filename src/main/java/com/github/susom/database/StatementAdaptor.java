@@ -186,12 +186,10 @@ public class StatementAdaptor {
     return new Timestamp(arg.getTime());
   }
 
-  public Object nullDbDate(LocalDate arg) {
+  public Object nullLocalDate(LocalDate arg) {
     if (arg == null) {
       return new SqlNull(Types.DATE);
     }
-    Logger log = LoggerFactory.getLogger("StatementAdapter.class");
-    log.info("nullDbDate converting arg"+arg.toString()+ " to " + java.sql.Date.valueOf(arg));
     return java.sql.Date.valueOf(arg);
   }
 

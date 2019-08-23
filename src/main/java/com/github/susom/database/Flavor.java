@@ -84,7 +84,7 @@ public enum Flavor {
     }
 
     @Override
-    public String typeDbDate() { return "date"; }
+    public String typeLocalDate() { return "date"; }
 
     @Override
     public boolean useStringForClob() {
@@ -190,7 +190,7 @@ public enum Flavor {
     }
 
     @Override
-    public String typeDbDate() {
+    public String typeLocalDate() {
       return "date";
     }
 
@@ -320,7 +320,7 @@ public enum Flavor {
     }
 
     @Override
-    public String typeDbDate() {
+    public String typeLocalDate() {
       return "date";
     }
 
@@ -468,7 +468,7 @@ public enum Flavor {
     }
 
     @Override
-    public String typeDbDate() {
+    public String typeLocalDate() {
       return "date";
     }
 
@@ -595,7 +595,7 @@ public enum Flavor {
     }
 
     @Override
-    public String typeDbDate() { return "date"; }
+    public String typeLocalDate() { return "date"; }
 
     @Override
     public boolean useStringForClob() {
@@ -687,7 +687,7 @@ public enum Flavor {
 
   public abstract String typeDate();
 
-  public abstract String typeDbDate();
+  public abstract String typeLocalDate();
 
   public abstract boolean useStringForClob();
 

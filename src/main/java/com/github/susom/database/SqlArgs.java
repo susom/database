@@ -42,7 +42,7 @@ import javax.annotation.Nullable;
 public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   public enum ColumnType {
     Integer, Long, Float, Double, BigDecimal, String, ClobString, ClobStream,
-    BlobBytes, BlobStream, Date, DbDate, DateNowPerApp, DateNowPerDb, Boolean
+    BlobBytes, BlobStream, Date, LocalDate, DateNowPerApp, DateNowPerDb, Boolean
   }
 
   private static class Invocation {
@@ -176,14 +176,14 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
   }
 
   @Nonnull
-  public SqlArgs argDbDate(@Nullable LocalDate arg) {
-    invocations.add(new Invocation(ColumnType.DbDate, null, arg));
+  public SqlArgs argLocalDate(@Nullable LocalDate arg) {
+    invocations.add(new Invocation(ColumnType.LocalDate, null, arg));
     return this;
   }
 
   @Nonnull
-  public SqlArgs argDbDate(@Nonnull String argName, @Nullable LocalDate arg) {
-    invocations.add(new Invocation(ColumnType.DbDate, argName, arg));
+  public SqlArgs argLocalDate(@Nonnull String argName, @Nullable LocalDate arg) {
+    invocations.add(new Invocation(ColumnType.LocalDate, argName, arg));
     return this;
   }
 
@@ -376,6 +376,13 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         throw new DatabaseException("Don't use Blob parameters with select statements");
       case BlobStream:
         throw new DatabaseException("Don't use Blob parameters with select statements");
+      case LocalDate:
+        if (i.argName == null) {
+          select.argLocalDate((LocalDate) i.arg);
+        } else {
+          select.argLocalDate(i.argName, (LocalDate) i.arg);
+        }
+        break;
       case Date:
         if (i.argName == null) {
           select.argDate((Date) i.arg);
@@ -490,11 +497,11 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
           insert.argDate(i.argName, (Date) i.arg);
         }
         break;
-      case DbDate:
+      case LocalDate:
         if (i.argName == null) {
-          insert.argDbDate((LocalDate) i.arg);
+          insert.argLocalDate((LocalDate) i.arg);
         } else {
-          insert.argDbDate(i.argName, (LocalDate) i.arg);
+          insert.argLocalDate(i.argName, (LocalDate) i.arg);
         }
         break;
       case DateNowPerApp:
@@ -597,6 +604,13 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
           update.argBlobStream(i.argName, (InputStream) i.arg);
         }
         break;
+      case LocalDate:
+        if (i.argName == null) {
+          update.argLocalDate((LocalDate) i.arg);
+        } else {
+          update.argLocalDate(i.argName, (LocalDate) i.arg);
+        }
+       break;
       case Date:
         if (i.argName == null) {
           update.argDate((Date) i.arg);
@@ -692,7 +706,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
           args.argClobString(names[i], r.getClobStringOrNull());
           break;
         case Types.DATE:
-            args.argDbDate(names[i], r.getDbDateOrNull());
+            args.argLocalDate(names[i], r.getLocalDateOrNull());
             break;
         case Types.TIMESTAMP:
           args.argDate(names[i], r.getDateOrNull());

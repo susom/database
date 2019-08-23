@@ -709,16 +709,16 @@ class RowsAdaptor implements Rows {
 
   @Nullable
   @Override
-  public LocalDate getDbDateOrNull() {
-    return getDbDateOrNull(column++);
+  public LocalDate getLocalDateOrNull() {
+    return getLocalDateOrNull(column++);
   }
 
   @Nullable
   @Override
-  public LocalDate getDbDateOrNull(int columnOneBased) {
+  public LocalDate getLocalDateOrNull(int columnOneBased) {
     try {
       column = columnOneBased + 1;
-      return toDbDate(rs, columnOneBased);
+      return toLocalDate(rs, columnOneBased);
     } catch (SQLException e) {
       throw new DatabaseException(e);
     }
@@ -726,10 +726,10 @@ class RowsAdaptor implements Rows {
 
   @Nullable
   @Override
-  public LocalDate getDbDateOrNull(String columnName) {
+  public LocalDate getLocalDateOrNull(String columnName) {
     try {
       column = rs.findColumn(columnName) + 1;
-      return toDbDate(rs, columnName);
+      return toLocalDate(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
     }
@@ -756,12 +756,12 @@ class RowsAdaptor implements Rows {
     return val == null ? null : timestampToDate(val);
   }
 
-  private LocalDate toDbDate(ResultSet rs, int col) throws SQLException {
+  private LocalDate toLocalDate(ResultSet rs, int col) throws SQLException {
     java.sql.Date val = rs.getDate(col);
     return val == null ? null : val.toLocalDate();
   }
 
-  private LocalDate toDbDate(ResultSet rs, String col) throws SQLException {
+  private LocalDate toLocalDate(ResultSet rs, String col) throws SQLException {
     java.sql.Date val = rs.getDate(col);
     return val == null ? null : val.toLocalDate();
   }

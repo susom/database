@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.sql.ResultSetMetaData;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
@@ -52,6 +53,8 @@ import com.github.susom.database.RowsHandler;
 import com.github.susom.database.Schema;
 import com.github.susom.database.Sql;
 import com.github.susom.database.SqlArgs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
@@ -115,16 +118,16 @@ public abstract class CommonTest {
           .addColumn("str_lob").asClob().table()
           .addColumn("bin_blob").asBlob().table()
           .addColumn("date_millis").asDate().table()
-          .addColumn("db_date").asDbDate().table().schema().execute(db);
+          .addColumn("local_date").asLocalDate().table().schema().execute(db);
 
     BigDecimal bigDecimal = new BigDecimal("5.3");
     db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?)").argInteger(1).argLong(2L).argFloat(3.2f).argDouble(4.2)
         .argBigDecimal(bigDecimal).argString("Hello").argString("T").argClobString("World")
-        .argBlobBytes("More".getBytes()).argDate(now).argDbDate(localDateNow).insert(1);
+        .argBlobBytes("More".getBytes()).argDate(now).argLocalDate(localDateNow).insert(1);
 
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -166,15 +169,15 @@ public abstract class CommonTest {
         assertArrayEquals("More".getBytes(), rs.getBlobBytesOrZeroLen("bin_blob"));
         assertEquals(now, rs.getDateOrNull(10));
         assertEquals(now, rs.getDateOrNull("date_millis"));
-        assertEquals(localDateNow, rs.getDbDateOrNull(11));
-        assertEquals(localDateNow, rs.getDbDateOrNull("db_date"));
+        assertEquals(localDateNow, rs.getLocalDateOrNull(11));
+        assertEquals(localDateNow, rs.getLocalDateOrNull("local_date"));
         return null;
       }
     });
     // Repeat the above query, using the various methods that automatically infer the column
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -188,14 +191,14 @@ public abstract class CommonTest {
         assertEquals("World", rs.getClobStringOrNull());
         assertArrayEquals("More".getBytes(), rs.getBlobBytesOrNull());
         assertEquals(now, rs.getDateOrNull());
-        assertEquals(localDateNow, rs.getDbDateOrNull());
+        assertEquals(localDateNow, rs.getLocalDateOrNull());
 
         return null;
       }
     });
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -268,14 +271,14 @@ public abstract class CommonTest {
 
     assertEquals(new Long(1), db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
-        + "and str_fixed=:sf and date_millis=:date and db_date=:dbdate").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
+        + "and str_fixed=:sf and date_millis=:date and local_date=:local_date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
-        .argDate("date", now).argDbDate( "dbdate", localDateNow).queryLongOrNull());
+        .argDate("date", now).argLocalDate( "local_date", localDateNow).queryLongOrNull());
     List<Long> result = db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
-        + "and str_fixed=:sf and date_millis=:date and db_date=:dbdate").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
+        + "and str_fixed=:sf and date_millis=:date and local_date=:local_date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
-        .argDate("date", now).argDbDate("dbdate", localDateNow).queryLongs();
+        .argDate("date", now).argLocalDate("local_date", localDateNow).queryLongs();
     assertEquals(1, result.size());
     assertEquals(new Long(1), result.get(0));
   }
@@ -295,7 +298,7 @@ public abstract class CommonTest {
         .addColumn("str_lob").asClob().table()
         .addColumn("bin_blob").asBlob().table()
         .addColumn("date_millis").asDate().table()
-        .addColumn("db_date").asDbDate().table().schema().execute(db);
+        .addColumn("local_date").asLocalDate().table().schema().execute(db);
 
     BigDecimal bigDecimal = new BigDecimal("5.3");
     assertEquals(1, db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?,?)")
@@ -310,15 +313,15 @@ public abstract class CommonTest {
         .argClobString("World")
         .argBlobBytes("More".getBytes())
         .argDate(now)
-        .argDbDate(localDateNow).insert());
+        .argLocalDate(localDateNow).insert());
 
     db.toUpdate("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, nbr_big_decimal=?, "
-        + "str_varchar=?, str_fixed=?, str_lob=?, bin_blob=?, date_millis=?, db_date=?").argInteger(null).argLong(null)
+        + "str_varchar=?, str_fixed=?, str_lob=?, bin_blob=?, date_millis=?, local_date=?").argInteger(null).argLong(null)
         .argFloat(null).argDouble(null).argBigDecimal(null).argString(null).argString(null).argClobString(null)
-        .argBlobBytes(null).argDate(null).argDbDate(null).update(1);
+        .argBlobBytes(null).argDate(null).argLocalDate(null).update(1);
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -342,18 +345,18 @@ public abstract class CommonTest {
         assertNull(rs.getBlobBytesOrNull("bin_blob"));
         assertNull(rs.getDateOrNull(10));
         assertNull(rs.getDateOrNull("date_millis"));
-        assertNull(rs.getDbDateOrNull(11));
-        assertNull(rs.getDbDateOrNull("db_date"));
+        assertNull(rs.getLocalDateOrNull(11));
+        assertNull(rs.getLocalDateOrNull("local_date"));
         return null;
       }
     });
     assertEquals(1, db.toUpdate("update dbtest set nbr_integer=?, nbr_long=?, nbr_float=?, nbr_double=?, "
-        + "nbr_big_decimal=?, str_varchar=?, str_fixed=?, str_lob=?, bin_blob=?, date_millis=?, db_date=?").argInteger(1)
+        + "nbr_big_decimal=?, str_varchar=?, str_fixed=?, str_lob=?, bin_blob=?, date_millis=?, local_date=?").argInteger(1)
         .argLong(2L).argFloat(3.2f).argDouble(4.2).argBigDecimal(bigDecimal).argString("Hello").argString("T")
-        .argClobString("World").argBlobBytes("More".getBytes()).argDate(now).argDbDate(localDateNow).update());
+        .argClobString("World").argBlobBytes("More".getBytes()).argDate(now).argLocalDate(localDateNow).update());
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -377,8 +380,8 @@ public abstract class CommonTest {
         assertArrayEquals("More".getBytes(), rs.getBlobBytesOrNull("bin_blob"));
         assertEquals(now, rs.getDateOrNull(10));
         assertEquals(now, rs.getDateOrNull("date_millis"));
-        assertEquals(localDateNow, rs.getDbDateOrNull(11));
-        assertEquals(localDateNow, rs.getDbDateOrNull("db_date"));
+        assertEquals(localDateNow, rs.getLocalDateOrNull(11));
+        assertEquals(localDateNow, rs.getLocalDateOrNull("local_date"));
         return null;
       }
     });
@@ -425,23 +428,23 @@ public abstract class CommonTest {
         .addColumn("str_lob").asClob().table()
         .addColumn("bin_blob").asBlob().table()
         .addColumn("date_millis").asDate().table()
-        .addColumn("db_date").asDbDate().table().schema().execute(db);
+        .addColumn("local_date").asLocalDate().table().schema().execute(db);
 
     BigDecimal bigDecimal = new BigDecimal("5.3");
     db.toInsert("insert into dbtest values (:pk,:a,:b,:c,:d,:e,:f,:sf,:g,:h,:i,:j)").argLong(":pk", 1L).argInteger(":a", 1)
         .argLong(":b", 2L).argFloat(":c", 3.2f).argDouble(":d", 4.2).argBigDecimal(":e", bigDecimal)
         .argString(":f", "Hello").argString(":sf", "T")
         .argClobString(":g", "World").argBlobBytes(":h", "More".getBytes())
-        .argDate(":i", now).argDbDate(":j", localDateNow).insert(1);
+        .argDate(":i", now).argLocalDate(":j", localDateNow).insert(1);
     db.toUpdate("update dbtest set nbr_integer=:a, nbr_long=:b, nbr_float=:c, nbr_double=:d, nbr_big_decimal=:e, "
-        + "str_varchar=:f, str_fixed=:sf, str_lob=:g, bin_blob=:h, date_millis=:i, db_date=:j").argInteger(":a", null)
+        + "str_varchar=:f, str_fixed=:sf, str_lob=:g, bin_blob=:h, date_millis=:i, local_date=:j").argInteger(":a", null)
         .argLong(":b", null).argFloat(":c", null).argDouble(":d", null).argBigDecimal(":e", null)
         .argString(":f", null).argString(":sf", null)
         .argClobString(":g", null).argBlobBytes(":h", null)
-        .argDate(":i", null).argDbDate(":j", null).update(1);
+        .argDate(":i", null).argLocalDate(":j", null).update(1);
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -465,20 +468,20 @@ public abstract class CommonTest {
         assertNull(rs.getBlobBytesOrNull("bin_blob"));
         assertNull(rs.getDateOrNull(10));
         assertNull(rs.getDateOrNull("date_millis"));
-        assertNull(rs.getDbDateOrNull(11));
-        assertNull(rs.getDbDateOrNull("db_date"));
+        assertNull(rs.getLocalDateOrNull(11));
+        assertNull(rs.getLocalDateOrNull("local_date"));
         return null;
       }
     });
     db.toUpdate("update dbtest set nbr_integer=:a, nbr_long=:b, nbr_float=:c, nbr_double=:d, nbr_big_decimal=:e, "
-        + "str_varchar=:f, str_fixed=:sf, str_lob=:g, bin_blob=:h, date_millis=:i, db_date=:j").argInteger(":a", 1)
+        + "str_varchar=:f, str_fixed=:sf, str_lob=:g, bin_blob=:h, date_millis=:i, local_date=:j").argInteger(":a", 1)
         .argLong(":b", 2L).argFloat(":c", 3.2f).argDouble(":d", 4.2).argBigDecimal(":e", bigDecimal)
         .argString(":f", "Hello").argString(":sf", "T")
         .argClobString(":g", "World").argBlobBytes(":h", "More".getBytes())
-        .argDate(":i", now).argDbDate(":j", localDateNow).update(1);
+        .argDate(":i", now).argLocalDate(":j", localDateNow).update(1);
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -502,8 +505,8 @@ public abstract class CommonTest {
         assertArrayEquals("More".getBytes(), rs.getBlobBytesOrNull("bin_blob"));
         assertEquals(now, rs.getDateOrNull(10));
         assertEquals(now, rs.getDateOrNull("date_millis"));
-        assertEquals(localDateNow, rs.getDbDateOrNull(11));
-        assertEquals(localDateNow, rs.getDbDateOrNull("db_date"));
+        assertEquals(localDateNow, rs.getLocalDateOrNull(11));
+        assertEquals(localDateNow, rs.getLocalDateOrNull("local_date"));
         return null;
       }
     });
@@ -550,14 +553,14 @@ public abstract class CommonTest {
         .addColumn("str_lob").asClob().table()
         .addColumn("bin_blob").asBlob().table()
         .addColumn("date_millis").asDate().table()
-        .addColumn("db_date").asDbDate().table().schema().execute(db);
+        .addColumn("local_date").asLocalDate().table().schema().execute(db);
 
     db.toInsert("insert into dbtest values (?,?,?,?,?,?,?,?,?,?,?,?)").argLong(1L).argInteger(null).argLong(null)
         .argFloat(null).argDouble(null).argBigDecimal(null).argString(null).argString(null).argClobString(null)
-        .argBlobBytes(null).argDate(null).argDbDate(null).insert(1);
+        .argBlobBytes(null).argDate(null).argLocalDate(null).insert(1);
     db.toSelect(
         "select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, "
-            + "bin_blob, date_millis, db_date from dbtest").query(new RowsHandler<Void>() {
+            + "bin_blob, date_millis, local_date from dbtest").query(new RowsHandler<Void>() {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
@@ -581,8 +584,8 @@ public abstract class CommonTest {
         assertNull(rs.getBlobBytesOrNull("bin_blob"));
         assertNull(rs.getDateOrNull(10));
         assertNull(rs.getDateOrNull("date_millis"));
-        assertNull(rs.getDbDateOrNull(11));
-        assertNull(rs.getDbDateOrNull("db_date"));
+        assertNull(rs.getLocalDateOrNull(11));
+        assertNull(rs.getLocalDateOrNull("local_date"));
         return null;
       }
     });
@@ -622,6 +625,40 @@ public abstract class CommonTest {
   }
 
   @Test
+  public void metadataColumnTypes() {
+    String timestampColumnName = "data_millis";
+    String dateColumnName = "local_date";
+    new Schema()
+        .addTable("dbtest")
+        .addColumn(timestampColumnName).asDate().table()
+        .addColumn(dateColumnName).asLocalDate().table().schema().execute(db);
+    db.toSelect("select * from dbtest").query(new RowsHandler<Void>() {
+      @Override
+      public Void process(Rows rs) throws Exception {
+
+        ResultSetMetaData metadata = rs.getMetadata();
+        for (int i=1; i <= metadata.getColumnCount(); i++) {
+          String columnName = metadata.getColumnName(i);
+          String columnType = metadata.getColumnTypeName(i);
+
+          if (columnName.equalsIgnoreCase(timestampColumnName)) {
+            if ("sqlserver".equals(db.flavor().toString())) {
+              assertEquals("DATETIME2", columnType.toUpperCase());
+            } else{
+              assertEquals("TIMESTAMP", columnType.toUpperCase());
+            }
+          } else if (columnName.equalsIgnoreCase(dateColumnName)) {
+            assertEquals("DATE", columnType.toUpperCase());
+          } else {
+            fail("Unexpected column " + columnName + " of type " + columnType);
+          }
+        }
+        return null;
+      }
+    });
+  }
+
+  @Test
   public void intervals() {
     new Schema().addTable("dbtest").addColumn("d").asDate().schema().execute(db);
 
@@ -647,23 +684,23 @@ public abstract class CommonTest {
         .addColumn("bin_blob").asBlob().table()
         .addColumn("boolean_flag").asBoolean().table()
         .addColumn("date_millis").asDate().table()
-        .addColumn("db_date").asDbDate().schema().execute(db);
+        .addColumn("local_date").asLocalDate().schema().execute(db);
 
     db.toInsert("insert into dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar,"
-            + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis, db_date) values (?,?,?,?,?,?,?,?,?,?,?,?)")
+            + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date) values (?,?,?,?,?,?,?,?,?,?,?,?)")
         .argInteger(Integer.MAX_VALUE).argLong(Long.MAX_VALUE).argFloat(Float.MAX_VALUE)
         .argDouble(Double.MAX_VALUE).argBigDecimal(new BigDecimal("123.456"))
         .argString("hello").argString("Z").argClobString("hello again")
         .argBlobBytes(new byte[] { '1', '2' }).argBoolean(true)
-        .argDateNowPerApp().argDbDate(localDateNow).insert(1);
+        .argDateNowPerApp().argLocalDate(localDateNow).insert(1);
 
     db.toInsert("insert into dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar,"
-            + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis, db_date) values (?,?,?,?,?,?,?,?,?,?,?,?)")
+            + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date) values (?,?,?,?,?,?,?,?,?,?,?,?)")
         .argInteger(Integer.MIN_VALUE).argLong(Long.MIN_VALUE).argFloat(0.000001f)
         .argDouble(Double.MIN_VALUE).argBigDecimal(new BigDecimal("-123.456"))
         .argString("goodbye").argString("A").argClobString("bye again")
         .argBlobBytes(new byte[] { '3', '4' }).argBoolean(false)
-        .argDateNowPerApp().argDbDate(localDateNow).insert(1);
+        .argDateNowPerApp().argLocalDate(localDateNow).insert(1);
 
     String expectedSchema = new Schema().addTable("dbtest2")
         .addColumn("nbr_integer").asInteger().table()
@@ -677,10 +714,10 @@ public abstract class CommonTest {
         .addColumn("bin_blob").asBlob().table()
         .addColumn("boolean_flag").asBoolean().table()
         .addColumn("date_millis").asDate().table()
-        .addColumn("db_date").asDbDate().schema().print(db.flavor());
+        .addColumn("local_date").asLocalDate().schema().print(db.flavor());
 
     List<SqlArgs> args = db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, db_date from dbtest")
+        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest")
         .query(rs -> {
           List<SqlArgs> result = new ArrayList<>();
           while (rs.next()) {
@@ -702,10 +739,10 @@ public abstract class CommonTest {
 
     assertEquals(
         db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-          + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, db_date from dbtest order by 1")
+          + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest order by 1")
           .queryMany(SqlArgs::readRow),
         db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-          + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, db_date from dbtest2 order by 1")
+          + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest2 order by 1")
         .  queryMany(SqlArgs::readRow));
 
     assertEquals(
@@ -721,7 +758,7 @@ public abstract class CommonTest {
                     .argBlobBytes("bin_blob", new byte[] { '3', '4' })
                     .argString("boolean_flag", "N")//.argBoolean("boolean_flag", false)
                     .argDate("date_millis", now)
-                    .argDbDate("db_date", localDateNow),
+                    .argLocalDate("local_date", localDateNow),
             new SqlArgs().argInteger("nbr_integer", Integer.MAX_VALUE)
                     .argLong("nbr_long", Long.MAX_VALUE)
                     .argFloat("nbr_float", Float.MAX_VALUE)
@@ -733,9 +770,9 @@ public abstract class CommonTest {
                     .argBlobBytes("bin_blob", new byte[] { '1', '2' })
                     .argString("boolean_flag", "Y")//.argBoolean("boolean_flag", true)
                     .argDate("date_millis", now)
-                    .argDbDate("db_date", localDateNow)),
+                    .argLocalDate("local_date", localDateNow)),
             db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-                    + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, db_date from dbtest2 order by 1")
+                    + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest2 order by 1")
                     .queryMany(SqlArgs::readRow));
   }
 
@@ -1419,15 +1456,15 @@ public abstract class CommonTest {
         .addColumn("pk").primaryKey().table()
         .addColumn("d").asDate().table()
         .addColumn("d2").asDate().table()
-        .addColumn("d3").asDbDate().table()
-        .addColumn("d4").asDbDate().table()
+        .addColumn("d3").asLocalDate().table()
+        .addColumn("d4").asLocalDate().table()
         .addColumn("s").asString(5).table()
         .addColumn("s2").asString(5).table()
         .addColumn("i").asInteger().table().schema()
         .execute(db);
 
     db.toInsert("insert into dbtest (pk, d, d3, s) values (?,?,?,?)")
-        .argLong(1L).argDateNowPerApp().argDbDate(localDateNow).argString("foo").insert(1);
+        .argLong(1L).argDateNowPerApp().argLocalDate(localDateNow).argString("foo").insert(1);
 
     assertEquals(new Long(1L), db.toSelect("select pk from dbtest").queryLongOrNull());
     assertNull(db.toSelect("select pk from dbtest where 1=0").queryLongOrNull());
@@ -1466,15 +1503,15 @@ public abstract class CommonTest {
     assertTrue(db.toSelect("select d from dbtest where 1=0").queryDates().isEmpty());
     assertTrue(db.toSelect("select d2 from dbtest").queryDates().isEmpty());
 
-    assertEquals(localDateNow, db.toSelect("select d3 from dbtest").queryDbDateOrNull());
-    assertNull(db.toSelect("select d3 from dbtest where 1=0").queryDbDateOrNull());
-    assertTrue(db.toSelect("select d3 from dbtest").queryDbDates().get(0).equals(localDateNow));
+    assertEquals(localDateNow, db.toSelect("select d3 from dbtest").queryLocalDateOrNull());
+    assertNull(db.toSelect("select d3 from dbtest where 1=0").queryLocalDateOrNull());
+    assertTrue(db.toSelect("select d3 from dbtest").queryLocalDates().get(0).equals(localDateNow));
     assertEquals(new Long(1L),
-        db.toSelect("select count(*) from dbtest where d3=?").argDbDate(localDateNow).queryLongOrNull());
+        db.toSelect("select count(*) from dbtest where d3=?").argLocalDate(localDateNow).queryLongOrNull());
 
-    assertNull(db.toSelect("select d4 from dbtest").queryDbDateOrNull());
-    assertNull(db.toSelect("select d4 from dbtest where 1=0").queryDbDateOrNull());
-    assertTrue(db.toSelect("select d4 from dbtest").queryDbDates().isEmpty());
+    assertNull(db.toSelect("select d4 from dbtest").queryLocalDateOrNull());
+    assertNull(db.toSelect("select d4 from dbtest where 1=0").queryLocalDateOrNull());
+    assertTrue(db.toSelect("select d4 from dbtest").queryLocalDates().isEmpty());
   }
 
   @Test
@@ -1564,40 +1601,40 @@ public abstract class CommonTest {
   }
 
   @Test
-  public void dbDate() {
+  public void insertLocalDate() {
     new Schema()
             .addTable("dbtest")
-            .addColumn("d").asDbDate().table().schema()
+            .addColumn("d").asLocalDate().table().schema()
             .execute(db);
 
     LocalDate dateOfBirth = LocalDate.of(1951, Month.AUGUST, 9);
     db.toInsert("insert into dbtest (d) values (?)")
-            .argDbDate(dateOfBirth)
+            .argLocalDate(dateOfBirth)
             .insert(1);
 
-    LocalDate testDate = db.toSelect("select d from dbtest").queryDbDateOrNull();
+    LocalDate testDate = db.toSelect("select d from dbtest").queryLocalDateOrNull();
     assertEquals(dateOfBirth, testDate);
   }
 
 
   @Test
-  public void dbDateRoundTrip() {
+  public void localDateRoundTrip() {
     new Schema()
             .addTable("dbtest")
-            .addColumn("d1").asDbDate().table()
-            .addColumn("d2").asDbDate().table().schema()
+            .addColumn("d1").asLocalDate().table()
+            .addColumn("d2").asLocalDate().table().schema()
             .execute(db);
 
     // Store current time as per the database
     db.toInsert("insert into dbtest (d1) values (?)")
-            .argDbDate(localDateNow)
+            .argLocalDate(localDateNow)
             .insert(1);
 
     // Now pull it out, put it back in, and verify it matches in the database
-    LocalDate queryRsDate = db.toSelect("select d1 from dbtest").queryDbDateOrNull();
+    LocalDate queryRsDate = db.toSelect("select d1 from dbtest").queryLocalDateOrNull();
 
     db.toUpdate("update dbtest set d2=?")
-            .argDbDate(queryRsDate)
+            .argLocalDate(queryRsDate)
             .update(1);
 
     assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());

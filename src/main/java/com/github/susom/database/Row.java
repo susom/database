@@ -449,11 +449,11 @@ public interface Row {
    * Return a real database Date, with no timestamp
    */
   @Nullable
-  LocalDate getDbDateOrNull();
+  LocalDate getLocalDateOrNull();
 
   @Nullable
-  LocalDate getDbDateOrNull(int columnOneBased);
+  LocalDate getLocalDateOrNull(int columnOneBased);
 
   @Nullable
-  LocalDate getDbDateOrNull(String columnName);
+  LocalDate getLocalDateOrNull(String columnName);
 }

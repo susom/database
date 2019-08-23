@@ -165,12 +165,12 @@ public class SqlInsertImpl implements SqlInsert {
 
   @Override
   @Nonnull
-  public SqlInsert argDbDate(@Nonnull String argName, LocalDate arg) { return namedArg(argName, adaptor.nullDbDate(arg)); }
+  public SqlInsert argLocalDate(@Nonnull String argName, LocalDate arg) { return namedArg(argName, adaptor.nullLocalDate(arg)); }
 
   @Override
   @Nonnull
-  public SqlInsert argDbDate(LocalDate arg) {
-    return positionalArg(adaptor.nullDbDate(arg));
+  public SqlInsert argLocalDate(LocalDate arg) {
+    return positionalArg(adaptor.nullLocalDate(arg));
   }
 
   @Nonnull

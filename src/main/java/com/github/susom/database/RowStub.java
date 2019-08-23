@@ -645,22 +645,22 @@ public class RowStub {
 
       @Nullable
       @Override
-      public LocalDate getDbDateOrNull() {
-        return toDbDate(rows.get(row)[++col]);
+      public LocalDate getLocalDateOrNull() {
+        return toLocalDate(rows.get(row)[++col]);
       }
 
       @Nullable
       @Override
-      public LocalDate getDbDateOrNull(int columnOneBased) {
+      public LocalDate getLocalDateOrNull(int columnOneBased) {
         col = columnOneBased;
-        return toDbDate(rows.get(row)[columnOneBased-1]);
+        return toLocalDate(rows.get(row)[columnOneBased-1]);
       }
 
       @Nullable
       @Override
-      public LocalDate getDbDateOrNull(String columnName) {
+      public LocalDate getLocalDateOrNull(String columnName) {
         col = columnIndexByName(columnName) + 1;
-        return toDbDate(rows.get(row)[columnIndexByName(columnName)]);
+        return toLocalDate(rows.get(row)[columnIndexByName(columnName)]);
       }
 
       private void requireColumnNames() {
@@ -766,7 +766,7 @@ public class RowStub {
         return (Date) o;
       }
 
-      private LocalDate toDbDate(Object o) {
+      private LocalDate toLocalDate(Object o) {
         if (o instanceof String) {
           String s = (String) o;
           if (s.length() == "yyyy-MM-dd".length()) {

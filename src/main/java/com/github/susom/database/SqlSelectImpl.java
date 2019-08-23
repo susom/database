@@ -162,14 +162,14 @@ public class SqlSelectImpl implements SqlSelect {
 
   @Nonnull
   @Override
-  public SqlSelect argDbDate(LocalDate arg) {
-    return positionalArg(adaptor.nullDbDate(arg));
+  public SqlSelect argLocalDate(LocalDate arg) {
+    return positionalArg(adaptor.nullLocalDate(arg));
   }
 
   @Nonnull
   @Override
-  public SqlSelect argDbDate(@Nonnull String argName, LocalDate arg) {
-    return namedArg(argName, adaptor.nullDbDate(arg));
+  public SqlSelect argLocalDate(@Nonnull String argName, LocalDate arg) {
+    return namedArg(argName, adaptor.nullLocalDate(arg));
   }
 
   @Nonnull
@@ -567,12 +567,12 @@ public class SqlSelectImpl implements SqlSelect {
 
   @Nullable
   @Override
-  public LocalDate queryDbDateOrNull() {
+  public LocalDate queryLocalDateOrNull() {
     return queryWithTimeout(new RowsHandler<LocalDate>() {
       @Override
       public LocalDate process(Rows rs) throws Exception {
         if (rs.next()) {
-          return rs.getDbDateOrNull(1);
+          return rs.getLocalDateOrNull(1);
         }
         return null;
       }
@@ -581,13 +581,13 @@ public class SqlSelectImpl implements SqlSelect {
 
   @Nonnull
   @Override
-  public List<LocalDate> queryDbDates() {
+  public List<LocalDate> queryLocalDates() {
     return queryWithTimeout(new RowsHandler<List<LocalDate>>() {
       @Override
       public List<LocalDate> process(Rows rs) throws Exception {
         List<LocalDate> result = new ArrayList<>();
         while (rs.next()) {
-          LocalDate value = rs.getDbDateOrNull(1);
+          LocalDate value = rs.getLocalDateOrNull(1);
           if (value != null) {
             result.add(value);
           }

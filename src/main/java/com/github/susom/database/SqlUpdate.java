@@ -98,11 +98,11 @@ public interface SqlUpdate {
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argDbDate(@Nullable LocalDate arg);
+  SqlUpdate argLocalDate(@Nullable LocalDate arg);
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argDbDate(@Nonnull String argName, @Nullable LocalDate arg);
+  SqlUpdate argLocalDate(@Nonnull String argName, @Nullable LocalDate arg);
 
   @Nonnull
   @CheckReturnValue

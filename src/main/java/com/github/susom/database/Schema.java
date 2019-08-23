@@ -63,7 +63,7 @@ public class Schema {
   }
 
   public enum ColumnType {
-    Integer, Long, Float, Double, BigDecimal, StringVar, StringFixed, Clob, Blob, Date, DbDate, Boolean
+    Integer, Long, Float, Double, BigDecimal, StringVar, StringFixed, Clob, Blob, Date, LocalDate, Boolean
   }
 
   public void validate() {
@@ -144,7 +144,7 @@ public class Schema {
           table.addColumn(names[i]).asDate();
           break;
         case Types.DATE:
-            table.addColumn(names[i]).asDbDate();
+            table.addColumn(names[i]).asLocalDate();
             break;
         case Types.NVARCHAR:
         case Types.VARCHAR:
@@ -638,8 +638,8 @@ public class Schema {
         return asType(ColumnType.Date);
       }
 
-      public Column asDbDate() {
-        return asType(ColumnType.DbDate);
+      public Column asLocalDate() {
+        return asType(ColumnType.LocalDate);
       }
 
       public Column asClob() {
@@ -768,8 +768,8 @@ public class Schema {
           case Date:
             sql.append(flavor.typeDate());
             break;
-          case DbDate:
-            sql.append(flavor.typeDbDate());
+          case LocalDate:
+            sql.append(flavor.typeLocalDate());
             break;
           case Clob:
             sql.append(flavor.typeClob());

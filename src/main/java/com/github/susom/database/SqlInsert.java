@@ -97,11 +97,11 @@ public interface SqlInsert {
 
   @Nonnull
   @CheckReturnValue
-  SqlInsert argDbDate(LocalDate arg);
+  SqlInsert argLocalDate(LocalDate arg);
 
   @Nonnull
   @CheckReturnValue
-  SqlInsert argDbDate(@Nonnull String argName, LocalDate arg);
+  SqlInsert argLocalDate(@Nonnull String argName, LocalDate arg);
 
   @Nonnull
   @CheckReturnValue

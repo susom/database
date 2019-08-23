@@ -97,11 +97,11 @@ public interface SqlSelect {
 
   @Nonnull
   @CheckReturnValue
-  SqlSelect argDbDate(LocalDate arg);
+  SqlSelect argLocalDate(LocalDate arg);
 
   @Nonnull
   @CheckReturnValue
-  SqlSelect argDbDate(@Nonnull String argName, LocalDate arg);
+  SqlSelect argLocalDate(@Nonnull String argName, LocalDate arg);
 
   @Nonnull
   @CheckReturnValue
@@ -241,11 +241,11 @@ public interface SqlSelect {
 
   @Nullable
   @CheckReturnValue
-  LocalDate queryDbDateOrNull();
+  LocalDate queryLocalDateOrNull();
 
   @Nonnull
   @CheckReturnValue
-  List<LocalDate> queryDbDates();
+  List<LocalDate> queryLocalDates();
 
   /**
    * This is the most generic and low-level way to iterate the query results.

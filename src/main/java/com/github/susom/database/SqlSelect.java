@@ -89,19 +89,19 @@ public interface SqlSelect {
 
   @Nonnull
   @CheckReturnValue
-  SqlSelect argDate(Date arg);
+  SqlSelect argDate(Date arg);  // Date with time
 
   @Nonnull
   @CheckReturnValue
-  SqlSelect argDate(@Nonnull String argName, Date arg);
+  SqlSelect argDate(@Nonnull String argName, Date arg);  // Date with time
 
   @Nonnull
   @CheckReturnValue
-  SqlSelect argLocalDate(LocalDate arg);
+  SqlSelect argLocalDate(LocalDate arg); // Date without time
 
   @Nonnull
   @CheckReturnValue
-  SqlSelect argLocalDate(@Nonnull String argName, LocalDate arg);
+  SqlSelect argLocalDate(@Nonnull String argName, LocalDate arg); // Date without time
 
   @Nonnull
   @CheckReturnValue
@@ -233,19 +233,19 @@ public interface SqlSelect {
 
   @Nullable
   @CheckReturnValue
-  Date queryDateOrNull();
+  Date queryDateOrNull();  // Date with time
 
   @Nonnull
   @CheckReturnValue
-  List<Date> queryDates();
+  List<Date> queryDates();  // Date with time
 
   @Nullable
   @CheckReturnValue
-  LocalDate queryLocalDateOrNull();
+  LocalDate queryLocalDateOrNull();  // Date without time
 
   @Nonnull
   @CheckReturnValue
-  List<LocalDate> queryLocalDates();
+  List<LocalDate> queryLocalDates();  // Date without time
 
   /**
    * This is the most generic and low-level way to iterate the query results.

@@ -26,6 +26,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -735,6 +736,38 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  /**
+   * Check to see if a timestamp column has a time of midnight (start of day) or not.
+   *
+   * @param columnName a column name in the row of type java.sql.Timestamp
+   * @return true if the date is exactly at midnight
+   */
+  @Override
+  public boolean isMidnight(String columnName) {
+    LocalDateTime dbDateTime = toDateOrNull(columnName);
+    if (dbDateTime != null) {
+      LocalDateTime startOfDay = dbDateTime.toLocalDate().atStartOfDay();
+      return startOfDay.equals(dbDateTime);  // If true, the date has time at midnight
+    }
+    return false;
+  }
+
+  /**
+   * Given a column name, get the value as a Date (or null) without changing the column cursor.
+   *
+   * @param columnName column name to retrieve
+   * @return Column value as a LocalDateTime
+   */
+  @Nullable
+  @Override
+  public LocalDateTime toDateOrNull(String columnName) {
+    try {
+      Timestamp val = rs.getTimestamp(columnName);
+      return val == null ? null : val.toLocalDateTime();
+    } catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
 
   /**
    * Make sure the Timestamp will return getTime() accurate to the millisecond

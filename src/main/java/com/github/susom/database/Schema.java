@@ -27,6 +27,8 @@ import com.github.susom.database.Schema.Table.Column;
 import com.github.susom.database.Schema.Table.ForeignKey;
 import com.github.susom.database.Schema.Table.Index;
 import com.github.susom.database.Schema.Table.Unique;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Java representation of a database schema with the various things it can contain.
@@ -38,6 +40,8 @@ public class Schema {
   private List<Sequence> sequences = new ArrayList<>();
   private boolean indexForeignKeys = true;
   private String userTableName = "user_principal";
+
+  private static final Logger log = LoggerFactory.getLogger(Schema.class);
 
   public Sequence addSequence(String name) {
     Sequence sequence = new Sequence(name);
@@ -140,12 +144,28 @@ public class Schema {
         case Types.NCLOB:
           table.addColumn(names[i]).asClob();
           break;
-        case Types.TIMESTAMP:
-          table.addColumn(names[i]).asDate();
-          break;
+
+        // The date type is used for a true date - no time info.
+        // It must be processed before TimeStamp because dates are also
+        // recognized as timestamp type.
         case Types.DATE:
+          table.addColumn(names[i]).asLocalDate();
+          break;
+
+        // This is the type dates and times with time and time zone associated.
+        // Note that Oracle dates are always really Timestamps.
+        case Types.TIMESTAMP:
+          // Old DBs like Oracle do not have a date type.  Date is implemented as a timestamp
+          // In this case, we will look to see if the time is exactly midnight down to nanosecond
+          // to determine if it is really a LocalDate.
+          if (r.isMidnight(names[i])) {
+            log.warn("Processing Oracle DB column "+names[i]+" as a LocalDate because time was 0");
             table.addColumn(names[i]).asLocalDate();
-            break;
+          } else {
+            table.addColumn(names[i]).asDate();
+          }
+          break;
+
         case Types.NVARCHAR:
         case Types.VARCHAR:
           int precision = metadata.getPrecision(i + 1);
@@ -634,10 +654,12 @@ public class Schema {
         return asType(ColumnType.StringFixed);
       }
 
+      // This type is for dates that have time associated
       public Column asDate() {
         return asType(ColumnType.Date);
       }
 
+      // This type is for true dates with no time associated
       public Column asLocalDate() {
         return asType(ColumnType.LocalDate);
       }
@@ -766,10 +788,10 @@ public class Schema {
             sql.append(flavor.typeStringFixed(column.scale));
             break;
           case Date:
-            sql.append(flavor.typeDate());
+            sql.append(flavor.typeDate());      // Append a date with timestamp
             break;
           case LocalDate:
-            sql.append(flavor.typeLocalDate());
+            sql.append(flavor.typeLocalDate()); // Append a true date - no timestamp
             break;
           case Clob:
             sql.append(flavor.typeClob());

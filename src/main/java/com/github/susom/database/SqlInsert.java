@@ -89,19 +89,19 @@ public interface SqlInsert {
 
   @Nonnull
   @CheckReturnValue
-  SqlInsert argDate(Date arg);
+  SqlInsert argDate(Date arg); // date with time
 
   @Nonnull
   @CheckReturnValue
-  SqlInsert argDate(@Nonnull String argName, Date arg);
+  SqlInsert argDate(@Nonnull String argName, Date arg); // date with time
 
   @Nonnull
   @CheckReturnValue
-  SqlInsert argLocalDate(LocalDate arg);
+  SqlInsert argLocalDate(LocalDate arg); // date only - no timestamp
 
   @Nonnull
   @CheckReturnValue
-  SqlInsert argLocalDate(@Nonnull String argName, LocalDate arg);
+  SqlInsert argLocalDate(@Nonnull String argName, LocalDate arg);  // date only - no timestamp
 
   @Nonnull
   @CheckReturnValue

@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import com.github.susom.database.MixedParameterSql.SecretArg;
 
 import oracle.jdbc.OraclePreparedStatement;
-import org.slf4j.LoggerFactory;
 
 /**
  * Deal with mapping parameters into prepared statements.
@@ -186,10 +185,13 @@ public class StatementAdaptor {
     return new Timestamp(arg.getTime());
   }
 
+
+  // Processes a true date without timestamp information.
   public Object nullLocalDate(LocalDate arg) {
     if (arg == null) {
       return new SqlNull(Types.DATE);
     }
+
     return java.sql.Date.valueOf(arg);
   }
 

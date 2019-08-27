@@ -175,6 +175,14 @@ there is also a configuration option to make the above code do exactly the same 
 `argDateNowPerApp()` so you can in effect control the database server time as well as that
 of the application server.
 
+#### Support for java.time.LocalDate
+
+There are use cases where a true database date is more appropriate than a timestamp, 
+e.g., for recording date of birth or other fields where time is not really relevant or 
+known. The LocalDate API is stored as a database Date, not a Timestamp, for modern
+databases that support a true date type; Oracle does not support a true date type, so it 
+has been implemented as a timestamp.
+
 #### Correct handling of java.math.BigDecimal
 
 Similarly BigDecimal tries to maintain scale in a more intuitive manner

@@ -11,6 +11,7 @@ import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -643,12 +644,24 @@ public class RowStub {
         return toDate(rows.get(row)[columnIndexByName(columnName)]);
       }
 
+      /**
+       * Returns a java.time.LocalDate.  It will have no timezone or other time data.
+       * If you require time, use the Date APIs instead.
+       *
+       * @return
+       */
       @Nullable
       @Override
       public LocalDate getLocalDateOrNull() {
         return toLocalDate(rows.get(row)[++col]);
       }
 
+      /**
+       * Returns a java.time.LocalDate.  It will have no timezone or other time data.
+       * If you require time, use the Date APIs instead.
+       *
+       * @return
+       */
       @Nullable
       @Override
       public LocalDate getLocalDateOrNull(int columnOneBased) {
@@ -656,11 +669,53 @@ public class RowStub {
         return toLocalDate(rows.get(row)[columnOneBased-1]);
       }
 
+      /**
+       * Returns a java.time.LocalDate.  It will have no timezone or other time data.
+       * If you require time, use the Date APIs instead.
+       *
+       * @return
+       */
       @Nullable
       @Override
       public LocalDate getLocalDateOrNull(String columnName) {
         col = columnIndexByName(columnName) + 1;
         return toLocalDate(rows.get(row)[columnIndexByName(columnName)]);
+      }
+
+      /**
+       * Check to see if a timestamp column has a time of midnight (start of day) or not.
+       *
+       * @param columnName a column name in the row of type java.sql.Timestamp
+       * @return true if the date is exactly at midnight
+       */
+      @Override
+      public boolean isMidnight(String columnName) {
+        LocalDateTime dbDateTime = toDateOrNull(columnName);
+        if (dbDateTime != null) {
+          LocalDateTime startOfDay = dbDateTime.toLocalDate().atStartOfDay();
+          return startOfDay.equals(dbDateTime);  // If true, the date has time at midnight
+        }
+        return false;
+      }
+
+      /**
+       * Given a column name, get the value as a Date (or null) without changing
+       * the column cursor.
+       *
+       * @param columnName column name to retrieve
+       * @return Column value as a java.util.date
+       */
+      @Nullable
+      @Override
+      public LocalDateTime toDateOrNull(String columnName) {
+
+        Object o = rows.get(row)[columnIndexByName(columnName)];
+        if (o instanceof String) {
+          return LocalDateTime.parse((String) o);
+        }
+
+        return null;
+        //return toDate(rows.get(row)[columnIndexByName(columnName)]);
       }
 
       private void requireColumnNames() {
@@ -744,6 +799,11 @@ public class RowStub {
         return (String) o;
       }
 
+      /**
+       * Returns a java.util.Date.  It may be used for dates or times.
+       *
+       * @return
+       */
       private Date toDate(Object o) {
         if (o instanceof String) {
           String s = (String) o;
@@ -766,14 +826,17 @@ public class RowStub {
         return (Date) o;
       }
 
+      /**
+       * Returns a LocalDate (no time).
+       * If the object is a String, it should be in ISO 8601 format.
+       *
+       * @return a LocalDate representation of the object
+       */
       private LocalDate toLocalDate(Object o) {
         if (o instanceof String) {
-          String s = (String) o;
-          if (s.length() == "yyyy-MM-dd".length()) {
-            return LocalDate.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-          }
-          throw new DatabaseException("Didn't understand date string: " + s);
+          return LocalDate.parse((String) o);
         }
+
         return (LocalDate) o;
       }
     };

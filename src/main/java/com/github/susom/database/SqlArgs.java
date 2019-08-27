@@ -16,6 +16,9 @@
 
 package com.github.susom.database;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -44,6 +47,8 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
     Integer, Long, Float, Double, BigDecimal, String, ClobString, ClobStream,
     BlobBytes, BlobStream, Date, LocalDate, DateNowPerApp, DateNowPerDb, Boolean
   }
+
+  private static final Logger log = LoggerFactory.getLogger(SqlArgs.class);
 
   private static class Invocation {
     ColumnType columnType;
@@ -165,24 +170,28 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
 
   @Nonnull
   public SqlArgs argDate(@Nullable Date arg) {
+    // date argument with a timestamp on it
     invocations.add(new Invocation(ColumnType.Date, null, arg));
     return this;
   }
 
   @Nonnull
   public SqlArgs argDate(@Nonnull String argName, @Nullable Date arg) {
+    // date argument with a timestamp on it
     invocations.add(new Invocation(ColumnType.Date, argName, arg));
     return this;
   }
 
   @Nonnull
   public SqlArgs argLocalDate(@Nullable LocalDate arg) {
+    // date argument with no timestamp on it
     invocations.add(new Invocation(ColumnType.LocalDate, null, arg));
     return this;
   }
 
   @Nonnull
   public SqlArgs argLocalDate(@Nonnull String argName, @Nullable LocalDate arg) {
+    // date argument with no timestamp on it
     invocations.add(new Invocation(ColumnType.LocalDate, argName, arg));
     return this;
   }
@@ -377,6 +386,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
       case BlobStream:
         throw new DatabaseException("Don't use Blob parameters with select statements");
       case LocalDate:
+        // date argument with no timestamp on it
         if (i.argName == null) {
           select.argLocalDate((LocalDate) i.arg);
         } else {
@@ -384,6 +394,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case Date:
+        // date argument with a timestamp on it
         if (i.argName == null) {
           select.argDate((Date) i.arg);
         } else {
@@ -491,6 +502,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case Date:
+        // date argument with a timestamp on it
         if (i.argName == null) {
           insert.argDate((Date) i.arg);
         } else {
@@ -498,6 +510,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case LocalDate:
+        // date argument with no timestamp on it
         if (i.argName == null) {
           insert.argLocalDate((LocalDate) i.arg);
         } else {
@@ -605,6 +618,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case LocalDate:
+        // date argument with no timestamp on it
         if (i.argName == null) {
           update.argLocalDate((LocalDate) i.arg);
         } else {
@@ -612,6 +626,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
        break;
       case Date:
+        // date argument with a timestamp on it
         if (i.argName == null) {
           update.argDate((Date) i.arg);
         } else {
@@ -705,12 +720,21 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         case Types.NCLOB:
           args.argClobString(names[i], r.getClobStringOrNull());
           break;
+
+        // Process Date before TimeStamp since dates are also timestamps
         case Types.DATE:
             args.argLocalDate(names[i], r.getLocalDateOrNull());
             break;
+
         case Types.TIMESTAMP:
-          args.argDate(names[i], r.getDateOrNull());
+          if (r.isMidnight(names[i])) {
+            log.warn("Processing Oracle DB column " + names[i] + " as a LocalDate because time was 0");
+            args.argLocalDate(names[i], r.getLocalDateOrNull());
+          } else {
+            args.argDate(names[i], r.getDateOrNull());
+          }
           break;
+
         case Types.NVARCHAR:
         case Types.VARCHAR:
         case Types.CHAR:

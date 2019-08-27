@@ -151,24 +151,28 @@ public class SqlSelectImpl implements SqlSelect {
   @Nonnull
   @Override
   public SqlSelect argDate(Date arg) {
+    // Date with time
     return positionalArg(adaptor.nullDate(arg));
   }
 
   @Nonnull
   @Override
   public SqlSelect argDate(@Nonnull String argName, Date arg) {
+    // Date with time
     return namedArg(argName, adaptor.nullDate(arg));
   }
 
   @Nonnull
   @Override
   public SqlSelect argLocalDate(LocalDate arg) {
+    // Date with no time
     return positionalArg(adaptor.nullLocalDate(arg));
   }
 
   @Nonnull
   @Override
   public SqlSelect argLocalDate(@Nonnull String argName, LocalDate arg) {
+    // Date with no time
     return namedArg(argName, adaptor.nullLocalDate(arg));
   }
 
@@ -568,6 +572,7 @@ public class SqlSelectImpl implements SqlSelect {
   @Nullable
   @Override
   public LocalDate queryLocalDateOrNull() {
+    // Date without time
     return queryWithTimeout(new RowsHandler<LocalDate>() {
       @Override
       public LocalDate process(Rows rs) throws Exception {
@@ -582,6 +587,7 @@ public class SqlSelectImpl implements SqlSelect {
   @Nonnull
   @Override
   public List<LocalDate> queryLocalDates() {
+    // Date without time
     return queryWithTimeout(new RowsHandler<List<LocalDate>>() {
       @Override
       public List<LocalDate> process(Rows rs) throws Exception {

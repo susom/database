@@ -21,6 +21,7 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -446,14 +447,43 @@ public interface Row {
   Date getDateOrNull(String columnName);
 
   /**
-   * Return a real database Date, with no timestamp
+   * Retrieve column as LocalDate, .i.e, date with no time.
+   * @return LocalDate of the database column value
    */
   @Nullable
   LocalDate getLocalDateOrNull();
 
+  /**
+   * Get the Date field, with no timestamp
+   * @param columnOneBased column number starting at 1, not 0
+   * @return LocalDate of the column value
+   */
   @Nullable
   LocalDate getLocalDateOrNull(int columnOneBased);
 
+  /**
+   * Get the Date field, with no timestamp
+   * @param columnName column name to retrieve
+   * @return LocalDate of the column value
+   */
   @Nullable
   LocalDate getLocalDateOrNull(String columnName);
+
+  /**
+   * Given a column, get the value as a LocalDateTime (or null) without changing
+   * the column cursor.
+   *
+   * @param columnName column name to retrieve
+   * @return Column value as a LocalDateTime
+   */
+  @Nullable
+  LocalDateTime toDateOrNull(String columnName);
+
+  /**
+   * Check to see if a timestamp column has a time of midnight (start of day) or not.
+   *
+   * @param columnName a column name in the row of type java.sql.Timestamp
+   * @return true if the date is exactly at midnight
+   */
+  boolean isMidnight(String columnName);
 }

@@ -90,19 +90,19 @@ public interface SqlUpdate {
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argDate(@Nullable Date arg);
+  SqlUpdate argDate(@Nullable Date arg);  // Date with timestamp
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argDate(@Nonnull String argName, @Nullable Date arg);
+  SqlUpdate argDate(@Nonnull String argName, @Nullable Date arg); // Date with timestamp
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argLocalDate(@Nullable LocalDate arg);
+  SqlUpdate argLocalDate(@Nullable LocalDate arg);  // Date only - no timestamp
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argLocalDate(@Nonnull String argName, @Nullable LocalDate arg);
+  SqlUpdate argLocalDate(@Nonnull String argName, @Nullable LocalDate arg); // Date only - no timestamp
 
   @Nonnull
   @CheckReturnValue

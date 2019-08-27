@@ -53,8 +53,6 @@ import com.github.susom.database.RowsHandler;
 import com.github.susom.database.Schema;
 import com.github.susom.database.Sql;
 import com.github.susom.database.SqlArgs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
@@ -735,7 +733,6 @@ public abstract class CommonTest {
     db.toInsert(Sql.insert("dbtest2", args)).insertBatch();
 
     assertEquals(2, db.toSelect("select count(*) from dbtest2").queryIntegerOrZero());
-
 
     assertEquals(
         db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
@@ -1602,6 +1599,7 @@ public abstract class CommonTest {
 
   @Test
   public void insertLocalDate() {
+    // Date without time
     new Schema()
             .addTable("dbtest")
             .addColumn("d").asLocalDate().table().schema()

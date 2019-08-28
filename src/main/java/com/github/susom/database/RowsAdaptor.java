@@ -738,29 +738,33 @@ class RowsAdaptor implements Rows {
 
   /**
    * Check to see if a timestamp column has a time of midnight (start of day) or not.
+   * Start of day is the default for Oracle dates which are really timestamps.
    *
    * @param columnName a column name in the row of type java.sql.Timestamp
    * @return true if the date is exactly at midnight
    */
   @Override
   public boolean isMidnight(String columnName) {
-    LocalDateTime dbDateTime = toDateOrNull(columnName);
+    LocalDateTime dbDateTime = toLocalDateTimeOrNull(columnName);
     if (dbDateTime != null) {
+      // Get start of day for whatever day we currently have
       LocalDateTime startOfDay = dbDateTime.toLocalDate().atStartOfDay();
-      return startOfDay.equals(dbDateTime);  // If true, the date has time at midnight
+      return startOfDay.equals(dbDateTime);  // If true, the db date has time at midnight
     }
     return false;
   }
 
   /**
-   * Given a column name, get the value as a Date (or null) without changing the column cursor.
+   * Given a column name, get the value as a LocalDateTime (or null) without changing
+   * the column cursor so we can analyze it.  We use LocalDateTime because some DBs
+   * like Oracle treat dates as timestamps, and we want everything here.
    *
    * @param columnName column name to retrieve
    * @return Column value as a LocalDateTime
    */
-  @Nullable
-  @Override
-  public LocalDateTime toDateOrNull(String columnName) {
+  // @Nullable
+  // @Override
+  private LocalDateTime toLocalDateTimeOrNull(String columnName) {
     try {
       Timestamp val = rs.getTimestamp(columnName);
       return val == null ? null : val.toLocalDateTime();

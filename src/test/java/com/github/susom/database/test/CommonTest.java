@@ -25,6 +25,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
@@ -1216,6 +1217,31 @@ public abstract class CommonTest {
     });
   }
 
+  @Test
+  @Retry
+  public void argLocalDateTimeZones() {
+    // Verify we always get the same LocalDate regardless of time zone and DB
+    new Schema().addTable("dbtest").addColumn("i").asLocalDate().schema().execute(db);
+    db.toInsert("insert into dbtest (i) values (?)").argLocalDate(localDateNow).insert(1);
+
+    // Query without specifying a zone
+    assertEquals(localDateNow,
+        db.toSelect("select i from dbtest where i=?").argLocalDate(localDateNow).queryLocalDateOrNull());
+
+    TimeZone defautTZ = TimeZone.getDefault();
+
+    String localDateAsString = localDateNow.toString();
+    String[] availableTZs = TimeZone.getAvailableIDs();
+    for (String tz : availableTZs) {
+      TimeZone.setDefault(TimeZone.getTimeZone(tz));
+      LocalDate result =
+        db.toSelect("select i from dbtest where i=?").argLocalDate(localDateNow).queryLocalDateOrNull();
+      assertEquals(localDateNow, result);
+      assertEquals(localDateAsString, result.toString());
+    }
+    TimeZone.setDefault(defautTZ);
+  }
+  
   @Test
   public void argIntegerMinMax() {
     new Schema().addTable("dbtest").addColumn("i").asInteger().schema().execute(db);

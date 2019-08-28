@@ -470,16 +470,6 @@ public interface Row {
   LocalDate getLocalDateOrNull(String columnName);
 
   /**
-   * Given a column, get the value as a LocalDateTime (or null) without changing
-   * the column cursor.
-   *
-   * @param columnName column name to retrieve
-   * @return Column value as a LocalDateTime
-   */
-  @Nullable
-  LocalDateTime toDateOrNull(String columnName);
-
-  /**
    * Check to see if a timestamp column has a time of midnight (start of day) or not.
    *
    * @param columnName a column name in the row of type java.sql.Timestamp

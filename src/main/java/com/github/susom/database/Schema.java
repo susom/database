@@ -146,8 +146,8 @@ public class Schema {
           break;
 
         // The date type is used for a true date - no time info.
-        // It must be processed before TimeStamp because dates are also
-        // recognized as timestamp type.
+        // It must be checked before TimeStamp because sql dates are also
+        // recognized as sql timestamp.
         case Types.DATE:
           table.addColumn(names[i]).asLocalDate();
           break;
@@ -788,10 +788,10 @@ public class Schema {
             sql.append(flavor.typeStringFixed(column.scale));
             break;
           case Date:
-            sql.append(flavor.typeDate());      // Append a date with timestamp
+            sql.append(flavor.typeDate());      // Append a date with time
             break;
           case LocalDate:
-            sql.append(flavor.typeLocalDate()); // Append a true date - no timestamp
+            sql.append(flavor.typeLocalDate()); // Append a true date - no time
             break;
           case Clob:
             sql.append(flavor.typeClob());

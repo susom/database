@@ -180,8 +180,16 @@ of the application server.
 There are use cases where a true database date is more appropriate than a timestamp, 
 e.g., for recording date of birth or other fields where time is not really relevant or 
 known. The LocalDate API is stored as a database Date, not a Timestamp, for modern
-databases that support a true date type; Oracle does not support a true date type, so it 
-has been implemented as a timestamp.
+databases that support a true date type.
+ 
+Oracle does not support a true date type; the Oracle Date is actually implemented as a 
+timestamp.  Oracle supports LocalDate by using a time of midnight and a timezone of 0. 
+
+HSQLDB also does not support a true date type - it's date implementation uses a timestamp of 
+0 (midnight), but has a bug that sets timezone. For this reason, if a date is stored from one 
+timezone (e.g., system default timezone), and a user attempts to query for that date from 
+another timezone, it may not find the value.  This bug is documented in more detail here:
+https://bugs.documentfoundation.org/show_bug.cgi?id=63566
 
 #### Correct handling of java.math.BigDecimal
 

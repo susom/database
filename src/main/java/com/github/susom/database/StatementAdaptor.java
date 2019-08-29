@@ -27,7 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.time.LocalDate;
+import java.time.*;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -186,7 +186,7 @@ public class StatementAdaptor {
   }
 
 
-  // Processes a true date without timestamp information.
+  // Processes a true date without time information.
   public Object nullLocalDate(LocalDate arg) {
     if (arg == null) {
       return new SqlNull(Types.DATE);

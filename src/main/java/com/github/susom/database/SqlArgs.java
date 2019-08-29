@@ -170,28 +170,28 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
 
   @Nonnull
   public SqlArgs argDate(@Nullable Date arg) {
-    // date argument with a timestamp on it
+    // date argument with a time on it
     invocations.add(new Invocation(ColumnType.Date, null, arg));
     return this;
   }
 
   @Nonnull
   public SqlArgs argDate(@Nonnull String argName, @Nullable Date arg) {
-    // date argument with a timestamp on it
+    // date argument with a time on it
     invocations.add(new Invocation(ColumnType.Date, argName, arg));
     return this;
   }
 
   @Nonnull
   public SqlArgs argLocalDate(@Nullable LocalDate arg) {
-    // date argument with no timestamp on it
+    // date argument with no time on it
     invocations.add(new Invocation(ColumnType.LocalDate, null, arg));
     return this;
   }
 
   @Nonnull
   public SqlArgs argLocalDate(@Nonnull String argName, @Nullable LocalDate arg) {
-    // date argument with no timestamp on it
+    // date argument with no time on it
     invocations.add(new Invocation(ColumnType.LocalDate, argName, arg));
     return this;
   }
@@ -386,7 +386,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
       case BlobStream:
         throw new DatabaseException("Don't use Blob parameters with select statements");
       case LocalDate:
-        // date argument with no timestamp on it
+        // date argument with no time on it
         if (i.argName == null) {
           select.argLocalDate((LocalDate) i.arg);
         } else {
@@ -394,7 +394,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case Date:
-        // date argument with a timestamp on it
+        // date argument with a time on it
         if (i.argName == null) {
           select.argDate((Date) i.arg);
         } else {
@@ -502,7 +502,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case Date:
-        // date argument with a timestamp on it
+        // date argument with a time on it
         if (i.argName == null) {
           insert.argDate((Date) i.arg);
         } else {
@@ -510,7 +510,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case LocalDate:
-        // date argument with no timestamp on it
+        // date argument with no time on it
         if (i.argName == null) {
           insert.argLocalDate((LocalDate) i.arg);
         } else {
@@ -618,7 +618,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
         break;
       case LocalDate:
-        // date argument with no timestamp on it
+        // date argument with no time on it
         if (i.argName == null) {
           update.argLocalDate((LocalDate) i.arg);
         } else {
@@ -626,7 +626,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
         }
        break;
       case Date:
-        // date argument with a timestamp on it
+        // date argument with a time on it
         if (i.argName == null) {
           update.argDate((Date) i.arg);
         } else {
@@ -721,7 +721,7 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
           args.argClobString(names[i], r.getClobStringOrNull());
           break;
 
-        // Process Date before TimeStamp since dates are also timestamps
+        // Check Date before TimeStamp because SQL dates are also timestamps
         case Types.DATE:
             args.argLocalDate(names[i], r.getLocalDateOrNull());
             break;

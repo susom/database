@@ -1218,28 +1218,27 @@ public abstract class CommonTest {
   }
 
   @Test
-  @Retry
   public void argLocalDateTimeZones() {
-    // Verify we always get the same LocalDate regardless of time zone and DB
+    LocalDate januaryOne2000 = LocalDate.of(2000, Month.JANUARY, 1);
+
+    // Verify we always get the same LocalDate regardless of time zone and DB across all drivers
     new Schema().addTable("dbtest").addColumn("i").asLocalDate().schema().execute(db);
-    db.toInsert("insert into dbtest (i) values (?)").argLocalDate(localDateNow).insert(1);
+    db.toInsert("insert into dbtest (i) values (?)").argLocalDate(januaryOne2000).insert(1);
 
     // Query without specifying a zone
-    assertEquals(localDateNow,
-        db.toSelect("select i from dbtest where i=?").argLocalDate(localDateNow).queryLocalDateOrNull());
+    assertEquals(januaryOne2000,
+        db.toSelect("select i from dbtest where i=?").argLocalDate(januaryOne2000).queryLocalDateOrNull());
 
-    TimeZone defautTZ = TimeZone.getDefault();
+    TimeZone defaultTZ = TimeZone.getDefault();
 
-    String localDateAsString = localDateNow.toString();
     String[] availableTZs = TimeZone.getAvailableIDs();
     for (String tz : availableTZs) {
       TimeZone.setDefault(TimeZone.getTimeZone(tz));
       LocalDate result =
-        db.toSelect("select i from dbtest where i=?").argLocalDate(localDateNow).queryLocalDateOrNull();
-      assertEquals(localDateNow, result);
-      assertEquals(localDateAsString, result.toString());
+        db.toSelect("select i from dbtest where i=?").argLocalDate(januaryOne2000).queryLocalDateOrNull();
+      assertEquals(januaryOne2000, result);
     }
-    TimeZone.setDefault(defautTZ);
+    TimeZone.setDefault(defaultTZ);
   }
   
   @Test

@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.susom.database.Config;
@@ -53,6 +54,13 @@ public class HsqldbTest extends CommonTest {
         .withOptions(options).create();
   }
 
+  @Ignore("LocalDate implementations should be TimeZone agnostic, but HSQLDB implementation has a bug.")
+  @Test
+  public void argLocalDateTimeZones() {
+    // See bug: https://bugs.documentfoundation.org/show_bug.cgi?id=63566
+    super.argLocalDateTimeZones();
+  }
+
   /**
    * This one is adjusted in that the float values are passed as double, because
    * the database stores them both as double and there doesn't appear to be a way
@@ -71,21 +79,24 @@ public class HsqldbTest extends CommonTest {
         .addColumn("str_lob").asClob().table()
         .addColumn("bin_blob").asBlob().table()
         .addColumn("boolean_flag").asBoolean().table()
-        .addColumn("date_millis").asDate().schema().execute(db);
+        .addColumn("date_millis").asDate().table()
+        .addColumn("local_date").asLocalDate().schema().execute(db);
 
     db.toInsert("insert into dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar,"
-        + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis) values (?,?,?,?,?,?,?,?,?,?,?)")
+        + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date) values (?,?,?,?,?,?,?,?,?,?,?,?)")
         .argInteger(Integer.MAX_VALUE).argLong(Long.MAX_VALUE).argDouble((double) Float.MAX_VALUE)
         .argDouble(Double.MAX_VALUE).argBigDecimal(new BigDecimal("123.456"))
         .argString("hello").argString("Z").argClobString("hello again")
-        .argBlobBytes(new byte[] { '1', '2' }).argBoolean(true).argDateNowPerApp().insert(1);
+        .argBlobBytes(new byte[] { '1', '2' }).argBoolean(true)
+      .argDateNowPerApp().argLocalDate(localDateNow).insert(1);
 
     db.toInsert("insert into dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar,"
-        + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis) values (?,?,?,?,?,?,?,?,?,?,?)")
+        + " str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date) values (?,?,?,?,?,?,?,?,?,?,?,?)")
         .argInteger(Integer.MIN_VALUE).argLong(Long.MIN_VALUE).argDouble(0.000001d)
         .argDouble(Double.MIN_VALUE).argBigDecimal(new BigDecimal("-123.456"))
         .argString("goodbye").argString("A").argClobString("bye again")
-        .argBlobBytes(new byte[] { '3', '4' }).argBoolean(false).argDateNowPerApp().insert(1);
+        .argBlobBytes(new byte[] { '3', '4' }).argBoolean(false)
+        .argDateNowPerApp().argLocalDate(localDateNow).insert(1);
 
     String expectedSchema = new Schema().addTable("dbtest2")
         .addColumn("nbr_integer").asInteger().table()
@@ -98,10 +109,11 @@ public class HsqldbTest extends CommonTest {
         .addColumn("str_lob").asClob().table()
         .addColumn("bin_blob").asBlob().table()
         .addColumn("boolean_flag").asBoolean().table()
-        .addColumn("date_millis").asDate().schema().print(db.flavor());
+        .addColumn("date_millis").asDate().table()
+        .addColumn("local_date").asLocalDate().schema().print(db.flavor());
 
     List<SqlArgs> args = db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest")
+        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest")
         .query(rs -> {
           List<SqlArgs> result = new ArrayList<>();
           while (rs.next()) {
@@ -120,25 +132,42 @@ public class HsqldbTest extends CommonTest {
 
     assertEquals(2, db.toSelect("select count(*) from dbtest2").queryIntegerOrZero());
     assertEquals(db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-            + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest order by 1")
+            + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest order by 1")
             .queryMany(SqlArgs::readRow),
         db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-            + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest2 order by 1")
+            + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest2 order by 1")
             .queryMany(SqlArgs::readRow));
-    assertEquals(Arrays.asList(new SqlArgs()
-            .argInteger("nbr_integer", Integer.MIN_VALUE).argLong("nbr_long", Long.MIN_VALUE)
+    assertEquals(Arrays.asList(
+      new SqlArgs()
+            .argInteger("nbr_integer", Integer.MIN_VALUE)
+            .argLong("nbr_long", Long.MIN_VALUE)
             .argDouble("nbr_float", 0.000001d)
-            .argDouble("nbr_double", Double.MIN_VALUE).argBigDecimal("nbr_big_decimal", new BigDecimal("-123.456"))
-            .argString("str_varchar", "goodbye").argString("str_fixed", "A").argClobString("str_lob", "bye again")
-            .argBlobBytes("bin_blob", new byte[] { '3', '4' }).argString("boolean_flag", "N")//.argBoolean("boolean_flag", false)
-            .argDate("date_millis", now), new SqlArgs().argInteger("nbr_integer", Integer.MAX_VALUE)
-            .argLong("nbr_long", Long.MAX_VALUE).argDouble("nbr_float", (double) Float.MAX_VALUE)
-            .argDouble("nbr_double", Double.MAX_VALUE).argBigDecimal("nbr_big_decimal", new BigDecimal("123.456"))
-            .argString("str_varchar", "hello").argString("str_fixed", "Z").argClobString("str_lob", "hello again")
-            .argBlobBytes("bin_blob", new byte[] { '1', '2' }).argString("boolean_flag", "Y")//.argBoolean("boolean_flag", true)
-            .argDate("date_millis", now)),
-        db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
-            + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis from dbtest2 order by 1")
-            .queryMany(SqlArgs::readRow));
+            .argDouble("nbr_double", Double.MIN_VALUE)
+            .argBigDecimal("nbr_big_decimal", new BigDecimal("-123.456"))
+            .argString("str_varchar", "goodbye")
+            .argString("str_fixed", "A")
+            .argClobString("str_lob", "bye again")
+            .argBlobBytes("bin_blob", new byte[] { '3', '4' })
+            .argString("boolean_flag", "N")//.argBoolean("boolean_flag", false)
+            .argDate("date_millis", now)
+            .argLocalDate("local_date", localDateNow),
+      new SqlArgs()
+            .argInteger("nbr_integer", Integer.MAX_VALUE)
+            .argLong("nbr_long", Long.MAX_VALUE)
+            .argDouble("nbr_float", (double) Float.MAX_VALUE)
+            .argDouble("nbr_double", Double.MAX_VALUE)
+            .argBigDecimal("nbr_big_decimal", new BigDecimal("123.456"))
+            .argString("str_varchar", "hello")
+            .argString("str_fixed", "Z")
+            .argClobString("str_lob", "hello again")
+            .argBlobBytes("bin_blob", new byte[] { '1', '2' })
+            .argString("boolean_flag", "Y")//.argBoolean("boolean_flag", true)
+            .argDate("date_millis", now)
+            .argLocalDate("local_date", localDateNow)),
+      db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
+        + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest2 order by 1")
+        .queryMany(SqlArgs::readRow));
   }
+
+
 }

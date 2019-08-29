@@ -719,13 +719,13 @@ public class RowStub {
         }
 
         if (o instanceof Date) {
-          ((Date) o).toInstant()
+          return ((Date) o).toInstant()
             .atZone(ZoneId.systemDefault())
             .toLocalDateTime();
         }
 
         if (o instanceof Timestamp) {
-          ((Timestamp) o).toLocalDateTime();
+          return ((Timestamp) o).toLocalDateTime();
         }
 
         return null;

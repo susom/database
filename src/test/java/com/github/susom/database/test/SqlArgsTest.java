@@ -26,6 +26,7 @@ public class SqlArgsTest {
       args.toString());
   }
 
+  @Test
   public void testTidyColumnNames() throws Exception {
     assertArrayEquals(new String[] { "column_1", "column_2", "a", "a_2", "a_3", "a1" },
         SqlArgs.tidyColumnNames(new String[] { null, "", " a ", "a  ", "#!@#$_a","#!@#$_1" }));

@@ -25,7 +25,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Month;
@@ -64,6 +63,7 @@ import static org.junit.Assert.*;
  * @author garricko
  */
 public abstract class CommonTest {
+
   static {
     // Initialize logging
     String log4jConfig = new File("log4j.xml").getAbsolutePath();
@@ -1620,6 +1620,17 @@ public abstract class CommonTest {
 //    System.err.println("***** d: " + db.select("select d from dbtest").queryString());
 //    System.err.println("***** n: " + dbNow.getTime());
     assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d=?").argDate(dbNow).queryLongOrNull());
+  }
+
+  @Test
+  public void daylightSavings() {
+    LocalDate lastStdDateSpring = LocalDate.of(2019, Month.MARCH, 9);
+    LocalDate firstDSTDateSpring = LocalDate.of(2019, Month.MARCH, 10);
+
+    // Verify that the original LocalDate matches the driver SQL LocalDate generated.
+    StatementAdaptor adaptor = new StatementAdaptor(new OptionsDefault(db.flavor()));
+    assertEquals(lastStdDateSpring.toString(), adaptor.nullLocalDate(lastStdDateSpring).toString());
+    assertEquals(firstDSTDateSpring.toString(), adaptor.nullLocalDate(firstDSTDateSpring).toString());
   }
 
   @Test

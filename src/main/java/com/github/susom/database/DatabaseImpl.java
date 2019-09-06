@@ -17,6 +17,9 @@
 package com.github.susom.database;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -199,6 +202,63 @@ public class DatabaseImpl implements Database {
     } else {
       ddl("drop table " + tableName).executeQuietly();
     }
+  }
+
+  @Override
+  public boolean tableExists(@Nonnull String tableName) throws DatabaseException {
+    try {
+      return tableExists( tableName,
+        connection.getSchema());    // use default schema
+    } catch (SQLException exc) {
+      throw new DatabaseException("Unable to look up table " + tableName +
+        " with default db connection schema & catalog: " + exc.getMessage(),
+        exc);
+    }
+  }
+
+  @Override
+  public boolean tableExists(@Nonnull String tableName, String schemaName) throws DatabaseException {
+    if (tableName != null) {
+      try {
+        DatabaseMetaData metadata = connection.getMetaData();
+        String normalizedTable = normalizeTableName(tableName);
+        ResultSet resultSet =
+          metadata.getTables(connection.getCatalog(), schemaName, normalizedTable, new String[]{"TABLE", "VIEW"});
+
+        while (resultSet.next()) {
+          if (normalizedTable.equals(resultSet.getString("TABLE_NAME"))) {
+            return true;
+          }
+        }
+      } catch (SQLException exc) {
+        throw new DatabaseException("Unable to look up table " + tableName
+          + " in schema  " + schemaName + " : " + exc.getMessage(),
+          exc);
+      }
+    }
+
+    return false;
+  }
+
+  @Override
+  public String normalizeTableName(String tableName) {
+    if (tableName == null) {
+      return tableName;
+    }
+
+    // If user gave us a quoted string, leave it alone for look up
+    if (tableName.length() > 2) {
+      if (tableName.startsWith("\"") && tableName.endsWith("\"")) {
+        // Remove quotes and return as is.
+        return tableName.substring(1, tableName.length()-1);
+      }
+    }
+
+    if (flavor().isNormalizedUpperCase()) {
+      return tableName.toUpperCase();
+    }
+
+    return tableName.toLowerCase();
   }
 
   @Override

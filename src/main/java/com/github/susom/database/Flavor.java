@@ -17,7 +17,6 @@
 package com.github.susom.database;
 
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -26,8 +25,16 @@ import java.util.Date;
  *
  * @author garricko
  */
+
+// Default identifier case supported by the database when identifier is not in quotes.
+// See https://github.com/ontop/ontop/wiki/Case-sensitivity-for-SQL-identifiers
 public enum Flavor {
   derby {
+    @Override
+    public boolean isNormalizedUpperCase() {
+      return true;
+    }
+
     @Override
     public String typeInteger() {
       return "integer";
@@ -151,6 +158,11 @@ public enum Flavor {
     }
   },
   sqlserver {
+    @Override
+    public boolean isNormalizedUpperCase() {
+      return false;
+    }
+
     @Override
     public String typeFloat() {
       return "float(24)";
@@ -277,6 +289,11 @@ public enum Flavor {
   },
   oracle {
     @Override
+    public boolean isNormalizedUpperCase() {
+      return true;
+    }
+
+    @Override
     public String typeFloat() {
       return "binary_float";
     }
@@ -400,6 +417,11 @@ public enum Flavor {
   },
   postgresql {
     @Override
+    public boolean isNormalizedUpperCase() {
+      return false;
+    }
+
+    @Override
     public String typeInteger() {
       return "integer";
     }
@@ -522,6 +544,11 @@ public enum Flavor {
     }
   }, hsqldb {
     @Override
+    public boolean isNormalizedUpperCase() {
+      return true;
+    }
+
+    @Override
     public String typeInteger() {
       return "integer";
     }
@@ -643,6 +670,10 @@ public enum Flavor {
       return " as bigint";
     }
   };
+
+  // Returns true if DB normalizes to upper case names for ids like tables and columns
+  // See https://github.com/ontop/ontop/wiki/Case-sensitivity-for-SQL-identifiers
+  public abstract boolean isNormalizedUpperCase();
 
   public abstract String typeInteger();
 

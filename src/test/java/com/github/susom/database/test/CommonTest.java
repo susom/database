@@ -60,6 +60,8 @@ import static org.junit.Assert.*;
  * @author garricko
  */
 public abstract class CommonTest {
+  final static String TEST_TABLE_NAME = "dbtest";
+
   static {
     // Initialize logging
     String log4jConfig = new File("log4j.xml").getAbsolutePath();
@@ -86,7 +88,7 @@ public abstract class CommonTest {
       }
     });
     db = dbp.get();
-    db.dropTableQuietly("dbtest");
+    db.dropTableQuietly(TEST_TABLE_NAME);
   }
 
   protected abstract DatabaseProvider createDatabaseProvider(OptionsOverride options) throws Exception;
@@ -95,6 +97,52 @@ public abstract class CommonTest {
   public void closeJdbc() throws Exception {
     if (dbp != null) {
       dbp.commitAndClose();
+    }
+  }
+
+  @Test
+  public void tableExists() {
+    // Verify dbtest table does not exist
+    String lowercaseTable = TEST_TABLE_NAME.toLowerCase();
+    testTableLookup(lowercaseTable);
+    db.dropTableQuietly(lowercaseTable);
+
+    // Let's try creating a table with an upper case name and verify it works
+    String uppercaseTable = TEST_TABLE_NAME.toUpperCase();
+    testTableLookup( uppercaseTable );
+    db.dropTableQuietly(uppercaseTable);
+
+    // Verify that null or empty name is handled gracefully
+    assertFalse(db.tableExists(null));
+    assertFalse(db.tableExists(""));
+  }
+
+  private void testTableLookup(String tableName) {
+    // Verify test table does not exist
+    assertFalse(db.tableExists(tableName));
+
+    // Create and verify it exists.
+    new Schema().addTable(tableName).addColumn("pk").primaryKey().schema().execute(db);
+    assertTrue(db.tableExists(tableName));
+  }
+
+  @Test
+  public void normalizeTableName() {
+    // Verify that null and empty cases are handled gracefully
+    assertNull(db.normalizeTableName(null));
+    assertEquals("", db.normalizeTableName(""));
+
+    // Verify a quoted table name is returned in exactly the same case, with quotes removed.
+    String camelCaseTableName = "\"DbTest\"";
+    assertEquals(camelCaseTableName.substring(1, camelCaseTableName.length()-1),
+      db.normalizeTableName(camelCaseTableName));
+
+    // Verify that the database flavor gets the expected normalized case
+    boolean isUpperCase = db.flavor().isNormalizedUpperCase();
+    if (isUpperCase) {
+      assertEquals(TEST_TABLE_NAME.toUpperCase(), db.normalizeTableName(TEST_TABLE_NAME));
+    } else {
+      assertEquals(TEST_TABLE_NAME.toLowerCase(), db.normalizeTableName(TEST_TABLE_NAME));
     }
   }
 

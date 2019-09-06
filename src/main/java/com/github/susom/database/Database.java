@@ -199,6 +199,41 @@ public interface Database extends Supplier<Database> {
   void dropTableQuietly(String tableName);
 
   /**
+   * Convenience method to check if a table or view exists so that caller can decide
+   * whether to create or update a table. The table name's case is normalized using
+   * the database's convention unless tableName is enclosed in double quotes.
+   * The default catalog and schema from the DB connection will be used.
+   *
+   * @param tableName the table to be checked
+   * @return true if the table or view exists
+   */
+  boolean tableExists(@Nonnull String tableName);
+
+  /**
+   * Convenience method to check whether a table or view exists or not.
+   * The table name's case is normalized using the database's convention
+   * unless tableName is enclosed in double quotes.  The default catalog
+   * from the DB connection will be used.
+   *
+   * @param tableName the table to be checked
+   * @param schemaName the schema expected to contain the table
+   * @return true if the table or view exists
+   */
+  boolean tableExists(@Nonnull String tableName, String schemaName);
+
+  /**
+   * Return the DB table name in the normalized form in which it is stored.
+   * Databases like Oracle, Derby, HSQL store their tables in upper case.
+   * Databases like postgres and sqlserver use lower case unless configured otherwise.
+   * If the caller passes in a quoted string, we will leave the name as is, removing
+   * the quotes.
+   *
+   * @param tableName this should be a name, not a pattern
+   * @return table name in appropriate format for DB lookup - original case, uppercase, or lowercase
+   */
+  public String normalizeTableName(String tableName);
+
+  /**
    * Check the JVM time (and timezone) against the database and log a warning
    * or throw an error if they are too far apart. It is a good idea to do this
    * before you store and dates, and maybe make it part of your health checks.

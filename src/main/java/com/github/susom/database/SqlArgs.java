@@ -501,20 +501,20 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
           insert.argBlobStream(i.argName, (InputStream) i.arg);
         }
         break;
+        case LocalDate:
+          // date argument with no time on it
+          if (i.argName == null) {
+            insert.argLocalDate((LocalDate) i.arg);
+          } else {
+            insert.argLocalDate(i.argName, (LocalDate) i.arg);
+          }
+          break;
       case Date:
         // date argument with a time on it
         if (i.argName == null) {
           insert.argDate((Date) i.arg);
         } else {
           insert.argDate(i.argName, (Date) i.arg);
-        }
-        break;
-      case LocalDate:
-        // date argument with no time on it
-        if (i.argName == null) {
-          insert.argLocalDate((LocalDate) i.arg);
-        } else {
-          insert.argLocalDate(i.argName, (LocalDate) i.arg);
         }
         break;
       case DateNowPerApp:
@@ -727,8 +727,9 @@ public class SqlArgs implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Appl
             break;
 
         case Types.TIMESTAMP:
-          if (r.isMidnight(names[i])) {
-            log.warn("Processing Oracle DB column " + names[i] + " as a LocalDate because time was 0");
+          if (this.scale[i] == 0) {
+            // If the scale is 0, this is a LocalDate (no time/timezone).
+            // Anything with a time will have a non-zero scale
             args.argLocalDate(names[i], r.getLocalDateOrNull());
           } else {
             args.argDate(names[i], r.getDateOrNull());

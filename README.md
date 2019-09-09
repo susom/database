@@ -181,15 +181,33 @@ There are use cases where a true database date is more appropriate than a timest
 e.g., for recording date of birth or other fields where time is not really relevant or 
 known. The LocalDate API is stored as a database Date, not a Timestamp, for modern
 databases that support a true date type.
+
+LocalDate has been implemented and tested using ISO 8601 format YYYY-MM-DD.  There should be
+no time or timezone associated.
+
+Postgres and MS SQLServer have implemented a fully compliant LocalDate that is consistentently
+returned as java.sql.Date.   There are no known issues with these databases.
  
 Oracle does not support a true date type; the Oracle Date is actually implemented as a 
 timestamp.  Oracle supports LocalDate by using a time of midnight and a timezone of 0. 
+As a result, there are times when the database type returned have been timestamp. 
 
 HSQLDB also does not support a true date type - it's date implementation uses a timestamp of 
 0 (midnight), but has a bug that sets timezone. For this reason, if a date is stored from one 
 timezone (e.g., system default timezone), and a user attempts to query for that date from 
-another timezone, it may not find the value.  This bug is documented in more detail here:
-https://bugs.documentfoundation.org/show_bug.cgi?id=63566
+another timezone, it may not find the value.  For this reason, HSQLDB is not recommended for 
+LocalDate type data if you are working across time zones.
+
+To work around old database implementations of LocalDate as a Timestamp, when a timestamp is
+received, the scale attribute is examined.  A scale of 0 on a Timestamp is always associated 
+with a LocalDate across all tested DB implementations; true timestamps always have a non-zero scale.  
+When a scale of zero is found, it is handled as LocalDate.
+
+More information on specific implementations is available here: 
+* Derby: https://db.apache.org/derby/papers/JDBCImplementation.html#Derby+SQL+DATE
+* HSQLDB: http://www.h2database.com/html/datatypes.html
+  * known problem:http://www.h2database.com/html/datatypes.html
+* Oracle: https://docs.oracle.com/javase/8/docs/api/java/sql/Timestamp.html
 
 #### Correct handling of java.math.BigDecimal
 

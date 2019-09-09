@@ -713,7 +713,7 @@ public enum Flavor {
 
     @Override
     public String localDateAsSqlFunction(Date date) {
-      return "DATE '" + date.toString()+"'";
+      return "'" + date.toString()+"'";
     }
 
     @Override

@@ -97,17 +97,32 @@ public abstract class CommonTest {
   public void tableExists() {
     // Verify dbtest table does not exist
     String lowercaseTable = TEST_TABLE_NAME.toLowerCase();
-    testTableLookup(lowercaseTable);
+    testTableLookup(lowercaseTable );
     db.dropTableQuietly(lowercaseTable);
 
     // Let's try creating a table with an upper case name and verify it works
     String uppercaseTable = TEST_TABLE_NAME.toUpperCase();
-    testTableLookup( uppercaseTable );
+    testTableLookup(uppercaseTable);
     db.dropTableQuietly(uppercaseTable);
 
     // Verify that null or empty name is handled gracefully
     assertFalse(db.tableExists(null));
     assertFalse(db.tableExists(""));
+
+    // Cause a bad connection to force an exception so we can test that error path
+    dbp.commitAndClose();
+    try {
+      testTableLookup(lowercaseTable);  // Should throw an exception here.
+      fail("DatabaseException expected when tableExists called with closed connection");
+    } catch (DatabaseException dbExc) {
+      // Expected path.  Verify we got the message expected
+      assertTrue(dbExc.getMessage().contains("Unable to look up table dbtest with default db connection schema & catalog"));
+      try {
+        setupJdbc(); // Reset jdbc state so test cleanup works
+      } catch (Exception exc) {
+        fail("Unable to restore jdbc state");
+      }
+    }
   }
 
   private void testTableLookup(String tableName) {
@@ -1275,6 +1290,38 @@ public abstract class CommonTest {
       assertEquals(januaryOne2000, result);
     }
     TimeZone.setDefault(defaultTZ);
+  }
+
+  @Test
+  public void argLocalDateLeapYear() {
+    new Schema().addTable("dbtest").addColumn("testdate").asLocalDate().schema().execute(db);
+
+    // Start by adding Febriary 28 and March 1 of 1900.  This was not a leap year.
+    LocalDate feb1900 = LocalDate.of(1900, Month.FEBRUARY, 28);
+    db.toInsert("insert into dbtest (testdate) values (?)").argLocalDate(feb1900).insert(1);
+    assertEquals(feb1900,
+        db.toSelect("select testdate from dbtest where testdate=?").argLocalDate(feb1900).queryLocalDateOrNull());
+
+    LocalDate mar1900 = LocalDate.of(1900, Month.MARCH, 1);
+    db.toInsert("insert into dbtest (testdate) values (?)").argLocalDate(mar1900).insert(1);
+    assertEquals(mar1900,
+        db.toSelect("select testdate from dbtest where testdate=?").argLocalDate(mar1900).queryLocalDateOrNull());
+
+    // Now try Feb 28, 29, and March 1 of 2000.  This was a leap year
+    LocalDate feb2000 = LocalDate.of(2000, Month.FEBRUARY, 28);
+    db.toInsert("insert into dbtest (testdate) values (?)").argLocalDate(feb2000).insert(1);
+    assertEquals(feb2000,
+        db.toSelect("select testdate from dbtest where testdate=?").argLocalDate(feb2000).queryLocalDateOrNull());
+
+    LocalDate febLeap2000 = LocalDate.of(2000, Month.FEBRUARY, 29);
+    db.toInsert("insert into dbtest (testdate) values (?)").argLocalDate(febLeap2000).insert(1);
+    assertEquals(febLeap2000,
+        db.toSelect("select testdate from dbtest where testdate=?").argLocalDate(febLeap2000).queryLocalDateOrNull());
+
+    LocalDate mar2000 = LocalDate.of(2000, Month.MARCH, 1);
+    db.toInsert("insert into dbtest (testdate) values (?)").argLocalDate(mar2000).insert(1);
+    assertEquals(mar2000,
+        db.toSelect("select testdate from dbtest where testdate=?").argLocalDate(mar2000).queryLocalDateOrNull());
   }
   
   @Test

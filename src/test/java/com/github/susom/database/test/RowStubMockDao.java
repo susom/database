@@ -1,7 +1,6 @@
 package com.github.susom.database.test;
 
 import com.github.susom.database.Database;
-import com.github.susom.database.RowStub;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -70,22 +69,6 @@ public class RowStubMockDao {
             throw new Exception("Unexpected Lookup Type in findById!");
         }
         return result;
-      });
-  }
-
-  public boolean isMidnight(final Long dataId) {
-
-    return dbp.get().toSelect("select local_date from dbtest where data_id=?")
-      .argLong(dataId).queryOneOrNull(rowStub -> {
-        return (rowStub.isMidnight("local_date"));
-      });
-  }
-
-  public boolean isNotMidnight(final Long dataId) {
-
-    return dbp.get().toSelect("select update_time from dbtest where data_id=?")
-      .argLong(dataId).queryOneOrNull(rowStub -> {
-        return (! rowStub.isMidnight("update_time"));
       });
   }
 

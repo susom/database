@@ -18,9 +18,6 @@ package com.github.susom.database;
 
 import java.io.InputStream;
 import java.io.Reader;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -96,12 +93,10 @@ public class DebugSql {
             }
           } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
             buf.append("null");
-          } else if (argToPrint instanceof Date) {
-            if (isMidnight(argToPrint)) {
+          } else if (argToPrint instanceof java.sql.Timestamp) {
+            buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
+          } else if (argToPrint instanceof java.sql.Date) {
               buf.append(options.flavor().localDateAsSqlFunction((Date) argToPrint));
-            } else {
-              buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
-            }
           } else if (argToPrint instanceof Number) {
             buf.append(argToPrint);
           } else if (argToPrint instanceof Boolean) {
@@ -136,33 +131,6 @@ public class DebugSql {
       buf.append(batchSize);
       buf.append(')');
     }
-  }
-
-  private static LocalDateTime getLocalDateTime(Object o) {
-    LocalDateTime dateTime = null;
-
-    if (o instanceof java.sql.Timestamp) {
-      dateTime = ((java.sql.Timestamp) o).toLocalDateTime();
-    } else if (o instanceof java.sql.Date) {
-      dateTime = Instant.ofEpochMilli(((java.sql.Date) o).getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-    } else if (o instanceof java.util.Date) {
-      dateTime = ((java.util.Date) o).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-    }
-
-    return dateTime;
-  }
-
-  private static boolean isMidnight(Object o) {
-
-    LocalDateTime dateTime = getLocalDateTime(o);
-
-    if (dateTime != null) {
-      // Get start of day for whatever day we currently have
-      LocalDateTime startOfDay = dateTime.toLocalDate().atStartOfDay();
-      return startOfDay.equals(dateTime);  // If true, the date has time at midnight
-    }
-
-    return false;
   }
 
   private static String removeTabs(String s) {

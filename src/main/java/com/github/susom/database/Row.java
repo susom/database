@@ -468,12 +468,4 @@ public interface Row {
    */
   @Nullable
   LocalDate getLocalDateOrNull(String columnName);
-
-  /**
-   * Check to see if a timestamp column has a time of midnight (start of day) or not.
-   *
-   * @param columnName a column name in the row of type java.sql.Timestamp
-   * @return true if the date is exactly at midnight
-   */
-  boolean isMidnight(String columnName);
 }

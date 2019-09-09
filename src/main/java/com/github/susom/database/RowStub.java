@@ -7,13 +7,10 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -681,54 +678,6 @@ public class RowStub {
       public LocalDate getLocalDateOrNull(String columnName) {
         col = columnIndexByName(columnName) + 1;
         return toLocalDate(rows.get(row)[columnIndexByName(columnName)]);
-      }
-
-      /**
-       * Check to see if a timestamp column has a time of midnight (start of day) or not.
-       *
-       * @param columnName a column name in the row of type java.sql.Timestamp
-       * @return true if the date is exactly at midnight
-       */
-      @Override
-      public boolean isMidnight(String columnName) {
-        LocalDateTime dbDateTime = toLocalDateTimeOrNull(columnName);
-        if (dbDateTime != null) {
-          LocalDateTime startOfDay = dbDateTime.toLocalDate().atStartOfDay();
-          return startOfDay.equals(dbDateTime);  // If true, the date has time at midnight
-        }
-        return false;
-      }
-
-      /**
-       * Given a column name, get the value as a LocalDateTime (or null) without changing
-       * the column cursor so we can analyze it.  We use LocalDateTime because some DBs
-       * like Oracle treat dates as timestamps, and we want everything here.
-       *
-       * @param columnName column name to retrieve
-       * @return Column value as a java.util.date
-       */
-      private LocalDateTime toLocalDateTimeOrNull(String columnName) {
-
-        Object o = rows.get(row)[columnIndexByName(columnName)];
-        if (o instanceof String) {
-          return LocalDateTime.parse((String) o);
-        }
-
-        if (o instanceof LocalDate){
-          return ((LocalDate) o).atStartOfDay();
-        }
-
-        if (o instanceof Date) {
-          return ((Date) o).toInstant()
-            .atZone(ZoneId.systemDefault())
-            .toLocalDateTime();
-        }
-
-        if (o instanceof Timestamp) {
-          return ((Timestamp) o).toLocalDateTime();
-        }
-
-        return null;
       }
 
       private void requireColumnNames() {

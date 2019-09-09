@@ -155,11 +155,10 @@ public class Schema {
         // This is the type dates and times with time and time zone associated.
         // Note that Oracle dates are always really Timestamps.
         case Types.TIMESTAMP:
-          // Old DBs like Oracle do not have a date type.  Date is implemented as a timestamp
-          // In this case, we will look to see if the time is exactly midnight down to nanosecond
-          // to determine if it is really a LocalDate.
-          if (r.isMidnight(names[i])) {
-            log.warn("Processing Oracle DB column "+names[i]+" as a LocalDate because time was 0");
+          // Check if we really have a LocalDate implemented by the DB as a timestamp
+          if (metadata.getScale(i + 1) == 0) {
+            // If the scale is 0, this is a LocalDate (no time/timezone).
+            // Anything with a time/timezone will have a non-zero scale
             table.addColumn(names[i]).asLocalDate();
           } else {
             table.addColumn(names[i]).asDate();

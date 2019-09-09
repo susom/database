@@ -178,34 +178,4 @@ public class RowStubTest {
     verify(db).update(anyString(), eq("delete from dbtest where data_id=100"));
     verifyNoMoreInteractions(db);
   }
-
-  @Test
-  public void testIsMidnight() throws Exception {
-    // Configure the mock because our class under test expects values to be returned from the db
-    when(db.query(anyString(), anyString())).thenReturn(new RowStub()
-      .withColumnNames("local_date")
-      .addRow(localDateNow));
-
-    // The test scenario
-    assertTrue( rowStubMockDao.isMidnight(5L));
-
-    // Verify database queries against golden copies
-    verify(db).query(anyString(), eq("select local_date from dbtest where data_id=5"));
-    verifyNoMoreInteractions(db);
-  }
-
-  @Test
-  public void testIsNotMidnight() throws Exception {
-    // Configure the mock because our class under test expects values to be returned from the db
-    when(db.query(anyString(), anyString())).thenReturn(new RowStub()
-      .withColumnNames("update_time")
-      .addRow(now));
-
-    // The test scenario
-    assertTrue( rowStubMockDao.isNotMidnight(6L) );
-
-    // Verify database queries against golden copies
-    verify(db).query(anyString(), eq("select update_time from dbtest where data_id=6"));
-    verifyNoMoreInteractions(db);
-  }
 }

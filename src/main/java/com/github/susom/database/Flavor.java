@@ -91,6 +91,11 @@ public enum Flavor {
     }
 
     @Override
+    public String typeLocalDate() {
+      return "date";
+    }
+
+    @Override
     public boolean useStringForClob() {
       return false;
     }
@@ -153,6 +158,11 @@ public enum Flavor {
     }
 
     @Override
+    public String localDateAsSqlFunction(Date date) {
+      return "'" + date.toString() + "'";
+    }
+
+    @Override
     public String sequenceOptions() {
       return " as bigint";
     }
@@ -196,6 +206,11 @@ public enum Flavor {
     @Override
     public String typeDate() {
       return "datetime2(3)";
+    }
+
+    @Override
+    public String typeLocalDate() {
+      return "date";
     }
 
     @Override
@@ -283,6 +298,11 @@ public enum Flavor {
     }
 
     @Override
+    public String localDateAsSqlFunction(Date date) {
+      return "'" + date.toString() + "'";
+    }
+
+    @Override
     public String sequenceOptions() {
       return "";
     }
@@ -326,6 +346,11 @@ public enum Flavor {
     @Override
     public String typeDate() {
       return "timestamp(3)";
+    }
+
+    @Override
+    public String typeLocalDate() {
+      return "date";
     }
 
     @Override
@@ -411,6 +436,11 @@ public enum Flavor {
     }
 
     @Override
+    public String localDateAsSqlFunction(Date date) {
+      return "to_date('" + date.toString() + "', 'yyyy-mm-dd')";
+    }
+
+    @Override
     public String sequenceOptions() {
       return "";
     }
@@ -477,6 +507,11 @@ public enum Flavor {
     }
 
     @Override
+    public String typeLocalDate() {
+      return "date";
+    }
+
+    @Override
     public boolean useStringForClob() {
       return true;
     }
@@ -536,6 +571,11 @@ public enum Flavor {
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
       dateFormat.setCalendar(calendar);
       return "'" + dateFormat.format(date) + " GMT'::timestamp";
+    }
+
+    @Override
+    public String localDateAsSqlFunction(Date date) {
+      return "'" + date.toString()+"'";
     }
 
     @Override
@@ -604,6 +644,11 @@ public enum Flavor {
     }
 
     @Override
+    public String typeLocalDate() {
+      return "date";
+    }
+
+    @Override
     public boolean useStringForClob() {
       return true;
     }
@@ -666,6 +711,11 @@ public enum Flavor {
     }
 
     @Override
+    public String localDateAsSqlFunction(Date date) {
+      return "'" + date.toString()+"'";
+    }
+
+    @Override
     public String sequenceOptions() {
       return " as bigint";
     }
@@ -696,6 +746,8 @@ public enum Flavor {
   public abstract String typeBlob();
 
   public abstract String typeDate();
+
+  public abstract String typeLocalDate();
 
   public abstract boolean useStringForClob();
 
@@ -729,6 +781,11 @@ public enum Flavor {
    * looks like "'1970-01-02 02:17:36.789000 GMT'::timestamp".
    */
   public abstract String dateAsSqlFunction(Date date, Calendar calendar);
+
+/**
+ * Return a SQL function representing the specified date without time.
+ */
+  public abstract String localDateAsSqlFunction(Date date);
 
   public abstract String sequenceOptions();
 

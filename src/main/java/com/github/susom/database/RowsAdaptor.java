@@ -25,6 +25,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -684,6 +685,7 @@ class RowsAdaptor implements Rows {
     return getDateOrNull(column++);
   }
 
+  @Nullable
   @Override
   public Date getDateOrNull(int columnOneBased) {
     try {
@@ -694,11 +696,40 @@ class RowsAdaptor implements Rows {
     }
   }
 
+  @Nullable
   @Override
   public Date getDateOrNull(String columnName) {
     try {
       column = rs.findColumn(columnName) + 1;
       return toDate(rs, columnName);
+    } catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
+
+  @Nullable
+  @Override
+  public LocalDate getLocalDateOrNull() {
+    return getLocalDateOrNull(column++);
+  }
+
+  @Nullable
+  @Override
+  public LocalDate getLocalDateOrNull(int columnOneBased) {
+    try {
+      column = columnOneBased + 1;
+      return toLocalDate(rs, columnOneBased);
+    } catch (SQLException e) {
+      throw new DatabaseException(e);
+    }
+  }
+
+  @Nullable
+  @Override
+  public LocalDate getLocalDateOrNull(String columnName) {
+    try {
+      column = rs.findColumn(columnName) + 1;
+      return toLocalDate(rs, columnName);
     } catch (SQLException e) {
       throw new DatabaseException(e);
     }
@@ -722,6 +753,16 @@ class RowsAdaptor implements Rows {
   private Date toDate(ResultSet rs, String col) throws SQLException {
     Timestamp val = rs.getTimestamp(col, options.calendarForTimestamps());
     return val == null ? null : timestampToDate(val);
+  }
+
+  private LocalDate toLocalDate(ResultSet rs, int col) throws SQLException {
+    java.sql.Date val = rs.getDate(col);
+    return val == null ? null : val.toLocalDate();
+  }
+
+  private LocalDate toLocalDate(ResultSet rs, String col) throws SQLException {
+    java.sql.Date val = rs.getDate(col);
+    return val == null ? null : val.toLocalDate();
   }
 
   private Boolean toBoolean(ResultSet rs, int col) throws SQLException {

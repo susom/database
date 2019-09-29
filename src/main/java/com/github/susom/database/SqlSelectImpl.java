@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -150,13 +151,29 @@ public class SqlSelectImpl implements SqlSelect {
   @Nonnull
   @Override
   public SqlSelect argDate(Date arg) {
+    // Date with time
     return positionalArg(adaptor.nullDate(arg));
   }
 
   @Nonnull
   @Override
   public SqlSelect argDate(@Nonnull String argName, Date arg) {
+    // Date with time
     return namedArg(argName, adaptor.nullDate(arg));
+  }
+
+  @Nonnull
+  @Override
+  public SqlSelect argLocalDate(LocalDate arg) {
+    // Date with no time
+    return positionalArg(adaptor.nullLocalDate(arg));
+  }
+
+  @Nonnull
+  @Override
+  public SqlSelect argLocalDate(@Nonnull String argName, LocalDate arg) {
+    // Date with no time
+    return namedArg(argName, adaptor.nullLocalDate(arg));
   }
 
   @Nonnull
@@ -543,6 +560,40 @@ public class SqlSelectImpl implements SqlSelect {
         List<Date> result = new ArrayList<>();
         while (rs.next()) {
           Date value = rs.getDateOrNull(1);
+          if (value != null) {
+            result.add(value);
+          }
+        }
+        return result;
+      }
+    });
+  }
+
+  @Nullable
+  @Override
+  public LocalDate queryLocalDateOrNull() {
+    // Date without time
+    return queryWithTimeout(new RowsHandler<LocalDate>() {
+      @Override
+      public LocalDate process(Rows rs) throws Exception {
+        if (rs.next()) {
+          return rs.getLocalDateOrNull(1);
+        }
+        return null;
+      }
+    });
+  }
+
+  @Nonnull
+  @Override
+  public List<LocalDate> queryLocalDates() {
+    // Date without time
+    return queryWithTimeout(new RowsHandler<List<LocalDate>>() {
+      @Override
+      public List<LocalDate> process(Rows rs) throws Exception {
+        List<LocalDate> result = new ArrayList<>();
+        while (rs.next()) {
+          LocalDate value = rs.getLocalDateOrNull(1);
           if (value != null) {
             result.add(value);
           }

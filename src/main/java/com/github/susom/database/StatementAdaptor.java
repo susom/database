@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Scanner;
 
@@ -80,6 +81,8 @@ public class StatementAdaptor {
         } else {
           ps.setNull(i + 1, sqlNull.getType());
         }
+      } else if (parameter instanceof java.sql.Date) {
+        ps.setDate( i + 1, (java.sql.Date) parameter);
       } else if (parameter instanceof Date) {
         // this will correct the millis and nanos according to the JDBC spec
         // if a correct Timestamp is passed in, this will detect that and leave it alone
@@ -180,6 +183,16 @@ public class StatementAdaptor {
       return new SqlNull(Types.TIMESTAMP);
     }
     return new Timestamp(arg.getTime());
+  }
+
+
+  // Processes a true date without time information.
+  public Object nullLocalDate(LocalDate arg) {
+    if (arg == null) {
+      return new SqlNull(Types.DATE);
+    }
+
+    return java.sql.Date.valueOf(arg);
   }
 
   public Object nullNumeric(Number arg) {

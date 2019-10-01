@@ -19,6 +19,7 @@ package com.github.susom.database;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.annotation.CheckReturnValue;
@@ -89,11 +90,19 @@ public interface SqlUpdate {
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argDate(@Nullable Date arg);
+  SqlUpdate argDate(@Nullable Date arg);  // Date with timestamp
 
   @Nonnull
   @CheckReturnValue
-  SqlUpdate argDate(@Nonnull String argName, @Nullable Date arg);
+  SqlUpdate argDate(@Nonnull String argName, @Nullable Date arg); // Date with timestamp
+
+  @Nonnull
+  @CheckReturnValue
+  SqlUpdate argLocalDate(@Nullable LocalDate arg);  // Date only - no timestamp
+
+  @Nonnull
+  @CheckReturnValue
+  SqlUpdate argLocalDate(@Nonnull String argName, @Nullable LocalDate arg); // Date only - no timestamp
 
   @Nonnull
   @CheckReturnValue

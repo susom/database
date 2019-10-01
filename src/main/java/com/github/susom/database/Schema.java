@@ -63,7 +63,7 @@ public class Schema {
   }
 
   public enum ColumnType {
-    Integer, Long, Float, Double, BigDecimal, StringVar, StringFixed, Clob, Blob, Date, Boolean
+    Integer, Long, Float, Double, BigDecimal, StringVar, StringFixed, Clob, Blob, Date, LocalDate, Boolean
   }
 
   public void validate() {
@@ -140,9 +140,27 @@ public class Schema {
         case Types.NCLOB:
           table.addColumn(names[i]).asClob();
           break;
-        case Types.TIMESTAMP:
-          table.addColumn(names[i]).asDate();
+
+        // The date type is used for a true date - no time info.
+        // It must be checked before TimeStamp because sql dates are also
+        // recognized as sql timestamp.
+        case Types.DATE:
+          table.addColumn(names[i]).asLocalDate();
           break;
+
+        // This is the type dates and times with time and time zone associated.
+        // Note that Oracle dates are always really Timestamps.
+        case Types.TIMESTAMP:
+          // Check if we really have a LocalDate implemented by the DB as a timestamp
+          if (metadata.getScale(i + 1) == 0) {
+            // If the scale is 0, this is a LocalDate (no time/timezone).
+            // Anything with a time/timezone will have a non-zero scale
+            table.addColumn(names[i]).asLocalDate();
+          } else {
+            table.addColumn(names[i]).asDate();
+          }
+          break;
+
         case Types.NVARCHAR:
         case Types.VARCHAR:
           int precision = metadata.getPrecision(i + 1);
@@ -631,8 +649,14 @@ public class Schema {
         return asType(ColumnType.StringFixed);
       }
 
+      // This type is for dates that have time associated
       public Column asDate() {
         return asType(ColumnType.Date);
+      }
+
+      // This type is for true dates with no time associated
+      public Column asLocalDate() {
+        return asType(ColumnType.LocalDate);
       }
 
       public Column asClob() {
@@ -759,7 +783,10 @@ public class Schema {
             sql.append(flavor.typeStringFixed(column.scale));
             break;
           case Date:
-            sql.append(flavor.typeDate());
+            sql.append(flavor.typeDate());      // Append a date with time
+            break;
+          case LocalDate:
+            sql.append(flavor.typeLocalDate()); // Append a true date - no time
             break;
           case Clob:
             sql.append(flavor.typeClob());

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -641,6 +642,44 @@ public class RowStub {
         return toDate(rows.get(row)[columnIndexByName(columnName)]);
       }
 
+      /**
+       * Returns a java.time.LocalDate.  It will have no timezone or other time data.
+       * If you require time, use the Date APIs instead.
+       *
+       * @return
+       */
+      @Nullable
+      @Override
+      public LocalDate getLocalDateOrNull() {
+        return toLocalDate(rows.get(row)[++col]);
+      }
+
+      /**
+       * Returns a java.time.LocalDate.  It will have no timezone or other time data.
+       * If you require time, use the Date APIs instead.
+       *
+       * @return
+       */
+      @Nullable
+      @Override
+      public LocalDate getLocalDateOrNull(int columnOneBased) {
+        col = columnOneBased;
+        return toLocalDate(rows.get(row)[columnOneBased-1]);
+      }
+
+      /**
+       * Returns a java.time.LocalDate.  It will have no timezone or other time data.
+       * If you require time, use the Date APIs instead.
+       *
+       * @return
+       */
+      @Nullable
+      @Override
+      public LocalDate getLocalDateOrNull(String columnName) {
+        col = columnIndexByName(columnName) + 1;
+        return toLocalDate(rows.get(row)[columnIndexByName(columnName)]);
+      }
+
       private void requireColumnNames() {
         if (columnNames == null) {
           throw new DatabaseException("Column names were not provided for this stub");
@@ -722,6 +761,11 @@ public class RowStub {
         return (String) o;
       }
 
+      /**
+       * Returns a java.util.Date.  It may be used for dates or times.
+       *
+       * @return
+       */
       private Date toDate(Object o) {
         if (o instanceof String) {
           String s = (String) o;
@@ -742,6 +786,20 @@ public class RowStub {
           throw new DatabaseException("Didn't understand date string: " + s);
         }
         return (Date) o;
+      }
+
+      /**
+       * Returns a LocalDate (no time).
+       * If the object is a String, it should be in ISO 8601 format.
+       *
+       * @return a LocalDate representation of the object
+       */
+      private LocalDate toLocalDate(Object o) {
+        if (o instanceof String) {
+          return LocalDate.parse((String) o);
+        }
+
+        return (LocalDate) o;
       }
     };
   }

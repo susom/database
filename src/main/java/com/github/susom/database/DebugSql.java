@@ -93,8 +93,10 @@ public class DebugSql {
             }
           } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
             buf.append("null");
-          } else if (argToPrint instanceof Date) {
+          } else if (argToPrint instanceof java.sql.Timestamp) {
             buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
+          } else if (argToPrint instanceof java.sql.Date) {
+              buf.append(options.flavor().localDateAsSqlFunction((Date) argToPrint));
           } else if (argToPrint instanceof Number) {
             buf.append(argToPrint);
           } else if (argToPrint instanceof Boolean) {

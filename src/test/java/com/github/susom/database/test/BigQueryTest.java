@@ -164,7 +164,7 @@ public class BigQueryTest extends CommonTest {
         Field.newBuilder("str_fixed", StandardSQLTypeName.STRING).build(),
         Field.newBuilder("str_lob", StandardSQLTypeName.STRING).build(),
         Field.newBuilder("bin_blob", StandardSQLTypeName.BYTES).build(),
-        Field.newBuilder("date_millis", StandardSQLTypeName.DATETIME).build()
+        Field.newBuilder("date_millis", StandardSQLTypeName.TIMESTAMP).build()
     );
     com.google.cloud.bigquery.Table table = bigquery.create(
         TableInfo.of(TableId.of(datasetName, tableName), StandardTableDefinition.of(schema))
@@ -178,7 +178,7 @@ public class BigQueryTest extends CommonTest {
 
     try {
       bigquery.query(QueryJobConfiguration.newBuilder(
-          "insert into bqdbtest.dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, bin_blob, date_millis) values (1, 2, 3.2, 4.2, 5.3, 'Hello', 'T', 'World', B'More', '2019-02-17')"
+          "insert into bqdbtest.dbtest (nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal, str_varchar, str_fixed, str_lob, bin_blob, date_millis) values (1, 2, 3.2, 4.2, 5.3, 'Hello', 'T', 'World', B'More', '2019-02-17T00:00:00-8:00')"
       ).build());
     } catch (InterruptedException e) {
       throw new AssumptionViolatedException("setup failure", e);
@@ -200,18 +200,18 @@ public class BigQueryTest extends CommonTest {
 //        argBigDecimal("bd", bigDecimal).
         queryDateOrNull();
     try {
-      TableResult queryResult = bigquery.query(QueryJobConfiguration.newBuilder("select date_millis from bqdbtest.dbtest where nbr_big_decimal=@bd").addNamedParameter("bd", QueryParameterValue.numeric(bigDecimal)).build());
+      TableResult queryResult = bigquery.query(QueryJobConfiguration.newBuilder("select date_millis from bqdbtest.dbtest where nbr_big_decimal=5.3--@bd").addNamedParameter("bd", QueryParameterValue.numeric(bigDecimal)).build());
       System.out.println(queryResult);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
     {
       try {
-        PreparedStatement ps = db.underlyingConnection().prepareStatement("select date_millis from bqdbtest.dbtest where nbr_big_decimal=?");
-        ps.setBigDecimal(1, bigDecimal);
+        PreparedStatement ps = db.underlyingConnection().prepareStatement("select date_millis from bqdbtest.dbtest where nbr_big_decimal=5.3--r?");
+        // ps.setBigDecimal(1, bigDecimal);
         java.sql.ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-          System.out.println(rs.getTimestamp("date_millis"));
+          System.out.println(rs.getDate("date_millis"));
         }
       } catch (SQLException e) {
         e.printStackTrace();

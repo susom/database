@@ -722,7 +722,7 @@ public enum Flavor {
 
     @Override
     public String typeDate() {
-      return "date";
+      return "timestamp";
     }
 
     @Override

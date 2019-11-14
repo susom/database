@@ -374,6 +374,54 @@
     </profile>
 
     <profile>
+      <id>oracle18</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*Oracle*</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc8</artifactId>
+          <version>18.3</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>oracle19</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*Oracle*</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc8</artifactId>
+          <version>19.3</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
       <id>sqlserver</id>
       <build>
         <plugins>

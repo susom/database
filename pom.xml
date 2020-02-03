@@ -438,8 +438,8 @@
       <dependencies>
         <dependency>
           <groupId>com.microsoft.sqlserver</groupId>
-          <artifactId>sqljdbc4</artifactId>
-          <version>4.0</version>
+          <artifactId>mssql-jdbc</artifactId>
+          <version>7.4.1.jre8</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

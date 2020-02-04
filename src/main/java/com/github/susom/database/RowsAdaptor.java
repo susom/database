@@ -769,9 +769,9 @@ class RowsAdaptor implements Rows {
     String val = rs.getString(col);
     if (val == null) {
       return null;
-    } else if (val.equals("Y")) {
+    } else if (val.equals("Y") || val.equals("1")) {
       return Boolean.TRUE;
-    } else if (val.equals("N")) {
+    } else if (val.equals("N") || val.equals("0")) {
       return Boolean.FALSE;
     } else {
       throw new DatabaseException("Reading boolean from column " + col + " but the value was not 'Y' or 'N'");
@@ -782,9 +782,9 @@ class RowsAdaptor implements Rows {
     String val = rs.getString(col);
     if (val == null) {
       return null;
-    } else if (val.equals("Y")) {
+    } else if (val.equals("Y") || val.equals("1")) {
       return Boolean.TRUE;
-    } else if (val.equals("N")) {
+    } else if (val.equals("N") || val.equals("0")) {
       return Boolean.FALSE;
     } else {
       throw new DatabaseException("Reading boolean from column \"" + col + "\" but the value was not 'Y' or 'N'");

@@ -66,13 +66,13 @@ public enum Flavor {
     }
 
     @Override
-    public String typeStringVar(int bytes) {
-      return "varchar(" + bytes + ")";
+    public String typeStringVar(int length) {
+      return "varchar(" + length + ")";
     }
 
     @Override
-    public String typeStringFixed(int bytes) {
-      return "char(" + bytes + ")";
+    public String typeStringFixed(int length) {
+      return "char(" + length + ")";
     }
 
     @Override
@@ -239,13 +239,13 @@ public enum Flavor {
     }
 
     @Override
-    public String typeStringVar(int bytes) {
-      return "varchar(" + bytes + ")";
+    public String typeStringVar(int length) {
+      return "varchar(" + length + ")";
     }
 
     @Override
-    public String typeStringFixed(int bytes) {
-      return "char(" + bytes + ")";
+    public String typeStringFixed(int length) {
+      return "char(" + length + ")";
     }
 
     @Override
@@ -379,13 +379,13 @@ public enum Flavor {
     }
 
     @Override
-    public String typeStringVar(int bytes) {
-      return "varchar2(" + bytes + ")";
+    public String typeStringVar(int length) {
+      return "varchar2(" + length + " char)";
     }
 
     @Override
-    public String typeStringFixed(int bytes) {
-      return "char(" + bytes + ")";
+    public String typeStringFixed(int length) {
+      return "char(" + length + " char)";
     }
 
     @Override
@@ -482,13 +482,13 @@ public enum Flavor {
     }
 
     @Override
-    public String typeStringVar(int bytes) {
-      return "varchar(" + bytes + ")";
+    public String typeStringVar(int length) {
+      return "varchar(" + length + ")";
     }
 
     @Override
-    public String typeStringFixed(int bytes) {
-      return "char(" + bytes + ")";
+    public String typeStringFixed(int length) {
+      return "char(" + length + ")";
     }
 
     @Override
@@ -619,13 +619,13 @@ public enum Flavor {
     }
 
     @Override
-    public String typeStringVar(int bytes) {
-      return "varchar(" + bytes + ")";
+    public String typeStringVar(int length) {
+      return "varchar(" + length + ")";
     }
 
     @Override
-    public String typeStringFixed(int bytes) {
-      return "char(" + bytes + ")";
+    public String typeStringFixed(int length) {
+      return "char(" + length + ")";
     }
 
     @Override
@@ -737,9 +737,9 @@ public enum Flavor {
 
   public abstract String typeBigDecimal(int size, int precision);
 
-  public abstract String typeStringVar(int bytes);
+  public abstract String typeStringVar(int length);
 
-  public abstract String typeStringFixed(int bytes);
+  public abstract String typeStringFixed(int length);
 
   public abstract String typeClob();
 

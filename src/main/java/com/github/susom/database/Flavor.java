@@ -335,7 +335,7 @@ public enum Flavor {
 
     @Override
     public String typeBoolean() {
-      return "char(1)";
+      return "char(1 char)";
     }
 
     @Override

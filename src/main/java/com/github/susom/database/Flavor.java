@@ -282,6 +282,9 @@ public enum Flavor {
 
     @Override
     public String sequenceCacheClause(int nbrValuesToCache) {
+      if (nbrValuesToCache < 2) {
+        return " no cache";
+      }
       return " cache " + nbrValuesToCache;
     }
 
@@ -420,6 +423,9 @@ public enum Flavor {
 
     @Override
     public String sequenceCacheClause(int nbrValuesToCache) {
+      if (nbrValuesToCache < 2) {
+        return " nocache";
+      }
       return " cache " + nbrValuesToCache;
     }
 

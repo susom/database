@@ -191,7 +191,7 @@ public class Schema {
     private long max = 999999999999999999L;
     private int increment = 1;
     private long start = 1;
-    private int cache = 20;
+    private int cache = 1;
     private boolean order;
     private boolean cycle;
 
@@ -223,7 +223,7 @@ public class Schema {
     }
 
     public Sequence cache(int cache) {
-      this.cache = cache;
+      this.cache = cache < 2 ? 1 : cache;
       return this;
     }
 

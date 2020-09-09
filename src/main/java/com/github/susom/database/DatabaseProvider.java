@@ -1087,10 +1087,12 @@ public final class DatabaseProvider implements Supplier<Database> {
   }
 
   private void close() {
-    try {
-      connection.close();
-    } catch (Exception e) {
-      log.error("Unable to close the database connection", e);
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (Exception e) {
+        log.error("Unable to close the database connection", e);
+      }
     }
     connection = null;
     database = null;

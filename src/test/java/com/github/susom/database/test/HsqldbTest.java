@@ -54,6 +54,25 @@ public class HsqldbTest extends CommonTest {
         .withOptions(options).create();
   }
 
+  @Test
+  public void noDatabaseAccess() throws Exception {
+    DatabaseProvider provider = createDatabaseProvider(new OptionsOverride());
+    provider.transact(dbp -> {
+      // Do nothing, just making sure no exception is thrown
+    });
+    provider.transact((dbp, tx) -> {
+      // Do nothing, just making sure no exception is thrown
+    });
+    provider.transact((dbp, tx) -> {
+      tx.setRollbackOnError(true);
+      // Do nothing, just making sure no exception is thrown
+    });
+    provider.transact((dbp, tx) -> {
+      tx.setRollbackOnly(true);
+      // Do nothing, just making sure no exception is thrown
+    });
+  }
+
   @Ignore("LocalDate implementations should be TimeZone agnostic, but HSQLDB implementation has a bug.")
   @Test
   public void argLocalDateTimeZones() {

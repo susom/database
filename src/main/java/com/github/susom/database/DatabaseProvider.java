@@ -51,7 +51,6 @@ public final class DatabaseProvider implements Supplier<Database> {
   private static final AtomicInteger poolNameCounter = new AtomicInteger(1);
   private DatabaseProvider delegateTo = null;
   private Supplier<Connection> connectionProvider;
-  private boolean txStarted = false;
   private Connection connection = null;
   private Database database = null;
   private final Options options;
@@ -954,7 +953,6 @@ public final class DatabaseProvider implements Supplier<Database> {
     Metric metric = new Metric(log.isDebugEnabled());
     try {
       connection = connectionProvider.get();
-      txStarted = true;
       metric.checkpoint("getConn");
       try {
         // Generally check autocommit before setting because databases like
@@ -1060,7 +1058,7 @@ public final class DatabaseProvider implements Supplier<Database> {
       return;
     }
 
-    if (txStarted) {
+    if (connection != null) {
       try {
         connection.commit();
       } catch (Exception e) {
@@ -1076,7 +1074,7 @@ public final class DatabaseProvider implements Supplier<Database> {
       return;
     }
 
-    if (txStarted) {
+    if (connection != null) {
       try {
         connection.rollback();
       } catch (Exception e) {
@@ -1096,7 +1094,6 @@ public final class DatabaseProvider implements Supplier<Database> {
     }
     connection = null;
     database = null;
-    txStarted = false;
     connectionProvider = null;
   }
 

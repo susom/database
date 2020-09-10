@@ -49,7 +49,6 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   private WorkerExecutor executor;
   private DatabaseProviderVertx delegateTo = null;
   private Supplier<Connection> connectionProvider;
-  private boolean txStarted = false;
   private Connection connection = null;
   private Database database = null;
   private final Options options;
@@ -536,7 +535,6 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     Metric metric = new Metric(log.isDebugEnabled());
     try {
       connection = connectionProvider.get();
-      txStarted = true;
       metric.checkpoint("getConn");
       try {
         // Generally check autocommit before setting because databases like
@@ -652,7 +650,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       return;
     }
 
-    if (txStarted) {
+    if (connection != null) {
       try {
         connection.commit();
       } catch (Exception e) {
@@ -668,7 +666,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       return;
     }
 
-    if (txStarted) {
+    if (connection != null) {
       try {
         connection.rollback();
       } catch (Exception e) {
@@ -679,14 +677,15 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   }
 
   private void close() {
-    try {
-      connection.close();
-    } catch (Exception e) {
-      log.error("Unable to close the database connection", e);
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (Exception e) {
+        log.error("Unable to close the database connection", e);
+      }
     }
     connection = null;
     database = null;
-    txStarted = false;
     connectionProvider = null;
   }
 }

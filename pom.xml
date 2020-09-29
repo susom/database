@@ -8,7 +8,7 @@
   <version>3.4-SNAPSHOT</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>Simplified API for accessing JDBC data sources.</description>
+  <description>Simplified API and compatibility layer for accessing JDBC data sources.</description>
   <url>https://github.com/susom/database</url>
 
   <licenses>
@@ -265,12 +265,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.25</version>
+      <version>1.7.30</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
-      <version>3.6.0</version>
+      <version>3.9.3</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -301,7 +301,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.25</version>
+      <version>1.7.30</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -313,7 +313,7 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-unit</artifactId>
-      <version>3.6.0</version>
+      <version>3.9.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

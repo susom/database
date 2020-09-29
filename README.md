@@ -77,7 +77,7 @@ Internal connection pooling is included, leveraging the excellent
 ```java
   String url = "jdbc:hsqldb:file:hsqldb;shutdown=true";
   Config config = Config.from().value("database.url", url).get();
-  Builder dbb = DatabaseProvider.pooledBuilder(url);
+  Builder dbb = DatabaseProvider.pooledBuilder(config);
 
   for (...) {
     dbb.transact(db -> {
@@ -363,7 +363,7 @@ The library is available in the public Maven repository:
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
-  <version>2.5</version>
+  <version>3.3</version>
 </dependency>
 ```
 

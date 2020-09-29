@@ -8,7 +8,7 @@
   <version>3.4-SNAPSHOT</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
-  <description>Simplified API for accessing JDBC data sources.</description>
+  <description>Simplified API and compatibility layer for accessing JDBC data sources.</description>
   <url>https://github.com/susom/database</url>
 
   <licenses>

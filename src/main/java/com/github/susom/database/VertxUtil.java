@@ -6,8 +6,8 @@ import org.slf4j.MDC;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 
@@ -99,7 +99,7 @@ public class VertxUtil {
    * Equivalent to {@link Vertx#executeBlocking(Handler, Handler)},
    * but preserves the {@link MDC} correctly.
    */
-  public static <T> void executeBlocking(Vertx vertx, Handler<Future<T>> future, Handler<AsyncResult<T>> handler) {
+  public static <T> void executeBlocking(Vertx vertx, Handler<Promise<T>> future, Handler<AsyncResult<T>> handler) {
     executeBlocking(vertx, future, true, handler);
   }
 
@@ -107,7 +107,7 @@ public class VertxUtil {
    * Equivalent to {@link Vertx#executeBlocking(Handler, boolean, Handler)},
    * but preserves the {@link MDC} correctly.
    */
-  public static <T> void executeBlocking(Vertx vertx, Handler<Future<T>> future, boolean ordered,
+  public static <T> void executeBlocking(Vertx vertx, Handler<Promise<T>> future, boolean ordered,
                                          Handler<AsyncResult<T>> handler) {
     vertx.executeBlocking(mdc(future), ordered, mdcEventLoop(handler));
   }
@@ -116,7 +116,7 @@ public class VertxUtil {
    * Equivalent to {@link Vertx#executeBlocking(Handler, Handler)},
    * but preserves the {@link MDC} correctly.
    */
-  public static <T> void executeBlocking(WorkerExecutor executor, Handler<Future<T>> future, Handler<AsyncResult<T>> handler) {
+  public static <T> void executeBlocking(WorkerExecutor executor, Handler<Promise<T>> future, Handler<AsyncResult<T>> handler) {
     executeBlocking(executor, future, true, handler);
   }
 
@@ -124,7 +124,7 @@ public class VertxUtil {
    * Equivalent to {@link Vertx#executeBlocking(Handler, boolean, Handler)},
    * but preserves the {@link MDC} correctly.
    */
-  public static <T> void executeBlocking(WorkerExecutor executor, Handler<Future<T>> future, boolean ordered,
+  public static <T> void executeBlocking(WorkerExecutor executor, Handler<Promise<T>> future, boolean ordered,
                                          Handler<AsyncResult<T>> handler) {
     executor.executeBlocking(mdc(future), ordered, mdcEventLoop(handler));
   }

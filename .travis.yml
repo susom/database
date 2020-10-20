@@ -40,9 +40,13 @@ jobs:
         - date
         - psql -U postgres -c "create user test with password 'test';"
         - psql -c 'create database test owner test;' -U postgres
-        - docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=SqlPassword234" -p 1434:1433 --name=mssql-server-linux-latest -e TZ=America/Los_Angeles -d mcr.microsoft.com/mssql/server:2019-latest
+        - docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=SqlPassword234" -p 1434:1433 --name=mssql-server-linux-latest -e TZ=America/Los_Angeles --health-cmd='/opt/mssql-tools/bin/sqlcmd -S localhost -U  SA -P SqlPassword234 -Q "SELECT 1"'  --health-interval=2s  --health-timeout=30s  --health-retries=5  -d mcr.microsoft.com/mssql/server:2019-latest
+        - |
+          until [  "$status" = '"healthy"' ]
+          do
+            status=$(docker inspect --format='{{json .State.Health}}' mssql-server-linux-latest | jq '.Status')
+          done
         - docker cp sqlserver.sql mssql-server-linux-latest:sqlserver.sql
-        - sleep 15
         - docker exec -it mssql-server-linux-latest /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'SqlPassword234' -i sqlserver.sql
       # Skip the default mvn command because we want to set the profile explicitly
       install: true

@@ -545,6 +545,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
         // (the getAutoCommit() call here will return false and then it will blow up
         // on commit complaining you can't commit with autocommit on)
 //        if (options.flavor() == Flavor.postgresql || !connection.getAutoCommit()) {
+        if (!options.flavor().autoCommitOnly())
           connection.setAutoCommit(false);
           metric.checkpoint("setAutoCommit");
 //        } else {
@@ -652,7 +653,9 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     if (connection != null) {
       try {
-        connection.commit();
+        if (!options.flavor().autoCommitOnly()) {
+          connection.commit();
+        }
       } catch (Exception e) {
         throw new DatabaseException("Unable to commit the transaction", e);
       }
@@ -668,6 +671,9 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     if (connection != null) {
       try {
+        if (options.flavor().autoCommitOnly()) {
+          throw new UnsupportedOperationException("rollback is not supported");
+        }
         connection.rollback();
       } catch (Exception e) {
         log.error("Unable to rollback the transaction", e);

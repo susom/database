@@ -166,6 +166,11 @@ public enum Flavor {
     public String sequenceOptions() {
       return " as bigint";
     }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
   },
   sqlserver {
     @Override
@@ -309,6 +314,11 @@ public enum Flavor {
     public String sequenceOptions() {
       return "";
     }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
   },
   oracle {
     @Override
@@ -450,6 +460,11 @@ public enum Flavor {
     public String sequenceOptions() {
       return "";
     }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
   },
   postgresql {
     @Override
@@ -588,7 +603,13 @@ public enum Flavor {
     public String sequenceOptions() {
       return "";
     }
-  }, hsqldb {
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
+  },
+  hsqldb {
     @Override
     public boolean isNormalizedUpperCase() {
       return true;
@@ -725,6 +746,157 @@ public enum Flavor {
     public String sequenceOptions() {
       return " as bigint";
     }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return false;
+    }
+  },
+  bigquery {
+    @Override
+    public boolean isNormalizedUpperCase() {
+      return false;
+    }
+
+    @Override
+    public String typeInteger() {
+      return "int64";
+    }
+
+    @Override
+    public String typeBoolean() {
+      // BigQuery has a native boolean type, but we're not trying to use it
+      return "string";
+    }
+
+    @Override
+    public String typeLong() {
+      return "int64";
+    }
+
+    @Override
+    public String typeFloat() {
+      return "float64";
+    }
+
+    @Override
+    public String typeDouble() {
+      return "float64";
+    }
+
+    @Override
+    public String typeBigDecimal(int size, int precision) {
+      return "numeric";
+    }
+
+    @Override
+    public String typeStringVar(int length) {
+      return "string";
+    }
+
+    @Override
+    public String typeStringFixed(int length) {
+      return "string";
+    }
+
+    @Override
+    public String typeClob() {
+      return "string";
+    }
+
+    @Override
+    public String typeBlob() {
+      return "bytes";
+    }
+
+    @Override
+    public String typeDate() {
+      return "datetime";
+    }
+
+    @Override
+    public String typeLocalDate() {
+      return "date";
+    }
+
+    @Override
+    public boolean useStringForClob() {
+      return true;
+    }
+
+    @Override
+    public boolean useBytesForBlob() {
+      return true;
+    }
+
+    @Override
+    public String sequenceNextVal(String sequenceName) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String sequenceSelectNextVal(String sequenceName) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String sequenceDrop(String dbtestSeq) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean supportsInsertReturning() {
+      return false;
+    }
+
+    @Override
+    public String dbTimeMillis() {
+      return "current_timestamp()";
+    }
+
+    @Override
+    public String sequenceCacheClause(int nbrValuesToCache) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String sequenceOrderClause(boolean order) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String sequenceCycleClause(boolean cycle) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String fromAny() {
+      return "";
+    }
+
+    @Override
+    public String dateAsSqlFunction(Date date, Calendar calendar) {
+      // Construct a datetime literal
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000");
+      dateFormat.setCalendar(calendar);
+      return String.format("datetime '%s'", dateFormat.format(date));
+    }
+
+    @Override
+    public String localDateAsSqlFunction(Date date) {
+      // Construct a datetime literal
+      return String.format("datetime '%s'", date.toString());
+    }
+
+    @Override
+    public String sequenceOptions() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean autoCommitOnly() {
+      return true;
+    }
   };
 
   // Returns true if DB normalizes to upper case names for ids like tables and columns
@@ -795,6 +967,8 @@ public enum Flavor {
 
   public abstract String sequenceOptions();
 
+  public abstract boolean autoCommitOnly();
+
   public static Flavor fromJdbcUrl(String url) {
     if (url.startsWith("jdbc:postgresql:")) {
       return postgresql;
@@ -806,6 +980,8 @@ public enum Flavor {
       return hsqldb;
     } else if (url.startsWith("jdbc:derby:")) {
       return derby;
+    } else if (url.startsWith("jdbc:bigquery:")) {
+      return bigquery;
     } else {
       throw new DatabaseException("Cannot determine database flavor from url");
     }
@@ -822,6 +998,8 @@ public enum Flavor {
       return "org.hsqldb.jdbc.JDBCDriver";
     } else if (url.startsWith("jdbc:derby:")) {
       return "org.apache.derby.jdbc.EmbeddedDriver";
+    } else if (url.startsWith("jdbc:bigquery:")) {
+      return "com.simba.googlebigquery.jdbc42.Driver";
     } else {
       throw new DatabaseException("Cannot determine database driver class from url");
     }

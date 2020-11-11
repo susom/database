@@ -12,6 +12,7 @@ jdk:
 
 stages:
   - test
+  - oracle-test
   - name: deploy-snapshots
     if: branch = master AND type = push
   - name: release-check
@@ -55,6 +56,28 @@ jobs:
         - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
         - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
         - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -P sqlserver verify
+      after_failure:
+        - echo "\n=== SUREFIRE REPORTS ===\n"
+        - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
+    - stage: oracle-test
+      addons:
+        srcclr: true
+      before_script:
+        - date
+        - echo "$ARTIFACT_REGISTRY_KEY" | docker login -u _json_key_base64 --password-stdin https://us-west1-docker.pkg.dev
+        - docker run --name oracle-latest-19c -p 1521:1521 -p 5500:5500  -d us-west1-docker.pkg.dev/som-rit-infrastructure-prod/third-party/oracledb:19.3-quick
+        - |
+          until [  "$status" = '"healthy"' ]
+          do
+            status=$(docker inspect --format='{{json .State.Health}}' oracle-latest-19c | jq '.Status')
+          done
+        - docker cp oracledb.sql oracle-latest-19c:/home/oracle/oracledb.sql
+        - docker exec -it oracle-latest-19c sqlplus / AS SYSDBA @/home/oracle/oracledb.sql
+      # Skip the default mvn command because we want to set the profile explicitly
+      install: true
+      script:
+        - echo "oracle-test"
+        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -P oracle19 verify
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done

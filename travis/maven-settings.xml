@@ -2,9 +2,56 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
                       http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <mirrors>
+    <mirror>
+      <mirrorOf>*,!io.cloudrepo.rit-public-snapshot,!io.cloudrepo.rit-ext-private</mirrorOf>
+      <url>https://repo.maven.apache.org/maven2/</url>
+    </mirror>
+  </mirrors>
+  <profiles>
+    <profile>
+      <id>travis-ci</id>
+      <repositories>
+        <repository>
+          <id>io.cloudrepo.rit-ext-private</id>
+          <url>https://susom.mycloudrepo.io/repositories/rit-ext-private</url>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+
+      <pluginRepositories>
+        <pluginRepository>
+          <releases>
+            <updatePolicy>never</updatePolicy>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <id>central</id>
+          <name>Central Repository</name>
+          <url>https://repo.maven.apache.org/maven2</url>
+        </pluginRepository>
+      </pluginRepositories>
+
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <!--make the profile active all the time -->
+    <activeProfile>travis-ci</activeProfile>
+  </activeProfiles>
+
   <servers>
     <server>
       <id>io.cloudrepo.rit-public-snapshot</id>
+      <username>${env.REPO_USERNAME}</username>
+      <password>${env.REPO_API_TOKEN}</password>
+    </server>
+    <server>
+      <id>io.cloudrepo.rit-ext-private</id>
       <username>${env.REPO_USERNAME}</username>
       <password>${env.REPO_API_TOKEN}</password>
     </server>

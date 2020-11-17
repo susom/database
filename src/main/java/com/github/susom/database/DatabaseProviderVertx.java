@@ -663,10 +663,9 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
 
     if (connection != null) {
       try {
-        if (options.flavor().autoCommitOnly()) {
-          throw new UnsupportedOperationException("rollback is not supported");
+        if (!options.flavor().autoCommitOnly()) {
+          connection.rollback();
         }
-        connection.rollback();
       } catch (Exception e) {
         log.error("Unable to rollback the transaction", e);
       }

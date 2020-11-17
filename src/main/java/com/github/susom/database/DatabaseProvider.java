@@ -955,21 +955,14 @@ public final class DatabaseProvider implements Supplier<Database> {
       connection = connectionProvider.get();
       metric.checkpoint("getConn");
       try {
-        // Generally check autocommit before setting because databases like
-        // Oracle can get grumpy if you change it (depending on how your connection
-        // has been initialized by say JNDI), but PostgresSQL seems to
-        // require calling setAutoCommit() every time
-        // Commenting as the Oracle 12.1.0.2 driver now seems to require this as well
-        // (the getAutoCommit() call here will return false and then it will blow up
-        // on commit complaining you can't commit with autocommit on)
-//        if (options.flavor() == Flavor.postgresql || !connection.getAutoCommit()) {
+        // JDBC specifies that autoCommit is the default for all new connections.
+        // Don't try to be clever about clearing it conditionally.
+        if (!options.flavor().autoCommitOnly()) {
           connection.setAutoCommit(false);
           metric.checkpoint("setAutoCommit");
-//        } else {
-//          metric.checkpoint("checkAutoCommit");
-//        }
+        }
       } catch (SQLException e) {
-        throw new DatabaseException("Unable to check/set autoCommit for the connection", e);
+        throw new DatabaseException("Unable to set autoCommit for the connection", e);
       }
       database = new DatabaseImpl(connection, options);
       metric.checkpoint("dbInit");
@@ -1060,7 +1053,9 @@ public final class DatabaseProvider implements Supplier<Database> {
 
     if (connection != null) {
       try {
-        connection.commit();
+        if (!options.flavor().autoCommitOnly()) {
+          connection.commit();
+        }
       } catch (Exception e) {
         throw new DatabaseException("Unable to commit the transaction", e);
       }
@@ -1076,7 +1071,9 @@ public final class DatabaseProvider implements Supplier<Database> {
 
     if (connection != null) {
       try {
-        connection.rollback();
+        if (!options.flavor().autoCommitOnly()) {
+          connection.rollback();
+        }
       } catch (Exception e) {
         log.error("Unable to rollback the transaction", e);
       }

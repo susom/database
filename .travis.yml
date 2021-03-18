@@ -31,6 +31,8 @@ before_install:
       export NOSCAN=1
     fi
 
+install: skip
+
 jobs:
   include:
     - stage: test

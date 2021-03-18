@@ -9,6 +9,7 @@ cache:
 
 jdk:
   - openjdk8
+  - openjdk11
 
 stages:
   - test
@@ -57,6 +58,11 @@ jobs:
       install: true
       script:
         - echo "test"
+        - jdk_switcher use openjdk8
+        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
+        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
+        - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -P sqlserver verify
+        - jdk_switcher use openjdk11
         - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=susom_database
         - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=susom_database
         - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -P sqlserver org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=susom_database
@@ -81,23 +87,29 @@ jobs:
       install: true
       script:
         - echo "oracle-test"
+        - jdk_switcher use openjdk8
         - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -P oracle19 verify
+        - jdk_switcher use openjdk11
+        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -P oracle19 org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=susom_database
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
     - stage: deploy-snapshots
       script:
         - echo "deploy-snapshots"
+        - jdk_switcher use openjdk8
         # When push to master occurs, all the versions should be -SNAPSHOTs and we will auto-deploy
         - mvn --batch-mode -e -DskipTests=true deploy
     - stage: release-check
       script:
         - echo "release-check"
+        - jdk_switcher use openjdk8
         # Ensure we don't have any external SNAPSHOT dependencies
         - mvn --batch-mode release:prepare -DskipTests=true -DdryRun=true
     - stage: release
       script:
         - echo "release"
+        - jdk_switcher use openjdk8
         # Git fix based on: https://github.com/sbt/sbt-release/issues/210
         - echo "Fixing git setup for $TRAVIS_BRANCH in preparation for release"
         - git checkout ${TRAVIS_BRANCH}

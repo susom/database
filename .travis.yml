@@ -32,6 +32,7 @@ before_install:
     fi
 
 install: skip
+script: skip
 
 jobs:
   include:

@@ -36,6 +36,10 @@ jobs:
       addons:
         postgresql: "9.6"
         srcclr: true
+        sonarcloud:
+          organization: "susom"
+          token:
+            secure: "OycpYUVhXJL8UZ4DvJN1u1iTWL4qvvCpm3YHh4Gm1xiB8Z81bhjE6be35mnDWreEMStPko2EIk01QS/0NMFGf8WP7JySsbMoK5llnbi8dEEHBRUvoJDu7uoJ1CdNkOOpT0sw1KKN87aap51Fe15YHJJrXHXbMWrbnWgPTqqjIkE="
       before_script:
         - export TZ=America/Los_Angeles
         - date
@@ -53,9 +57,9 @@ jobs:
       install: true
       script:
         - echo "test"
-        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
-        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
-        - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -P sqlserver verify
+        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=susom_database
+        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=susom_database
+        - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -P sqlserver org.jacoco:jacoco-maven-plugin:prepare-agent verify sonar:sonar -Dsonar.projectKey=susom_database
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done

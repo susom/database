@@ -38,6 +38,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <checker.dir>/Users/garricko/projects/checker-framework-1.8.6</checker.dir>
+    <skipTests>false</skipTests>
+    <skipITs>${skipTests}</skipITs>
+    <skipUTs>${skipTests}</skipUTs>
   </properties>
 
   <distributionManagement>
@@ -97,6 +100,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.20</version>
         <configuration>
+          <skipTests>${skipUTs}</skipTests>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <excludes>
             <!-- Separate profile to test Oracle: mvn -Poracle12 test -->
@@ -123,6 +127,8 @@
           </execution>
         </executions>
         <configuration>
+          <skipTests>${skipTests}</skipTests>
+          <skipITs>${skipITs}</skipITs>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
       </plugin>

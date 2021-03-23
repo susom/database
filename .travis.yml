@@ -139,7 +139,8 @@ jobs:
       install: skip
       script:
         - echo "oracle-test"
-        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -Dmaven.javadoc.skip=true -DskipUTs -P oracle19 org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
+        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -Dmaven.javadoc.skip=true -DskipUTs -P oracle19 verify
+#        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -Dmaven.javadoc.skip=true -DskipUTs -P oracle19 org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done

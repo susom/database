@@ -41,7 +41,6 @@ import org.checkerframework.checker.tainting.qual.Untainted;
 public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   private StringBuilder sql = new StringBuilder();
   private Stack<Boolean> listFirstItem = new Stack<>();
-  private String finalSql;
   private List<SqlArgs> batched;
   private SqlArgs sqlArgs = new SqlArgs();
 
@@ -126,85 +125,71 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   }
 
   public Sql append(/*@Untainted*/ String sql) {
-    assert finalSql == null;
     this.sql.append(sql);
     return this;
   }
 
   public Sql append(boolean value) {
-    assert finalSql == null;
     this.sql.append(value);
     return this;
   }
 
   public Sql append(int value) {
-    assert finalSql == null;
     this.sql.append(value);
     return this;
   }
 
   public Sql append(long value) {
-    assert finalSql == null;
     this.sql.append(value);
     return this;
   }
 
   public Sql append(float value) {
-    assert finalSql == null;
     this.sql.append(value);
     return this;
   }
 
   public Sql append(double value) {
-    assert finalSql == null;
     this.sql.append(value);
     return this;
   }
 
   public Sql deleteCharAt(int index) {
-    assert finalSql == null;
     this.sql.deleteCharAt(index);
     return this;
   }
 
   public Sql replace(int start, int end, /*@Untainted*/ String str) {
-    assert finalSql == null;
     this.sql.replace(start, end, str);
     return this;
   }
 
   public Sql insert(int offset, /*@Untainted*/ String str) {
-    assert finalSql == null;
     this.sql.insert(offset, str);
     return this;
   }
 
   public Sql insert(int offset, boolean value) {
-    assert finalSql == null;
     this.sql.insert(offset, value);
     return this;
   }
 
   public Sql insert(int offset, int value) {
-    assert finalSql == null;
     this.sql.insert(offset, value);
     return this;
   }
 
   public Sql insert(int offset, long value) {
-    assert finalSql == null;
     this.sql.insert(offset, value);
     return this;
   }
 
   public Sql insert(int offset, double value) {
-    assert finalSql == null;
     this.sql.insert(offset, value);
     return this;
   }
 
   public Sql insert(int offset, float value) {
-    assert finalSql == null;
     this.sql.insert(offset, value);
     return this;
   }
@@ -257,10 +242,7 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
 
   /*@Untainted*/
   public String sql() {
-    if (finalSql == null) {
-      finalSql = sql.toString();
-    }
-    return finalSql;
+    return sql.toString();
   }
 
   /**

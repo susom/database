@@ -7,12 +7,11 @@ cache:
   directories:
     - $HOME/.m2
 
-jdk:
-  - openjdk8
-
 stages:
   - test
+  - test-jdk11
   - oracle-test
+  - oracle-test-jdk11
   - name: deploy-snapshots
     if: branch = master AND type = push
   - name: release-check
@@ -20,23 +19,22 @@ stages:
   - name: release
     if: (branch =~ /^release.*/)
 
-before_install:
-  # Ensure the settings we want to use are in place before running the default mvn install
-  - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-  # Disable SourceClear except on scheduled builds
-  - |
-    if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
-    then
-      export NOSCAN=1
-    fi
-
 jobs:
   include:
     - stage: test
+      jdk:
+        - openjdk8
       addons:
         postgresql: "9.6"
         srcclr: true
       before_script:
+        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
+        # Disable SourceClear except on scheduled builds
+        - |
+          if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
+          then
+            export NOSCAN=1
+          fi
         - export TZ=America/Los_Angeles
         - date
         - psql -U postgres -c "create user test with password 'test';"
@@ -50,19 +48,55 @@ jobs:
         - docker cp sqlserver.sql mssql-server-linux-latest:sqlserver.sql
         - docker exec -it mssql-server-linux-latest /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'SqlPassword234' -i sqlserver.sql
       # Skip the default mvn command because we want to set the profile explicitly
-      install: true
+      install: skip
       script:
         - echo "test"
-        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
-        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -P postgresql verify
-        - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -P sqlserver verify
+        - mvn -e -Dmaven.javadoc.skip=true -DskipITs verify
+        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Dmaven.javadoc.skip=true -DskipUTs -P hsqldb verify
+        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -Dmaven.javadoc.skip=true -DskipUTs -P postgresql verify
+        - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -Dmaven.javadoc.skip=true -DskipUTs -P sqlserver verify
+      after_failure:
+        - echo "\n=== SUREFIRE REPORTS ===\n"
+        - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
+    - stage: test-jdk11
+      jdk:
+        - openjdk11
+      addons:
+        postgresql: "9.6"
+        sonarcloud:
+          organization: "susom"
+          token:
+            secure: "OycpYUVhXJL8UZ4DvJN1u1iTWL4qvvCpm3YHh4Gm1xiB8Z81bhjE6be35mnDWreEMStPko2EIk01QS/0NMFGf8WP7JySsbMoK5llnbi8dEEHBRUvoJDu7uoJ1CdNkOOpT0sw1KKN87aap51Fe15YHJJrXHXbMWrbnWgPTqqjIkE="
+      before_script:
+        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
+        - export TZ=America/Los_Angeles
+        - date
+        - psql -U postgres -c "create user test with password 'test';"
+        - psql -c 'create database test owner test;' -U postgres
+        - docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=SqlPassword234" -p 1434:1433 --name=mssql-server-linux-latest -e TZ=America/Los_Angeles --health-cmd='/opt/mssql-tools/bin/sqlcmd -S localhost -U  SA -P SqlPassword234 -Q "SELECT 1"'  --health-interval=2s  --health-timeout=30s  --health-retries=5  -d mcr.microsoft.com/mssql/server:2019-latest
+        - |
+          until [  "$status" = '"healthy"' ]
+          do
+            status=$(docker inspect --format='{{json .State.Health}}' mssql-server-linux-latest | jq '.Status')
+          done
+        - docker cp sqlserver.sql mssql-server-linux-latest:sqlserver.sql
+        - docker exec -it mssql-server-linux-latest /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'SqlPassword234' -i sqlserver.sql
+      # Skip the default mvn command because we want to set the profile explicitly
+      install: skip
+      script:
+        - echo "test-jdk11"
+        - mvn -e -Dmaven.javadoc.skip=true -DskipITs org.jacoco:jacoco-maven-plugin:prepare-agent verify
+        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Dmaven.javadoc.skip=true -DskipUTs -P hsqldb org.jacoco:jacoco-maven-plugin:prepare-agent verify
+        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -Dmaven.javadoc.skip=true -DskipUTs -P postgresql org.jacoco:jacoco-maven-plugin:prepare-agent verify
+        - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -Dmaven.javadoc.skip=true -DskipUTs -P sqlserver org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
     - stage: oracle-test
-      addons:
-        srcclr: true
+      jdk:
+        - openjdk8
       before_script:
+        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
         - date
         - echo "$ARTIFACT_REGISTRY_KEY" | docker login -u _json_key_base64 --password-stdin https://us-west1-docker.pkg.dev
         - docker run --name oracle-latest-19c -p 1521:1521 -p 5500:5500  -d us-west1-docker.pkg.dev/som-rit-infrastructure-prod/third-party/oracledb:19.3-quick
@@ -74,26 +108,64 @@ jobs:
         - docker cp oracledb.sql oracle-latest-19c:/home/oracle/oracledb.sql
         - docker exec -it oracle-latest-19c sqlplus / AS SYSDBA @/home/oracle/oracledb.sql
       # Skip the default mvn command because we want to set the profile explicitly
-      install: true
+      install: skip
       script:
         - echo "oracle-test"
-        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -P oracle19 verify
+        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -Dmaven.javadoc.skip=true -DskipUTs -P oracle19 verify
+      after_failure:
+        - echo "\n=== SUREFIRE REPORTS ===\n"
+        - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
+    - stage: oracle-test-jdk11
+      jdk:
+        - openjdk11
+      addons:
+        sonarcloud:
+          organization: "susom"
+          token:
+            secure: "OycpYUVhXJL8UZ4DvJN1u1iTWL4qvvCpm3YHh4Gm1xiB8Z81bhjE6be35mnDWreEMStPko2EIk01QS/0NMFGf8WP7JySsbMoK5llnbi8dEEHBRUvoJDu7uoJ1CdNkOOpT0sw1KKN87aap51Fe15YHJJrXHXbMWrbnWgPTqqjIkE="
+      before_script:
+        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
+        - date
+        - echo "$ARTIFACT_REGISTRY_KEY" | docker login -u _json_key_base64 --password-stdin https://us-west1-docker.pkg.dev
+        - docker run --name oracle-latest-19c -p 1521:1521 -p 5500:5500  -d us-west1-docker.pkg.dev/som-rit-infrastructure-prod/third-party/oracledb:19.3-quick
+        - |
+          until [  "$status" = '"healthy"' ]
+          do
+            status=$(docker inspect --format='{{json .State.Health}}' oracle-latest-19c | jq '.Status')
+          done
+        - docker cp oracledb.sql oracle-latest-19c:/home/oracle/oracledb.sql
+        - docker exec -it oracle-latest-19c sqlplus / AS SYSDBA @/home/oracle/oracledb.sql
+      # Skip the default mvn command because we want to set the profile explicitly
+      install: skip
+      script:
+        - echo "oracle-test"
+        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -Dmaven.javadoc.skip=true -DskipUTs -P oracle19 verify
+#        - mvn -e "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" -Ddatabase.user=testuser -Ddatabase.password="TestPassword456" -Dmaven.javadoc.skip=true -DskipUTs -P oracle19 org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
     - stage: deploy-snapshots
+      jdk:
+        - openjdk8
       script:
         - echo "deploy-snapshots"
+        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
         # When push to master occurs, all the versions should be -SNAPSHOTs and we will auto-deploy
         - mvn --batch-mode -e -DskipTests=true deploy
     - stage: release-check
+      jdk:
+        - openjdk8
       script:
         - echo "release-check"
+        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
         # Ensure we don't have any external SNAPSHOT dependencies
         - mvn --batch-mode release:prepare -DskipTests=true -DdryRun=true
     - stage: release
+      jdk:
+        - openjdk8
       script:
         - echo "release"
+        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
         # Git fix based on: https://github.com/sbt/sbt-release/issues/210
         - echo "Fixing git setup for $TRAVIS_BRANCH in preparation for release"
         - git checkout ${TRAVIS_BRANCH}

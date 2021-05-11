@@ -235,7 +235,7 @@
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
-      <version>2.7.1</version>
+      <version>2.7.9</version>
       <optional>true</optional>
     </dependency>
 
@@ -602,7 +602,7 @@
                 <argument>-Xmaxwarns</argument>
                 <argument>10000</argument>
                 <argument>-classpath</argument>
-                <classpath />
+                <classpath/>
                 <argument>-d</argument>
                 <argument>${project.build.directory}</argument>
                 <argument>${basedir}/src/main/java/com/github/susom/database/*.java</argument>

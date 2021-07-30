@@ -1280,14 +1280,17 @@ public abstract class CommonTest {
 
     TimeZone defaultTZ = TimeZone.getDefault();
 
-    String[] availableTZs = TimeZone.getAvailableIDs();
-    for (String tz : availableTZs) {
-      TimeZone.setDefault(TimeZone.getTimeZone(tz));
-      LocalDate result =
-        db.toSelect("select i from dbtest where i=?").argLocalDate(januaryOne2000).queryLocalDateOrNull();
-      assertEquals(januaryOne2000, result);
+    try {
+      String[] availableTZs = TimeZone.getAvailableIDs();
+      for (String tz : availableTZs) {
+        TimeZone.setDefault(TimeZone.getTimeZone(tz));
+        LocalDate result =
+                db.toSelect("select i from dbtest where i=?").argLocalDate(januaryOne2000).queryLocalDateOrNull();
+        assertEquals(januaryOne2000, result);
+      }
+    } finally {
+      TimeZone.setDefault(defaultTZ);
     }
-    TimeZone.setDefault(defaultTZ);
   }
 
   @Test
@@ -1817,21 +1820,27 @@ public abstract class CommonTest {
 
     Date date = new Date(166656789L);
 
-    TimeZone.setDefault(TimeZone.getTimeZone("GMT-4:00"));
+    TimeZone defaultTZ = TimeZone.getDefault();
 
-    db.toInsert("insert into dbtest (d) values (?)").argDate(date).insert(1);
-    assertEquals(date, db.toSelect("select d from dbtest").queryDateOrNull());
-    assertEquals("1970-01-02 18:17:36.789000-0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
-        db.toSelect("select d from dbtest").queryDateOrNull()));
-    db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("GMT-4:00"));
 
-    TimeZone.setDefault(TimeZone.getTimeZone("GMT+4:00"));
+      db.toInsert("insert into dbtest (d) values (?)").argDate(date).insert(1);
+      assertEquals(date, db.toSelect("select d from dbtest").queryDateOrNull());
+      assertEquals("1970-01-02 18:17:36.789000-0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
+          db.toSelect("select d from dbtest").queryDateOrNull()));
+      db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
 
-    db.toInsert("insert into dbtest (d) values (?)").argDate(date).insert(1);
-    assertEquals(date, db.toSelect("select d from dbtest").queryDateOrNull());
-    assertEquals("1970-01-03 02:17:36.789000+0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
-        db.toSelect("select d from dbtest").queryDateOrNull()));
-    db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
+      TimeZone.setDefault(TimeZone.getTimeZone("GMT+4:00"));
+
+      db.toInsert("insert into dbtest (d) values (?)").argDate(date).insert(1);
+      assertEquals(date, db.toSelect("select d from dbtest").queryDateOrNull());
+      assertEquals("1970-01-03 02:17:36.789000+0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
+          db.toSelect("select d from dbtest").queryDateOrNull()));
+      db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
+    } finally {
+      TimeZone.setDefault(defaultTZ);
+    }
   }
 
   /**
@@ -1845,35 +1854,41 @@ public abstract class CommonTest {
     Date date = new Date(166656789L);
     System.out.println("Date: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(date));
 
-    TimeZone.setDefault(TimeZone.getTimeZone("GMT-4:00"));
+    TimeZone defaultTZ = TimeZone.getDefault();
 
-    new Schema()
-        .addTable("dbtest")
-        .addColumn("d").asDate().schema().execute(db);
+    try {
+      TimeZone.setDefault(TimeZone.getTimeZone("GMT-4:00"));
 
-    db.toInsert("insert into dbtest (d) values ("
-        + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()).replace(":", "::") + ")")
-        .insert(1);
+      new Schema()
+          .addTable("dbtest")
+          .addColumn("d").asDate().schema().execute(db);
 
-    assertEquals("1970-01-02 18:17:36.789000-0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
-        db.toSelect("select d from dbtest").queryDateOrNull()));
+      db.toInsert("insert into dbtest (d) values ("
+          + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()).replace(":", "::") + ")")
+          .insert(1);
 
-    // Now do some client operations in a different time zone
-    TimeZone.setDefault(TimeZone.getTimeZone("GMT+4:00"));
+      assertEquals("1970-01-02 18:17:36.789000-0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
+          db.toSelect("select d from dbtest").queryDateOrNull()));
 
-    // Verify regular arg maps date the same way even though our TimeZone is now different
-    db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
+      // Now do some client operations in a different time zone
+      TimeZone.setDefault(TimeZone.getTimeZone("GMT+4:00"));
 
-    db.toInsert("insert into dbtest (d) values ("
-        + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()).replace(":", "::") + ")")
-        .insert(1);
+      // Verify regular arg maps date the same way even though our TimeZone is now different
+      db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
 
-    assertEquals("1970-01-03 02:17:36.789000+0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
-        db.toSelect("select d from dbtest").queryDateOrNull()));
+      db.toInsert("insert into dbtest (d) values ("
+          + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()).replace(":", "::") + ")")
+          .insert(1);
 
-    // Verify the function maps correctly for equals operations as well
-    db.toDelete("delete from dbtest where d=" + db.flavor().dateAsSqlFunction(date,
-        db.options().calendarForTimestamps()).replace(":", "::")).update(1);
+      assertEquals("1970-01-03 02:17:36.789000+0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
+          db.toSelect("select d from dbtest").queryDateOrNull()));
+
+      // Verify the function maps correctly for equals operations as well
+      db.toDelete("delete from dbtest where d=" + db.flavor().dateAsSqlFunction(date,
+          db.options().calendarForTimestamps()).replace(":", "::")).update(1);
+    } finally {
+      TimeZone.setDefault(defaultTZ);
+    }
   }
 
   @Test

@@ -402,7 +402,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
+              <includes combine.children="append">
                 <include>**/*Oracle*</include>
               </includes>
             </configuration>
@@ -426,7 +426,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
+              <includes combine.children="append">
                 <include>**/*Oracle*</include>
               </includes>
             </configuration>
@@ -450,7 +450,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
+              <includes combine.children="append">
                 <include>**/*Oracle*</include>
               </includes>
             </configuration>
@@ -474,7 +474,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
+              <includes combine.children="append">
                 <include>**/*Oracle*</include>
               </includes>
             </configuration>
@@ -498,7 +498,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
+              <includes combine.children="append">
                 <include>**/*SqlServer*</include>
               </includes>
             </configuration>
@@ -522,7 +522,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
+              <includes combine.children="append">
                 <include>**/*Hsqldb*</include>
               </includes>
             </configuration>
@@ -546,7 +546,7 @@
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
+              <includes combine.children="append">
                 <include>**/*PostgreSql*</include>
               </includes>
             </configuration>

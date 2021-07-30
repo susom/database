@@ -1280,14 +1280,17 @@ public abstract class CommonTest {
 
     TimeZone defaultTZ = TimeZone.getDefault();
 
-    String[] availableTZs = TimeZone.getAvailableIDs();
-    for (String tz : availableTZs) {
-      TimeZone.setDefault(TimeZone.getTimeZone(tz));
-      LocalDate result =
-        db.toSelect("select i from dbtest where i=?").argLocalDate(januaryOne2000).queryLocalDateOrNull();
-      assertEquals(januaryOne2000, result);
+    try {
+      String[] availableTZs = TimeZone.getAvailableIDs();
+      for (String tz : availableTZs) {
+        TimeZone.setDefault(TimeZone.getTimeZone(tz));
+        LocalDate result =
+                db.toSelect("select i from dbtest where i=?").argLocalDate(januaryOne2000).queryLocalDateOrNull();
+        assertEquals(januaryOne2000, result);
+      }
+    } finally {
+      TimeZone.setDefault(defaultTZ);
     }
-    TimeZone.setDefault(defaultTZ);
   }
 
   @Test

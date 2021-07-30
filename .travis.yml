@@ -85,10 +85,7 @@ jobs:
       install: skip
       script:
         - echo "test-jdk11"
-        - mvn -e -Dmaven.javadoc.skip=true -DskipITs org.jacoco:jacoco-maven-plugin:prepare-agent verify
-        - mvn -e "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Dmaven.javadoc.skip=true -DskipUTs -P hsqldb org.jacoco:jacoco-maven-plugin:prepare-agent verify
-        - mvn -e -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test -Dmaven.javadoc.skip=true -DskipUTs -P postgresql org.jacoco:jacoco-maven-plugin:prepare-agent verify
-        - mvn -e "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -Dmaven.javadoc.skip=true -DskipUTs -P sqlserver org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
+        - mvn -e -Dmaven.javadoc.skip=true "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Dpostgres.database.url=jdbc:postgresql:test -Dpostgres.database.user=test -Dpostgres.database.password=test "-Dsqlserver.database.url=jdbc:sqlserver://localhost:1434;database=testDB" -Dsqlserver.database.user=test -Dsqlserver.database.password=TestPwd@345 -P hsqldb,postgresql,sqlserver org.jacoco:jacoco-maven-plugin:prepare-agent verify org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done

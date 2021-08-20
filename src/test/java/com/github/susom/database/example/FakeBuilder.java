@@ -1,3 +1,5 @@
+package com.github.susom.database.example;
+
 import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.DatabaseProvider.Builder;
@@ -41,7 +43,7 @@ public class FakeBuilder extends DerbyExample {
       // Can't use fakeBuilder after close
       try {
         fakeBuilder.transact(db -> {
-          db.get();
+          db.get().tableExists("foo");
           println("Eeek...shouldn't get here!");
         });
       } catch(DatabaseException e) {

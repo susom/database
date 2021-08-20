@@ -38,8 +38,8 @@ and correct with respect to resources, exceptions, and transactions.
 This style of using callbacks also fits nicely with asynchronous programming models.
 Support for [Vert.x](http://vertx.io/) is included (use
 [DatabaseProviderVertx](src/main/java/com/github/susom/database/DatabaseProviderVertx.java)).
-There is also a simple [Vert.x server example](demo/src/main/java/VertxServer.java) and
-a more sophisticated [example with concurrency](demo/src/main/java/VertxServerFastAndSlow.java).
+There is also a simple [Vert.x server example](src/test/java/com/github/susom/database/example/VertxServer.java) and
+a more sophisticated [example with concurrency](src/test/java/com/github/susom/database/example/VertxServerFastAndSlow.java).
 
 #### Facilitate static analysis
 
@@ -375,7 +375,7 @@ some of the tests:
 
 [CommonTest.java](https://github.com/susom/database/blob/master/src/test/java/com/github/susom/database/test/CommonTest.java)
 
-There are also a variety of samples in [the demo directory](https://github.com/susom/database/tree/master/demo/src/main/java).
+There are also a variety of samples in [the demo directory](https://github.com/susom/database/tree/master/src/test/java/com/github/susom/database/example).
 
 ### Database Support and Limitations
 

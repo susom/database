@@ -1,3 +1,9 @@
+package com.github.susom.database.test;
+
+import com.github.susom.database.example.DynamicSql;
+import com.github.susom.database.example.FakeBuilder;
+import com.github.susom.database.example.HelloDerby;
+import com.github.susom.database.example.InsertReturning;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;

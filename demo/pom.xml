@@ -24,16 +24,6 @@
       <artifactId>database</artifactId>
       <version>3.3</version>
     </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-core</artifactId>
-      <version>3.9.7</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>9.4.41.v20210516</version>
-    </dependency>
 
     <dependency>
       <groupId>org.checkerframework</groupId>
@@ -52,56 +42,6 @@
       <artifactId>jdk8</artifactId>
       <version>${checkerframework.version}</version>
       <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.30</version>
-      <scope>runtime</scope>
-    </dependency>
-
-    <!-- Various JDBC drivers -->
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-      <version>10.15.2.0</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hsqldb</groupId>
-      <artifactId>hsqldb</artifactId>
-      <version>2.6.0</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>42.2.19.jre7</version>
-      <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>1.10.19</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- This one isn't necessary in real projects, but makes the IDE happy
-         for running these demos in the same project as the library source,
-         since the real library normally gets shaded by the Maven build. -->
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-      <version>2.7.9</version>
-      <optional>true</optional>
     </dependency>
   </dependencies>
 

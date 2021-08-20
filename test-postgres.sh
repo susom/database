@@ -5,7 +5,8 @@ PASSWORD=$(openssl rand -base64 18 | tr -d +/)
 export TZ=America/Los_Angeles
 
 run_pg_tests() {
-  docker run -d --rm --name dbtest-pg --pull always -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p 5432:5432/tcp postgres:$1
+  docker pull postgres:$1
+  docker run -d --rm --name dbtest-pg -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p 5432:5432/tcp postgres:$1
 
   declare -i count=1
   while [  "$(docker inspect --format='{{json .State.Status}}' dbtest-pg)" != '"running"' -a $count -lt 10 ]

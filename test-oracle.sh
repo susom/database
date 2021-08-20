@@ -11,8 +11,9 @@ stop_oracle() {
 }
 
 start_oracle() {
+  docker pull us-west1-docker.pkg.dev/som-rit-infrastructure-prod/third-party/oracledb:$1
   # Supposedly we could set -e ORACLE_PWD=$PASSWORD here, but it doesn't seem to work
-  docker run -d --rm --name $ORACLE_NAME --pull always -p 1521:1521 -p 5500:5500 us-west1-docker.pkg.dev/som-rit-infrastructure-prod/third-party/oracledb:$1
+  docker run -d --rm --name $ORACLE_NAME -p 1521:1521 -p 5500:5500 us-west1-docker.pkg.dev/som-rit-infrastructure-prod/third-party/oracledb:$1
 
   if [ $? -ne 0 ] ; then
     echo "Unable to start Oracle docker ($1)"

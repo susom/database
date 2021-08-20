@@ -5,7 +5,8 @@ PASSWORD=$(openssl rand -base64 18 | tr -d +/)
 export TZ=America/Los_Angeles
 
 run_ms_tests() {
-  docker run -d --rm --name dbtest-ms --pull always -e ACCEPT_EULA=Y -e TZ=$TZ -e SA_PASSWORD=$PASSWORD -p 1433:1433 --health-cmd='/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '$PASSWORD' -Q "SELECT 1"' --health-interval=2s --health-timeout=30s --health-retries=5 mcr.microsoft.com/mssql/server:$1
+  docker pull mcr.microsoft.com/mssql/server:$1
+  docker run -d --rm --name dbtest-ms -e ACCEPT_EULA=Y -e TZ=$TZ -e SA_PASSWORD=$PASSWORD -p 1433:1433 --health-cmd='/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P '$PASSWORD' -Q "SELECT 1"' --health-interval=2s --health-timeout=30s --health-retries=5 mcr.microsoft.com/mssql/server:$1
 
   declare -i count=1
   while [  "$(docker inspect --format='{{json .State.Health.Status}}' dbtest-ms)" != '"healthy"' ]

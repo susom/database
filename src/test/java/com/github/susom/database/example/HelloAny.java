@@ -1,3 +1,5 @@
+package com.github.susom.database.example;
+
 import com.github.susom.database.Database;
 import com.github.susom.database.DatabaseProvider;
 

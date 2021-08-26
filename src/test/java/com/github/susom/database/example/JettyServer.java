@@ -1,3 +1,5 @@
+package com.github.susom.database.example;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;

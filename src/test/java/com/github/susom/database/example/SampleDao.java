@@ -1,3 +1,5 @@
+package com.github.susom.database.example;
+
 import java.util.Date;
 import java.util.function.Supplier;
 

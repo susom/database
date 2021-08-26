@@ -1,3 +1,7 @@
+package com.github.susom.database.test;
+
+import com.github.susom.database.example.Sample;
+import com.github.susom.database.example.SampleDao;
 import java.util.Date;
 
 import org.junit.Before;

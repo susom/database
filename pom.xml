@@ -103,34 +103,9 @@
         <configuration>
           <skipTests>${skipUTs}</skipTests>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <excludes>
-            <!-- Separate profile to test Oracle: mvn -Poracle12 test -->
-            <exclude>**/*Oracle*</exclude>
-            <!-- Separate profile to test Postgres: mvn -Ppostgresql test -->
-            <exclude>**/*PostgreSql*</exclude>
-            <!-- Separate profile to test SQL Server: mvn -Psqlserver test -->
-            <exclude>**/*SqlServer*</exclude>
-            <!-- Separate profile to test HyperSQL Database: mvn -Phsqldb test -->
-            <exclude>**/*Hsqldb*</exclude>
-          </excludes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>3.0.0-M5</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <skipTests>${skipTests}</skipTests>
-          <skipITs>${skipITs}</skipITs>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <includes>
+            <include>%regex[.*(Config|Database|Derby|RowStub|SqlArgs|VertxLogging|Demo|SampleDao)Test.*]</include>
+          </includes>
         </configuration>
       </plugin>
       <plugin>
@@ -206,6 +181,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.oracle.database.jdbc</groupId>
+      <artifactId>ojdbc8</artifactId>
+      <version>21.1.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>3.0.2</version>
@@ -274,6 +255,12 @@
       <groupId>com.github.stefanbirkner</groupId>
       <artifactId>system-rules</artifactId>
       <version>1.18.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.4.41.v20210516</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -400,7 +387,7 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
+            <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes combine.children="append">
                 <include>**/*Oracle*</include>
@@ -424,7 +411,7 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
+            <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes combine.children="append">
                 <include>**/*Oracle*</include>
@@ -448,7 +435,7 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
+            <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes combine.children="append">
                 <include>**/*Oracle*</include>
@@ -472,7 +459,7 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
+            <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes combine.children="append">
                 <include>**/*Oracle*</include>
@@ -492,13 +479,61 @@
     </profile>
 
     <profile>
+      <id>oracle19.only</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*Oracle*</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle.database.jdbc</groupId>
+          <artifactId>ojdbc8</artifactId>
+          <version>19.11.0.0</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
       <id>sqlserver</id>
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
+            <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes combine.children="append">
+                <include>**/*SqlServer*</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>com.microsoft.sqlserver</groupId>
+          <artifactId>mssql-jdbc</artifactId>
+          <version>8.2.0.jre8</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>sqlserver.only</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
                 <include>**/*SqlServer*</include>
               </includes>
             </configuration>
@@ -520,7 +555,7 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
+            <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes combine.children="append">
                 <include>**/*Hsqldb*</include>
@@ -544,7 +579,7 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>maven-failsafe-plugin</artifactId>
+            <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes combine.children="append">
                 <include>**/*PostgreSql*</include>
@@ -557,10 +592,61 @@
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
-          <version>42.2.5</version>
+          <version>42.2.23</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
+    </profile>
+
+    <profile>
+      <id>postgresql.only</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>**/*PostgreSql*</include>
+              </includes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>42.2.23</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>coverage</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.7</version>
+            <executions>
+              <execution>
+                <id>default-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>default-report</id>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <profile>

@@ -1,6 +1,9 @@
+package com.github.susom.database.example;
+
 import com.github.susom.database.Database;
 import com.github.susom.database.Schema;
 import com.github.susom.database.Sql;
+import com.github.susom.database.example.DerbyExample;
 
 /**
  * Demo of how to use the Sql helper class to dynamically build queries.

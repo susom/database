@@ -1,3 +1,5 @@
+package com.github.susom.database.example;
+
 import java.io.File;
 
 import com.github.susom.database.Database;

@@ -1,3 +1,5 @@
+package com.github.susom.database.example;
+
 import java.io.File;
 
 import com.github.susom.database.Database;
@@ -22,7 +24,7 @@ public abstract class DerbyExample {
     System.out.println(s);
   }
 
-  final void launch(final String[] args) {
+  public final void launch(final String[] args) {
     try {
       // Put all Derby related files inside ./target to keep our working copy clean
       File directory = new File("target").getAbsoluteFile();

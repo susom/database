@@ -6,9 +6,9 @@ import com.github.susom.database.Sql;
  * this works, download The Checker Framework (http://types.cs.washington.edu/checker-framework/),
  * adjust the checker.dir property in pom.xml, and execute this Maven command:
  *
- * <p>mvn -Pchecker -Dchecker.dir=/checker/install/dir</p>
+ * <p>mvn -Pchecker verify</p>
  */
-public class SqlInjection extends DerbyExample {
+public class SqlInjection {
   void example(Database db, String[] args) {
     String tainted = args[0];
 
@@ -37,9 +37,5 @@ public class SqlInjection extends DerbyExample {
 
   Sql someSql() {
     return new Sql().append("bar" + "1").argString("baz");
-  }
-
-  public static void main(String[] args) {
-    new SqlInjection().launch(args);
   }
 }

@@ -279,8 +279,11 @@ public final class DatabaseProvider implements Supplier<Database> {
   public static Builder fromPropertyFile(String filename, CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
-      try {
-        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
+      try (
+        FileInputStream fis = new FileInputStream(filename);
+        InputStreamReader reader = new InputStreamReader(fis, decoder)
+      ) {
+        properties.load(reader);
       } catch (Exception e) {
         throw new DatabaseException("Unable to read properties file: " + filename, e);
       }
@@ -339,8 +342,11 @@ public final class DatabaseProvider implements Supplier<Database> {
   public static Builder fromPropertyFile(String filename, String propertyPrefix, CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
-      try {
-        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
+      try (
+        FileInputStream fis = new FileInputStream(filename);
+        InputStreamReader reader = new InputStreamReader(fis, decoder)
+      ) {
+        properties.load(reader);
       } catch (Exception e) {
         throw new DatabaseException("Unable to read properties file: " + filename, e);
       }
@@ -445,8 +451,11 @@ public final class DatabaseProvider implements Supplier<Database> {
   public static Builder fromPropertyFileOrSystemProperties(String filename, CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
-      try {
-        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
+      try (
+        FileInputStream fis = new FileInputStream(filename);
+        InputStreamReader reader = new InputStreamReader(fis, decoder)
+      ) {
+        properties.load(reader);
       } catch (Exception e) {
         log.debug("Trying system properties - unable to read properties file: " + filename);
       }
@@ -514,8 +523,11 @@ public final class DatabaseProvider implements Supplier<Database> {
                                                            CharsetDecoder decoder) {
     Properties properties = new Properties();
     if (filename != null && filename.length() > 0) {
-      try {
-        properties.load(new InputStreamReader(new FileInputStream(filename), decoder));
+      try (
+        FileInputStream fis = new FileInputStream(filename);
+        InputStreamReader reader = new InputStreamReader(fis, decoder)
+      ) {
+        properties.load(reader);
       } catch (Exception e) {
         log.debug("Trying system properties - unable to read properties file: " + filename);
       }

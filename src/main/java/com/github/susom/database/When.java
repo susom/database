@@ -16,6 +16,7 @@
 
 package com.github.susom.database;
 
+import java.util.Objects;
 import javax.annotation.Nonnull;
 
 /**
@@ -23,7 +24,7 @@ import javax.annotation.Nonnull;
  */
 public class When {
   private String chosen;
-  private Flavor actualFlavor;
+  private final Flavor actualFlavor;
 
   public When(Flavor actualFlavor) {
     this.actualFlavor = actualFlavor;
@@ -55,7 +56,7 @@ public class When {
   
   @Nonnull
   public When sqlserver(@Nonnull String sql){
-	  if(actualFlavor == Flavor.sqlserver) {
+	  if (actualFlavor == Flavor.sqlserver) {
 		  chosen = sql;
 	  }
 	  return this;
@@ -70,12 +71,24 @@ public class When {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    When when = (When) o;
+    return Objects.equals(chosen, when.chosen) && actualFlavor == when.actualFlavor;
+  }
+
+  @Override
   public int hashCode() {
-    return other("").hashCode();
+    return Objects.hash(chosen, actualFlavor);
   }
 
   @Override
   public String toString() {
-    return other("");
+    return chosen == null ? "" : chosen;
   }
 }

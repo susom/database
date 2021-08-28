@@ -62,7 +62,7 @@ public class OptionsDefault implements Options {
   @Override
   public String generateErrorCode() {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:H:m:s");
-    return sdf.format(new Date()) + "-" + Math.abs(new Random().nextInt());
+    return sdf.format(new Date()) + "-" + Math.round(Math.random() * 1000000);
   }
 
   @Override

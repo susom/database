@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * @author garricko
  */
 public class ConfigFromImpl implements ConfigFrom {
-  private List<Config> searchPath = new ArrayList<>();
+  private final List<Config> searchPath = new ArrayList<>();
 
   public ConfigFromImpl() {
     super();
@@ -33,7 +33,7 @@ public class ConfigFromImpl implements ConfigFrom {
 
   @Override
   public ConfigFrom custom(Function<String, String> keyValueLookup) {
-    return custom(keyValueLookup::apply, "custom()");
+    return custom(keyValueLookup, "custom()");
   }
 
   private ConfigFrom custom(Function<String, String> keyValueLookup, String source) {
@@ -114,7 +114,12 @@ public class ConfigFromImpl implements ConfigFrom {
       if (file != null) {
         try {
           Properties properties = new Properties();
-          properties.load(new InputStreamReader(new FileInputStream(file), decoder));
+          try (
+            FileInputStream fis = new FileInputStream(file);
+            InputStreamReader reader = new InputStreamReader(fis, decoder)
+          ) {
+            properties.load(reader);
+          }
           searchPath.add(new ConfigImpl(properties::getProperty, "propertyFile(" + file.getAbsolutePath() + ")"));
         } catch (Exception e) {
           // Put a "fake" provider in so we can see it failed
@@ -249,7 +254,7 @@ public class ConfigFromImpl implements ConfigFrom {
       String value = lookup(key);
       if (value != null) {
         // matches ${ENV_VAR_NAME} or $ENV_VAR_NAME
-        Pattern p = Pattern.compile("(?<!\\$)\\$(?!\\$)\\{(\\w+)\\}|(?<!\\$)\\$(?!\\$)(\\w+)");
+        Pattern p = Pattern.compile("(?<!\\$)\\$(?!\\$)\\{(\\w+)}|(?<!\\$)\\$(?!\\$)(\\w+)");
         Matcher m = p.matcher(value);
         StringBuffer sb = new StringBuffer();
         while (m.find()) {
@@ -288,5 +293,4 @@ public class ConfigFromImpl implements ConfigFrom {
     }
     return null;
   }
-
 }

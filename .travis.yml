@@ -45,6 +45,8 @@ jobs:
     - stage: test-jdk11
       jdk:
         - openjdk11
+      git:
+        depth: false
       addons:
         sonarcloud:
           organization: "susom"

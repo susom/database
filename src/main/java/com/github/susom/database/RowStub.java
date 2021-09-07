@@ -6,7 +6,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,7 +23,7 @@ import javax.annotation.Nullable;
  */
 public class RowStub {
   private String[] columnNames;
-  private List<Object[]> rows = new ArrayList<>();
+  private final List<Object[]> rows = new ArrayList<>();
 
   public RowStub withColumnNames(String... names) {
     columnNames = names;
@@ -60,117 +59,117 @@ public class RowStub {
         requireColumnNames();
         return new ResultSetMetaData() {
           @Override
-          public int getColumnCount() throws SQLException {
+          public int getColumnCount() {
             return columnNames.length;
           }
 
           @Override
-          public boolean isAutoIncrement(int column) throws SQLException {
+          public boolean isAutoIncrement(int column) {
             return false;
           }
 
           @Override
-          public boolean isCaseSensitive(int column) throws SQLException {
+          public boolean isCaseSensitive(int column) {
             return false;
           }
 
           @Override
-          public boolean isSearchable(int column) throws SQLException {
+          public boolean isSearchable(int column) {
             return false;
           }
 
           @Override
-          public boolean isCurrency(int column) throws SQLException {
+          public boolean isCurrency(int column) {
             return false;
           }
 
           @Override
-          public int isNullable(int column) throws SQLException {
+          public int isNullable(int column) {
             return columnNullable;
           }
 
           @Override
-          public boolean isSigned(int column) throws SQLException {
+          public boolean isSigned(int column) {
             return false;
           }
 
           @Override
-          public int getColumnDisplaySize(int column) throws SQLException {
+          public int getColumnDisplaySize(int column) {
             return 4000;
           }
 
           @Override
-          public String getColumnLabel(int column) throws SQLException {
+          public String getColumnLabel(int column) {
             return columnNames[column - 1];
           }
 
           @Override
-          public String getColumnName(int column) throws SQLException {
+          public String getColumnName(int column) {
             return columnNames[column - 1];
           }
 
           @Override
-          public String getSchemaName(int column) throws SQLException {
+          public String getSchemaName(int column) {
             return "";
           }
 
           @Override
-          public int getPrecision(int column) throws SQLException {
+          public int getPrecision(int column) {
             return 4000;
           }
 
           @Override
-          public int getScale(int column) throws SQLException {
+          public int getScale(int column) {
             return 0;
           }
 
           @Override
-          public String getTableName(int column) throws SQLException {
+          public String getTableName(int column) {
             return "";
           }
 
           @Override
-          public String getCatalogName(int column) throws SQLException {
+          public String getCatalogName(int column) {
             return "";
           }
 
           @Override
-          public int getColumnType(int column) throws SQLException {
+          public int getColumnType(int column) {
             return Types.VARCHAR;
           }
 
           @Override
-          public String getColumnTypeName(int column) throws SQLException {
+          public String getColumnTypeName(int column) {
             return "VARCHAR";
           }
 
           @Override
-          public boolean isReadOnly(int column) throws SQLException {
+          public boolean isReadOnly(int column) {
             return false;
           }
 
           @Override
-          public boolean isWritable(int column) throws SQLException {
+          public boolean isWritable(int column) {
             return false;
           }
 
           @Override
-          public boolean isDefinitelyWritable(int column) throws SQLException {
+          public boolean isDefinitelyWritable(int column) {
             return false;
           }
 
           @Override
-          public String getColumnClassName(int column) throws SQLException {
+          public String getColumnClassName(int column) {
             return String.class.getName();
           }
 
           @Override
-          public <T> T unwrap(Class<T> iface) throws SQLException {
+          public <T> T unwrap(Class<T> iface) {
             return null;
           }
 
           @Override
-          public boolean isWrapperFor(Class<?> iface) throws SQLException {
+          public boolean isWrapperFor(Class<?> iface) {
             return false;
           }
         };
@@ -199,38 +198,38 @@ public class RowStub {
       @Override
       public boolean getBooleanOrFalse() {
         Boolean i = getBooleanOrNull();
-        return i == null ? false : i;
+        return i != null && i;
       }
 
       @Override
       public boolean getBooleanOrFalse(int columnOneBased) {
         Boolean i = getBooleanOrNull(columnOneBased);
-        return i == null ? false : i;
+        return i != null && i;
       }
 
       @Override
       public boolean getBooleanOrFalse(String columnName) {
         Boolean i = getBooleanOrNull(columnName);
-        return i == null ? false : i;
+        return i != null && i;
       }
 
       @Override
       public boolean getBooleanOrTrue() {
         Boolean i = getBooleanOrNull();
-        return i == null ? true : i;
+        return i == null || i;
       }
 
       @Override
       public boolean getBooleanOrTrue(int columnOneBased) {
         col = columnOneBased;
         Boolean i = getBooleanOrNull(columnOneBased);
-        return i == null ? true : i;
+        return i == null || i;
       }
 
       @Override
       public boolean getBooleanOrTrue(String columnName) {
         Boolean i = getBooleanOrNull(columnName);
-        return i == null ? true : i;
+        return i == null || i;
       }
 
       @Nullable
@@ -645,8 +644,6 @@ public class RowStub {
       /**
        * Returns a java.time.LocalDate.  It will have no timezone or other time data.
        * If you require time, use the Date APIs instead.
-       *
-       * @return
        */
       @Nullable
       @Override
@@ -657,8 +654,6 @@ public class RowStub {
       /**
        * Returns a java.time.LocalDate.  It will have no timezone or other time data.
        * If you require time, use the Date APIs instead.
-       *
-       * @return
        */
       @Nullable
       @Override
@@ -670,8 +665,6 @@ public class RowStub {
       /**
        * Returns a java.time.LocalDate.  It will have no timezone or other time data.
        * If you require time, use the Date APIs instead.
-       *
-       * @return
        */
       @Nullable
       @Override
@@ -739,16 +732,16 @@ public class RowStub {
 
       private BigDecimal toBigDecimal(Object o) {
         if (o instanceof Integer) {
-          return new BigDecimal(((Integer) o).doubleValue());
+          return BigDecimal.valueOf(((Integer) o).longValue());
         }
         if (o instanceof Long) {
-          return new BigDecimal(((Long) o).doubleValue());
+          return BigDecimal.valueOf((Long) o);
         }
         if (o instanceof Float) {
-          return new BigDecimal(((Float) o).doubleValue());
+          return BigDecimal.valueOf(((Float) o).doubleValue());
         }
         if (o instanceof Double) {
-          return new BigDecimal((Double) o);
+          return BigDecimal.valueOf((Double) o);
         }
         return (BigDecimal) o;
       }
@@ -762,9 +755,7 @@ public class RowStub {
       }
 
       /**
-       * Returns a java.util.Date.  It may be used for dates or times.
-       *
-       * @return
+       * Returns a java.util.Date. It may be used for dates or times.
        */
       private Date toDate(Object o) {
         if (o instanceof String) {

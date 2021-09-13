@@ -5,7 +5,7 @@
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
   <packaging>jar</packaging>
-  <version>4.0-SNAPSHOT</version>
+  <version>4.0</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
   <description>Simplified API and compatibility layer for accessing JDBC data sources.</description>
@@ -31,7 +31,7 @@
     <connection>scm:git:https://github.com/susom/database.git</connection>
     <developerConnection>scm:git:https://github.com/susom/database.git</developerConnection>
     <url>https://github.com/susom/database</url>
-    <tag>HEAD</tag>
+    <tag>database-4.0</tag>
   </scm>
 
   <properties>
@@ -689,7 +689,7 @@
                 <argument>-Xmaxwarns</argument>
                 <argument>10000</argument>
                 <argument>-classpath</argument>
-                <classpath/>
+                <classpath />
                 <argument>-d</argument>
                 <argument>${project.build.directory}</argument>
                 <argument>${basedir}/src/main/java/com/github/susom/database/*.java</argument>

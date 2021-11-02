@@ -3,6 +3,7 @@ package com.github.susom.database.example;
 import com.github.susom.database.*;
 import com.github.susom.database.DatabaseProviderRx.Builder;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
@@ -79,19 +80,24 @@ public class RxJavaRetryTester {
     Observable.fromIterable(sqlQueries)
         .flatMap(
             sql ->
-                dbb.transactRx(
-                        db -> {
-                          if (sql.contains("SELECTXXXX")) {
-                            log.error(">>>>>>>>>>> RUNNING BAD SQL <<<<<<<<<<<<");
-                            log.error(
-                                ">>>>>>>>>>> DB hash: {}",
-                                db
-                                    .hashCode()); // same object when retried, other statements have
-                                                  // a new one each time
-                          }
-                          db.get().toSelect(sql).queryMany(row -> row.getStringOrNull("message"));
-                          return sql;
-                        })
+                    Single.defer(() -> // remove this line to show buggy behavior
+                            dbb.transactRx(
+                                db -> {
+                                  if (sql.contains("SELECTXXXX")) {
+                                    log.error(">>>>>>>>>>> RUNNING BAD SQL <<<<<<<<<<<<");
+                                    log.error(
+                                        ">>>>>>>>>>> DB hash: {}",
+                                        db
+                                            .hashCode()); // same object when retried, other
+                                                          // statements have
+                                    // a new one each time
+                                  }
+                                  db.get()
+                                      .toSelect(sql)
+                                      .queryMany(row -> row.getStringOrNull("message"));
+                                  return sql;
+                                })
+                    ) // remove this line to show buggy behavior
                     .toObservable()
                     .retryWhen(
                         errors -> {

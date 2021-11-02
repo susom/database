@@ -36,12 +36,15 @@
 
   <properties>
     <vertx.version>4.1.2</vertx.version>
+    <rxjava2.version>2.2.21</rxjava2.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <checker.dir>/Users/garricko/projects/checker-framework-1.8.6</checker.dir>
     <skipTests>false</skipTests>
     <skipITs>${skipTests}</skipITs>
     <skipUTs>${skipTests}</skipUTs>
+    <maven.compiler.source>8</maven.compiler.source>
+    <maven.compiler.target>8</maven.compiler.target>
   </properties>
 
   <distributionManagement>
@@ -201,6 +204,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.32</version>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>${rxjava2.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>

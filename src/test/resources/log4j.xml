@@ -40,7 +40,7 @@
     </layout>
   </appender>
   <category name="com.github.susom">
-    <priority value="DEBUG"/>
+    <priority value="WARN"/>
   </category>
   <root>
     <appender-ref ref="CONSOLE.OUT"/>

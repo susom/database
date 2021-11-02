@@ -70,7 +70,7 @@ public class RxJavaRetryTester {
       if (i == 20) {
         sqlQueries.add("SELECTXXXX;");
       } else {
-        sqlQueries.add("select message from t where pk=1;");
+        sqlQueries.add("select message from t where pk=" + i + ";");
       }
     }
 
@@ -85,7 +85,9 @@ public class RxJavaRetryTester {
                             log.error(">>>>>>>>>>> RUNNING BAD SQL <<<<<<<<<<<<");
                             log.error(
                                 ">>>>>>>>>>> DB hash: {}",
-                                db.hashCode()); // same object when retried, other statements have a new one each time
+                                db
+                                    .hashCode()); // same object when retried, other statements have
+                                                  // a new one each time
                           }
                           db.get().toSelect(sql).queryMany(row -> row.getStringOrNull("message"));
                           return sql;

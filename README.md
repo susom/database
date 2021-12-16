@@ -1,7 +1,11 @@
 ## Easier, Safer Database Access
 
-[![Build Status](https://www.travis-ci.com/susom/database.svg?branch=master)](https://www.travis-ci.com/susom/database)
+[![Build Status](https://app.travis-ci.com/susom/database.svg?branch=master)](https://app.travis-ci.com/susom/database)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database)
+
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=susom_database&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=susom_database)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=susom_database&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=susom_database)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=susom_database&metric=coverage)](https://sonarcloud.io/summary/new_code?id=susom_database)
 
 The point of this project is to provide a simplified way of accessing databases. It is a
 wrapper around the JDBC driver, and tries to hide some of the more error-prone, unsafe, and non-portable
@@ -363,7 +367,7 @@ The library is available in the public Maven repository:
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
-  <version>3.3</version>
+  <version>4.0</version>
 </dependency>
 ```
 

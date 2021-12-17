@@ -1768,21 +1768,28 @@ public abstract class CommonTest {
   /**
    * Make sure database times are inserted with at least millisecond precision.
    * This test is non-deterministic since it is checking the timestamp provided
-   * by the database, so we use a retry mechanism to give it three attempts.
+   * by the database, so we use a retry to give it up to ten attempts.
    */
-  @Test @Retry
+  @Test
   public void dateMillis() {
-    new Schema()
-        .addTable("dbtest")
-        .addColumn("d").asDate().table().schema()
-        .execute(db);
+    for (int attempts = 1; attempts <= 10; attempts++) {
+      new Schema()
+          .addTable("dbtest")
+          .addColumn("d").asDate().table().schema()
+          .execute(db);
 
-    db.toInsert("insert into dbtest (d) values (?)")
-        .argDateNowPerDb()
-        .insert(1);
+      db.toInsert("insert into dbtest (d) values (?)")
+          .argDateNowPerDb()
+          .insert(1);
 
-    Date dbNow = db.toSelect("select d from dbtest").queryDateOrNull();
-    assertTrue("Timestamp had zero in the least significant digit", dbNow != null && dbNow.getTime() % 10 != 0);
+      Date dbNow = db.toSelect("select d from dbtest").queryDateOrNull();
+      if (dbNow != null && dbNow.getTime() % 10 != 0) {
+        return;
+      }
+      System.out.println("Zero in least significant digit (attempt " + attempts + ")");
+      db.dropTableQuietly(TEST_TABLE_NAME);
+    }
+    fail("Timestamp had zero in the least significant digit");
   }
 
   @Test

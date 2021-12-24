@@ -9,7 +9,7 @@
   <version>3.4-SNAPSHOT</version>
 
   <properties>
-    <checkerframework.version>2.1.14</checkerframework.version>
+    <checkerframework.version>2.11.1</checkerframework.version>
     <!-- Can't upgrade to 2.2.x yet because they changed the format of
          the stub files
     <checkerframework.version>2.2.0</checkerframework.version>

@@ -183,7 +183,7 @@
     <dependency>
       <groupId>com.oracle.database.jdbc</groupId>
       <artifactId>ojdbc8</artifactId>
-      <version>21.1.0.0</version>
+      <version>21.3.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -689,7 +689,7 @@
                 <argument>-Xmaxwarns</argument>
                 <argument>10000</argument>
                 <argument>-classpath</argument>
-                <classpath />
+                <classpath/>
                 <argument>-d</argument>
                 <argument>${project.build.directory}</argument>
                 <argument>${basedir}/src/main/java/com/github/susom/database/*.java</argument>

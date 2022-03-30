@@ -43,4 +43,4 @@ run_pg_tests 10
 run_pg_tests 11
 run_pg_tests 12
 run_pg_tests 13
-#run_pg_tests 14beta2
+run_pg_tests 14

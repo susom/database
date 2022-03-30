@@ -38,5 +38,6 @@ run_ms_tests() {
   docker rm -f dbtest-ms
 }
 
-run_ms_tests 2017-latest
+# The 2017 image seems to have a problem with daylight savings...
+#run_ms_tests 2017-latest
 run_ms_tests 2019-latest

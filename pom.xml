@@ -35,7 +35,7 @@
   </scm>
 
   <properties>
-    <vertx.version>4.2.4</vertx.version>
+    <vertx.version>4.2.5</vertx.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <checker.dir>/Users/garricko/projects/checker-framework-1.8.6</checker.dir>

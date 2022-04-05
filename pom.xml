@@ -229,8 +229,8 @@
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.32</version>
+      <artifactId>slf4j-reload4j</artifactId>
+      <version>1.7.36</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -592,7 +592,7 @@
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
-          <version>42.2.25</version>
+          <version>42.3.3</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -616,7 +616,7 @@
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
-          <version>42.2.25</version>
+          <version>42.3.3</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

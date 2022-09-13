@@ -25,6 +25,8 @@ import java.util.function.Supplier;
 
 import javax.annotation.CheckReturnValue;
 
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,7 +190,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    * loop thread (the same thread that is calling this method).
    */
   public <T> void transactAsync(final DbCodeTyped<T> code, Handler<AsyncResult<T>> resultHandler) {
-    VertxUtil.executeBlocking(executor,  future -> {
+    VertxUtil.executeBlocking(executor,  promise -> {
       try {
         T returnValue;
         boolean complete = false;
@@ -206,13 +208,22 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
             commitAndClose();
           }
         }
-        future.complete(returnValue);
+        promise.complete(returnValue);
       } catch (ThreadDeath t) {
         throw t;
       } catch (Throwable t) {
-        future.fail(t);
+        promise.fail(t);
       }
     }, resultHandler);
+  }
+
+  /**
+   * Future-returning variant of {@link #transactAsync(DbCodeTyped, Handler<AsyncResult)}.
+   */
+  public <T> Future<T> transactAsync(DbCodeTyped<T> code) {
+    Promise<T> promise = Promise.promise();
+    transactAsync(code, promise);
+    return promise.future();
   }
 
   /**
@@ -251,7 +262,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
    * loop thread (the same thread that is calling this method).
    */
   public <T> void transactAsync(final DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler) {
-    VertxUtil.executeBlocking(executor, future -> {
+    VertxUtil.executeBlocking(executor, promise -> {
       try {
         T returnValue = null;
         Transaction tx = new TransactionImpl();
@@ -272,13 +283,22 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
             commitAndClose();
           }
         }
-        future.complete(returnValue);
+        promise.complete(returnValue);
       } catch (ThreadDeath t) {
         throw t;
       } catch (Throwable t) {
-        future.fail(t);
+        promise.fail(t);
       }
     }, resultHandler);
+  }
+
+  /**
+   * Future-returning variant of {@link #transactAsync(DbCodeTypedTx, Handler)}.
+   */
+  public <T> Future<T> transactAsync(DbCodeTypedTx<T> code) {
+    Promise<T> promise = Promise.promise();
+    transactAsync(code, promise);
+    return promise.future();
   }
 
   /**
@@ -382,6 +402,15 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     <T> void transactAsync(DbCodeTyped<T> code, Handler<AsyncResult<T>> resultHandler);
 
     /**
+     * Future-returning variant of {@link #transactAsync(DbCodeTyped, Handler)}.
+     */
+    default <T> Future<T> transactAsync(DbCodeTyped<T> code) {
+      Promise<T> promise = Promise.promise();
+      transactAsync(code, promise);
+      return promise.future();
+    }
+
+    /**
      * This is a convenience method to eliminate the need for explicitly
      * managing the resources (and error handling) for this class. After
      * the run block is complete commit() will be called unless either the
@@ -394,6 +423,15 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
     void transact(DbCodeTx code);
 
     <T> void transactAsync(DbCodeTypedTx<T> code, Handler<AsyncResult<T>> resultHandler);
+
+    /**
+     * Future-returning variant of {@link #transactAsync(DbCodeTypedTx, Handler)}.
+     */
+    default <T> Future<T> transactAsync(DbCodeTypedTx<T> code) {
+      Promise<T> promise = Promise.promise();
+      transactAsync(code, promise);
+      return promise.future();
+    }
 
     void close();
   }

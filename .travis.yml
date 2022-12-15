@@ -22,8 +22,6 @@ jobs:
     - stage: test
       jdk:
         - openjdk8
-      addons:
-        srcclr: true
       before_script:
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
         # Disable SourceClear except on scheduled builds

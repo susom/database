@@ -1139,6 +1139,7 @@ public final class DatabaseProvider implements Supplier<Database> {
     int poolSize = config.getInteger("database.pool.size", 10);
     ds.setMaximumPoolSize(poolSize);
     ds.setAutoCommit(false);
+    ds.setConnectionInitSql(config.getString("database.conn.initsql"));
 
     Flavor flavor;
     String flavorString = config.getString("database.flavor");

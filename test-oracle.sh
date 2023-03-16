@@ -44,7 +44,7 @@ test_oracle() {
       "-Ddatabase.url=jdbc:oracle:thin:@localhost:1521:ORCLCDB" \
       -Ddatabase.user=testuser \
       -Ddatabase.password="TestPassword456" \
-      -P oracle19.only,coverage test
+      -P oracle12.only,coverage test
 }
 
 run_oracle_tests() {

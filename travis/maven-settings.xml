@@ -5,7 +5,7 @@
 
   <mirrors>
     <mirror>
-      <mirrorOf>*,!io.cloudrepo.rit-public-snapshot,!io.cloudrepo.rit-ext-private</mirrorOf>
+      <mirrorOf>*,!artifact-registry</mirrorOf>
       <url>https://repo.maven.apache.org/maven2/</url>
     </mirror>
   </mirrors>
@@ -14,8 +14,11 @@
       <id>travis-ci</id>
       <repositories>
         <repository>
-          <id>io.cloudrepo.rit-ext-private</id>
-          <url>https://susom.mycloudrepo.io/repositories/rit-ext-private</url>
+          <id>artifact-registry</id>
+          <url>https://us-west1-maven.pkg.dev/som-rit-infrastructure-prod/public-maven</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
           <snapshots>
             <enabled>false</enabled>
           </snapshots>
@@ -46,14 +49,27 @@
 
   <servers>
     <server>
-      <id>io.cloudrepo.rit-public-snapshot</id>
-      <username>${env.REPO_USERNAME}</username>
-      <password>${env.REPO_API_TOKEN}</password>
-    </server>
-    <server>
-      <id>io.cloudrepo.rit-ext-private</id>
-      <username>${env.REPO_USERNAME}</username>
-      <password>${env.REPO_API_TOKEN}</password>
+      <id>artifact-registry</id>
+        <configuration>
+          <httpConfiguration>
+            <get>
+              <usePreemptive>true</usePreemptive>
+            </get>
+            <head>
+              <usePreemptive>true</usePreemptive>
+            </head>
+            <put>
+              <params>
+                <property>
+                  <name>http.protocol.expect-continue</name>
+                  <value>false</value>
+                </property>
+              </params>
+            </put>
+          </httpConfiguration>
+        </configuration>
+        <username>_json_key_base64</username>
+        <password>${env.ARTIFACT_REGISTRY_KEY}</password>
     </server>
     <server>
       <id>ossrh</id>

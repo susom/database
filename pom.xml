@@ -5,6 +5,7 @@
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
   <packaging>jar</packaging>
+  <!-- Do not change this version (Travis relies on it) -->
   <version>4.1-SNAPSHOT</version>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -45,10 +46,10 @@
   </properties>
 
   <distributionManagement>
-    <snapshotRepository>
-      <id>io.cloudrepo.rit-public-snapshot</id>
-      <url>https://susom.mycloudrepo.io/repositories/rit-public-snapshot</url>
-    </snapshotRepository>
+    <repository>
+      <id>artifact-registry</id>
+      <url>https://us-west1-maven.pkg.dev/som-rit-infrastructure-prod/public-maven</url>
+    </repository>
     <repository>
       <id>ossrh</id>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>

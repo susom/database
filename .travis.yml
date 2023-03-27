@@ -55,6 +55,7 @@ jobs:
         - export TZ=America/Los_Angeles
         - date
         - echo "$ARTIFACT_REGISTRY_KEY" | docker login -u _json_key_base64 --password-stdin https://us-west1-docker.pkg.dev
+      # Testing Service account key auth
       # Skip the default mvn command because we want to set the profile explicitly
       install: skip
       script:

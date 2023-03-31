@@ -24,7 +24,7 @@ jobs:
         - openjdk8
       before_script:
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-        - sed -i "s/4.1-SNAPSHOT/build-$TRAVIS_BUILD_NUMBER/" pom.xml
+        - sed -i "s/-SNAPSHOT/-build-$TRAVIS_BUILD_NUMBER/" pom.xml
         # Disable SourceClear except on scheduled builds
         - |
           if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
@@ -53,7 +53,7 @@ jobs:
             secure: "OycpYUVhXJL8UZ4DvJN1u1iTWL4qvvCpm3YHh4Gm1xiB8Z81bhjE6be35mnDWreEMStPko2EIk01QS/0NMFGf8WP7JySsbMoK5llnbi8dEEHBRUvoJDu7uoJ1CdNkOOpT0sw1KKN87aap51Fe15YHJJrXHXbMWrbnWgPTqqjIkE="
       before_script:
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-        - sed -i "s/4.1-SNAPSHOT/build-$TRAVIS_BUILD_NUMBER/" pom.xml
+        - sed -i "s/-SNAPSHOT/-build-$TRAVIS_BUILD_NUMBER/" pom.xml
         - export TZ=America/Los_Angeles
         - date
         - echo "$ARTIFACT_REGISTRY_KEY" | docker login -u _json_key_base64 --password-stdin https://us-west1-docker.pkg.dev
@@ -75,16 +75,16 @@ jobs:
       script:
         - echo "deploy-snapshots"
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-        - sed -i "s/4.1-SNAPSHOT/build-$TRAVIS_BUILD_NUMBER/" pom.xml
+        - sed -i "s/-SNAPSHOT/-build-$TRAVIS_BUILD_NUMBER/" pom.xml
         # When push to master occurs, all the versions should be -SNAPSHOTs and we will auto-deploy
-        - mvn --batch-mode -e -DskipTests=true deploy
+        - mvn --batch-mode -e -DskipTests=true deploy -DrepositoryId=artifact-registry -Durl=https://us-west1-maven.pkg.dev/som-rit-infrastructure-prod/public-maven 
     - stage: release-check
       jdk:
         - openjdk8
       script:
         - echo "release-check"
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-        - sed -i "s/4.1-SNAPSHOT/build-$TRAVIS_BUILD_NUMBER/" pom.xml
+        - sed -i "s/-SNAPSHOT/-build-$TRAVIS_BUILD_NUMBER/" pom.xml
         # Ensure we don't have any external SNAPSHOT dependencies
         - mvn --batch-mode release:prepare -DskipTests=true -DdryRun=true
     - stage: release
@@ -93,7 +93,7 @@ jobs:
       script:
         - echo "release"
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-        - sed -i "s/4.1-SNAPSHOT/build-$TRAVIS_BUILD_NUMBER/" pom.xml
+        - sed -i "s/-SNAPSHOT/-build-$TRAVIS_BUILD_NUMBER/" pom.xml
         # Git fix based on: https://github.com/sbt/sbt-release/issues/210
         - echo "Fixing git setup for $TRAVIS_BRANCH in preparation for release"
         - git checkout ${TRAVIS_BRANCH}

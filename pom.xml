@@ -46,10 +46,8 @@
 
   <distributionManagement>
     <repository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-     <!--  <id>artifact-registry</id>
-      <url>https://us-west1-maven.pkg.dev/som-rit-infrastructure-prod/public-maven</url>  -->
+      <id>artifact-registry</id>
+      <url>https://us-west1-maven.pkg.dev/som-rit-infrastructure-prod/public-maven</url>
     </repository>
   </distributionManagement>
 
@@ -738,6 +736,12 @@
         <gpg.keyname>${env.GPG_KEY_NAME}</gpg.keyname>
         <gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
       </properties>
+      <distributionManagement>
+        <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
       <build>
         <plugins>
           <plugin>

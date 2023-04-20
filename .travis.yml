@@ -77,7 +77,7 @@ jobs:
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
         - sed -i "s/-SNAPSHOT/-build-$TRAVIS_BUILD_NUMBER/" pom.xml
         # When push to master occurs, all the versions should be -SNAPSHOTs and we will auto-deploy
-        - mvn --batch-mode -e -DskipTests=true deploy -DrepositoryId=artifact-registry -Durl=https://us-west1-maven.pkg.dev/som-rit-infrastructure-prod/public-maven 
+        - mvn --batch-mode -e -DskipTests=true deploy
     - stage: release-check
       jdk:
         - openjdk8

@@ -63,7 +63,7 @@ public class DdlImpl implements Ddl {
       close(ps);
       metric.checkpoint("close");
       // PostgreSQL requires explicit commit since we are running with setAutoCommit(false)
-      commit(connection);
+      commitIfNecessary(connection);
       metric.done("commit");
       if (isSuccess) {
         DebugSql.logSuccess("DDL", log, metric, sql, null, options);
@@ -99,10 +99,12 @@ public class DdlImpl implements Ddl {
     }
   }
 
-  private void commit(Connection c) {
+  private void commitIfNecessary(Connection c) {
     if (c != null) {
       try {
-        c.commit();
+        if (!c.getAutoCommit()) {
+          c.commit();
+        }
       } catch (Exception e) {
         log.warn("Caught exception on commit", e);
       }

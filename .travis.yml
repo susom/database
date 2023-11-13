@@ -59,13 +59,13 @@ jobs:
         - echo "$ARTIFACT_REGISTRY_KEY" | docker login -u _json_key_base64 --password-stdin https://us-west1-docker.pkg.dev
       # Skip the default mvn command because we want to set the profile explicitly
       install: skip
-      script:
-        - echo "test-jdk11"
-        - mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P coverage,hsqldb verify
-        - bash test-postgres.sh
-        - bash test-sqlserver.sh
-        - bash test-oracle.sh
-        - mvn -e org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
+      script: |
+        echo "test-jdk11" &&
+        mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P coverage,hsqldb verify &&
+        bash test-postgres.sh &&
+        bash test-sqlserver.sh &&
+        bash test-oracle.sh &&
+        mvn -e org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
       after_failure:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done

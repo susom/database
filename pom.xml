@@ -38,7 +38,6 @@
     <vertx.version>4.2.6</vertx.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <checker.dir>/Users/garricko/projects/checker-framework-1.8.6</checker.dir>
     <skipTests>false</skipTests>
     <skipITs>${skipTests}</skipITs>
     <skipUTs>${skipTests}</skipUTs>
@@ -356,56 +355,6 @@
       </build>
     </profile>
     <profile>
-      <!-- TODO: Had to disable some plugins that didn't work with Java 11 -->
-      <id>jdk11</id>
-      <activation>
-        <jdk>11</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <source>11</source>
-              <target>11</target>
-<!--              <compilerId>javac-with-errorprone</compilerId>-->
-<!--              <forceJavacCompilerUse>true</forceJavacCompilerUse>-->
-            </configuration>
-<!--            <dependencies>-->
-<!--              <dependency>-->
-<!--                <groupId>org.codehaus.plexus</groupId>-->
-<!--                <artifactId>plexus-compiler-javac-errorprone</artifactId>-->
-<!--                <version>2.8.2</version>-->
-<!--              </dependency>-->
-<!--              <dependency>-->
-<!--                <groupId>com.google.errorprone</groupId>-->
-<!--                <artifactId>error_prone_core</artifactId>-->
-<!--                <version>2.1.1</version>-->
-<!--              </dependency>-->
-<!--            </dependencies>-->
-          </plugin>
-<!--          <plugin>-->
-<!--            <groupId>org.codehaus.mojo</groupId>-->
-<!--            <artifactId>findbugs-maven-plugin</artifactId>-->
-<!--            <version>3.0.5</version>-->
-<!--            <configuration>-->
-<!--              <effort>Max</effort>-->
-<!--              <threshold>High</threshold>-->
-<!--              <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>-->
-<!--            </configuration>-->
-<!--            <executions>-->
-<!--              <execution>-->
-<!--                <phase>compile</phase>-->
-<!--                <goals>-->
-<!--                  <goal>check</goal>-->
-<!--                </goals>-->
-<!--              </execution>-->
-<!--            </executions>-->
-<!--          </plugin>-->
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>oracle</id>
       <build>
         <plugins>
@@ -686,58 +635,6 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>checker</id>
-      <build>
-        <defaultGoal>generate-sources</defaultGoal>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <version>3.0.1</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>properties</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.6.0</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <phase>generate-sources</phase>
-              </execution>
-            </executions>
-            <configuration>
-              <executable>${checker.dir}/checker/bin/javac</executable>
-              <classpathScope>test</classpathScope>
-              <arguments>
-                <argument>-processor</argument>
-                <argument>org.checkerframework.checker.tainting.TaintingChecker</argument>
-                <argument>-Astubs=src/main/resources</argument>
-                <argument>-AprintErrorStack</argument>
-                <argument>-Xmaxwarns</argument>
-                <argument>10000</argument>
-                <argument>-classpath</argument>
-                <classpath/>
-                <argument>-d</argument>
-                <argument>${project.build.directory}</argument>
-                <argument>${basedir}/src/main/java/com/github/susom/database/*.java</argument>
-                <argument>${basedir}/src/test/java/com/github/susom/database/test/*.java</argument>
-              </arguments>
-            </configuration>
           </plugin>
         </plugins>
       </build>

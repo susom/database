@@ -293,13 +293,23 @@
     <dependency>
       <groupId>com.github.stefanbirkner</groupId>
       <artifactId>system-rules</artifactId>
-      <version>1.18.0</version>
+      <version>1.19.0</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit-dep</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>9.4.46.v20220331</version>
+      <version>9.4.51.v20230217</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -487,7 +497,7 @@
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
-          <version>42.4.1</version>
+          <version>42.5.1</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

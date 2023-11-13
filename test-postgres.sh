@@ -44,3 +44,4 @@ run_pg_tests 11
 run_pg_tests 12-bullseye
 run_pg_tests 13-bullseye
 run_pg_tests 14-bullseye
+run_pg_tests 15-bullseye

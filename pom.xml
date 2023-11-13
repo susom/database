@@ -306,30 +306,6 @@
 
   <profiles>
     <profile>
-      <id>oracle</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <includes combine.children="append">
-                <include>**/*Oracle*</include>
-              </includes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle.ojdbc</groupId>
-          <artifactId>ojdbc6</artifactId>
-          <version>11.2.0.3</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
       <id>oracle12</id>
       <build>
         <plugins>
@@ -376,29 +352,6 @@
     </profile>
 
     <profile>
-      <id>oracle18</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <includes combine.children="append">
-                <include>**/*Oracle*</include>
-              </includes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc8</artifactId>
-          <version>18.3</version>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
       <id>oracle19</id>
       <build>
         <plugins>
@@ -414,9 +367,9 @@
       </build>
       <dependencies>
         <dependency>
-          <groupId>com.oracle</groupId>
+          <groupId>com.oracle.database.jdbc</groupId>
           <artifactId>ojdbc8</artifactId>
-          <version>19.3</version>
+          <version>19.21.0.0</version>
         </dependency>
       </dependencies>
     </profile>
@@ -439,7 +392,7 @@
         <dependency>
           <groupId>com.oracle.database.jdbc</groupId>
           <artifactId>ojdbc8</artifactId>
-          <version>19.11.0.0</version>
+          <version>19.21.0.0</version>
         </dependency>
       </dependencies>
     </profile>

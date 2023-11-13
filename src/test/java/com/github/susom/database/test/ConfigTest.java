@@ -88,28 +88,28 @@ public class ConfigTest {
     // Throw a null in here just to make sure it doesn't blow up
     Config config = ConfigFrom.firstOf().propertyFile(filename1, null, filename2).get();
 
-    assertEquals(new Integer(1), config.getInteger("foo"));
-    assertEquals(new Integer(-2), config.getInteger("foo2"));
+    assertEquals(Integer.valueOf(1), config.getInteger("foo"));
+    assertEquals(Integer.valueOf(-2), config.getInteger("foo2"));
     assertNull(config.getInteger("unknown"));
     assertEquals(5, config.getInteger("unknown", 5));
 
     // Now flip the order and verify precedence works
     config = ConfigFrom.firstOf().propertyFile(filename2, null, filename1).get();
-    assertEquals(new Integer(2), config.getInteger("foo"));
-    assertEquals(new Integer(-2), config.getInteger("foo2"));
+    assertEquals(Integer.valueOf(2), config.getInteger("foo"));
+    assertEquals(Integer.valueOf(-2), config.getInteger("foo2"));
 
     // Same as above tests, but using File version rather than filename String
     config = ConfigFrom.firstOf().propertyFile(new File(filename1), new File("does not exist"), new File(filename2)).get();
 
-    assertEquals(new Integer(1), config.getInteger("foo"));
-    assertEquals(new Integer(-2), config.getInteger("foo2"));
+    assertEquals(Integer.valueOf(1), config.getInteger("foo"));
+    assertEquals(Integer.valueOf(-2), config.getInteger("foo2"));
     assertNull(config.getInteger("unknown"));
     assertEquals(5, config.getInteger("unknown", 5));
 
     // Now flip the order and verify precedence works
     config = ConfigFrom.firstOf().propertyFile(new File(filename2), null, new File(filename1)).get();
-    assertEquals(new Integer(2), config.getInteger("foo"));
-    assertEquals(new Integer(-2), config.getInteger("foo2"));
+    assertEquals(Integer.valueOf(2), config.getInteger("foo"));
+    assertEquals(Integer.valueOf(-2), config.getInteger("foo2"));
   }
 
   @Test
@@ -225,7 +225,7 @@ public class ConfigTest {
   public void testInteger() throws Exception {
     Config config = ConfigFrom.firstOf().value("good", "123").value("bad", "hi").get();
 
-    assertEquals(new Integer(123), config.getInteger("good"));
+    assertEquals(Integer.valueOf(123), config.getInteger("good"));
     assertNull(config.getInteger("bad"));
     assertNull(config.getInteger("missing"));
     assertEquals(123, config.getInteger("good", 5));
@@ -237,7 +237,7 @@ public class ConfigTest {
   public void testLong() throws Exception {
     Config config = ConfigFrom.firstOf().value("good", "123").value("bad", "hi").get();
 
-    assertEquals(new Long(123), config.getLong("good"));
+    assertEquals(Long.valueOf(123), config.getLong("good"));
     assertNull(config.getLong("bad"));
     assertNull(config.getLong("missing"));
     assertEquals(123, config.getLong("good", 5));
@@ -249,7 +249,7 @@ public class ConfigTest {
   public void testFloat() throws Exception {
     Config config = ConfigFrom.firstOf().value("good", "123.45").value("bad", "hi").get();
 
-    assertEquals(new Float(123.45f), config.getFloat("good"));
+    assertEquals(Float.valueOf(123.45f), config.getFloat("good"));
     assertNull(config.getFloat("bad"));
     assertNull(config.getFloat("missing"));
     assertEquals(123.45, config.getFloat("good", 5.45f), 0.001);
@@ -261,7 +261,7 @@ public class ConfigTest {
   public void testDouble() throws Exception {
     Config config = ConfigFrom.firstOf().value("good", "123.45").value("bad", "hi").get();
 
-    assertEquals(new Double(123.45), config.getDouble("good"));
+    assertEquals(Double.valueOf(123.45), config.getDouble("good"));
     assertNull(config.getDouble("bad"));
     assertNull(config.getDouble("missing"));
     assertEquals(123.45, config.getDouble("good", 5.45), 0.001);

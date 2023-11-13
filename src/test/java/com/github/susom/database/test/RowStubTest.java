@@ -11,7 +11,6 @@ import java.time.LocalDate;
 import java.util.Date;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -52,10 +51,10 @@ public class RowStubTest {
     rowStubMockDao.create(data, 1L);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(1L), data.getDataId());
+    assertEquals(Long.valueOf(1L), data.getDataId());
     assertEquals("Foo", data.getName());
     assertEquals(localDateNow, data.getLocalDate());
-    assertEquals(new Integer(0), data.getUpdateSequence());
+    assertEquals(Integer.valueOf(0), data.getUpdateSequence());
     assertEquals(now, data.getUpdateTime());
 
     // Verify SQL executed against golden copies
@@ -74,10 +73,10 @@ public class RowStubTest {
     RowStubMockData data = rowStubMockDao.findById(12L, RowStubMockDao.ColumnLookupType.BY_ORDER, false);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(12L), data.getDataId());
+    assertEquals(Long.valueOf(12L), data.getDataId());
     assertEquals("Foo", data.getName());
     assertEquals(localDateNow, data.getLocalDate());
-    assertEquals(new Integer(3), data.getUpdateSequence());
+    assertEquals(Integer.valueOf(3), data.getUpdateSequence());
     assertEquals(now, data.getUpdateTime());
 
     // Verify database queries against golden copies
@@ -96,10 +95,10 @@ public class RowStubTest {
     RowStubMockData data = rowStubMockDao.findById(13L, RowStubMockDao.ColumnLookupType.BY_NAME, false);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(13L), data.getDataId());
+    assertEquals(Long.valueOf(13L), data.getDataId());
     assertEquals("Foo", data.getName());
     assertEquals(localDateNow, data.getLocalDate());
-    assertEquals(new Integer(3), data.getUpdateSequence());
+    assertEquals(Integer.valueOf(3), data.getUpdateSequence());
     assertEquals(now, data.getUpdateTime());
 
     // Verify database queries against golden copies
@@ -118,10 +117,10 @@ public class RowStubTest {
     RowStubMockData data = rowStubMockDao.findById(15L, RowStubMockDao.ColumnLookupType.BY_NUMBER, true);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(15L), data.getDataId());
+    assertEquals(Long.valueOf(15L), data.getDataId());
     assertEquals("Foo", data.getName());
     assertEquals(localDateNow, data.getLocalDate());
-    assertEquals(new Integer(3), data.getUpdateSequence());
+    assertEquals(Integer.valueOf(3), data.getUpdateSequence());
     assertEquals(now, data.getUpdateTime());
 
     // Verify database queries against golden copies
@@ -146,10 +145,10 @@ public class RowStubTest {
     rowStubMockDao.update(data, 23L);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(100L), data.getDataId());
+    assertEquals(Long.valueOf(100L), data.getDataId());
     assertEquals("Foo", data.getName());
     assertEquals(localDateNow, data.getLocalDate());
-    assertEquals(new Integer(14), data.getUpdateSequence());
+    assertEquals(Integer.valueOf(14), data.getUpdateSequence());
     assertEquals(now, data.getUpdateTime());
 
     // Verify database queries against golden copies
@@ -169,9 +168,9 @@ public class RowStubTest {
     rowStubMockDao.delete(data, 23L);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(100L), data.getDataId());
+    assertEquals(Long.valueOf(100L), data.getDataId());
     assertEquals("Foo", data.getName());
-    assertEquals(new Integer(14), data.getUpdateSequence());
+    assertEquals(Integer.valueOf(14), data.getUpdateSequence());
     assertEquals(now, data.getUpdateTime());
 
     // Verify database queries against golden copies

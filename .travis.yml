@@ -1,4 +1,6 @@
 language: java
+jdk:
+  - openjdk17
 
 services:
   - docker
@@ -9,7 +11,6 @@ cache:
 
 stages:
   - test
-  - test-jdk11
   - name: deploy-snapshots
     if: branch = master AND type = push
   - name: release-check
@@ -20,32 +21,6 @@ stages:
 jobs:
   include:
     - stage: test
-      jdk:
-        - openjdk8
-      before_script:
-        - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-        - sed -i "s/-SNAPSHOT/-build-$TRAVIS_BUILD_NUMBER/" pom.xml
-        # Disable SourceClear except on scheduled builds
-        - |
-          if [ "$TRAVIS_EVENT_TYPE" != "cron" ]
-          then
-            export NOSCAN=1
-          fi
-        - export TZ=America/Los_Angeles
-        - date
-      # Skip the default mvn command because we want to set the profile explicitly
-      install: skip
-      script:
-        - echo "test"
-        - mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P hsqldb verify
-      after_failure:
-        - echo "\n=== SUREFIRE REPORTS ===\n"
-        - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
-    - stage: test-jdk11
-      jdk:
-        - openjdk11
-      git:
-        depth: false
       addons:
         sonarcloud:
           organization: "susom"
@@ -60,8 +35,8 @@ jobs:
       # Skip the default mvn command because we want to set the profile explicitly
       install: skip
       script: |
-        echo "test-jdk11" &&
-        mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -P coverage,hsqldb verify &&
+        echo "test" &&
+        mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Pcoverage,hsqldb verify &&
         bash test-postgres.sh &&
         bash test-sqlserver.sh &&
         bash test-oracle.sh &&
@@ -70,8 +45,6 @@ jobs:
         - echo "\n=== SUREFIRE REPORTS ===\n"
         - for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
     - stage: deploy-snapshots
-      jdk:
-        - openjdk8
       script:
         - echo "deploy-snapshots"
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
@@ -79,8 +52,6 @@ jobs:
         # When push to master occurs, all the versions should be -SNAPSHOTs and we will auto-deploy
         - mvn --batch-mode -e -DskipTests=true deploy
     - stage: release-check
-      jdk:
-        - openjdk8
       script:
         - echo "release-check"
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
@@ -88,8 +59,6 @@ jobs:
         # Ensure we don't have any external SNAPSHOT dependencies
         - mvn --batch-mode release:prepare -DskipTests=true -DdryRun=true
     - stage: release
-      jdk:
-        - openjdk8
       script:
         - echo "release"
         - cp ./travis/maven-settings.xml $HOME/.m2/settings.xml

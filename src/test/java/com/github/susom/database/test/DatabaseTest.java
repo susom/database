@@ -111,7 +111,7 @@ public class DatabaseTest {
 
     replay(c, ps, rs);
 
-    assertEquals(new Long(1), new DatabaseImpl(c, options).toSelect("select 1 from dual").queryLongOrNull());
+    assertEquals(Long.valueOf(1), new DatabaseImpl(c, options).toSelect("select 1 from dual").queryLongOrNull());
 
     verify(c, ps, rs);
   }
@@ -239,7 +239,7 @@ public class DatabaseTest {
     ResultSet rs = control.createMock(ResultSet.class);
 
     expect(c.prepareStatement("select a from b where c=?")).andReturn(ps);
-    ps.setObject(eq(1), eq(new Long(1)));
+    ps.setObject(eq(1), eq(Long.valueOf(1)));
     expect(ps.executeQuery()).andReturn(rs);
     expect(rs.next()).andReturn(false);
     rs.close();
@@ -327,7 +327,7 @@ public class DatabaseTest {
     ResultSet rs = control.createMock(ResultSet.class);
 
     expect(c.prepareStatement("select ':a' from b where c=?")).andReturn(ps);
-    ps.setObject(eq(1), eq(new Long(1)));
+    ps.setObject(eq(1), eq(Long.valueOf(1)));
     expect(ps.executeQuery()).andReturn(rs);
     expect(rs.next()).andReturn(false);
     rs.close();

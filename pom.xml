@@ -79,7 +79,6 @@
         <configuration>
           <source>17</source>
           <target>17</target>
-<!--          <compilerArgs>-Xlint:deprecation</compilerArgs>-->
         </configuration>
       </plugin>
       <plugin>

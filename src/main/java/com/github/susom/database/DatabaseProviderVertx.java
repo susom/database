@@ -218,7 +218,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
   }
 
   /**
-   * Future-returning variant of {@link #transactAsync(DbCodeTyped, Handler<AsyncResult)}.
+   * Future-returning variant of {@link #transactAsync(DbCodeTyped, Handler)}.
    */
   public <T> Future<T> transactAsync(DbCodeTyped<T> code) {
     Promise<T> promise = Promise.promise();

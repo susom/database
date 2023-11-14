@@ -179,20 +179,20 @@ public abstract class CommonTest {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
-        assertEquals(new Integer(1), rs.getIntegerOrNull(1));
-        assertEquals(new Integer(1), rs.getIntegerOrNull("nbr_integer"));
+        assertEquals(Integer.valueOf(1), rs.getIntegerOrNull(1));
+        assertEquals(Integer.valueOf(1), rs.getIntegerOrNull("nbr_integer"));
         assertEquals(1, rs.getIntegerOrZero(1));
         assertEquals(1, rs.getIntegerOrZero("nbr_integer"));
-        assertEquals(new Long(2), rs.getLongOrNull(2));
-        assertEquals(new Long(2), rs.getLongOrNull("nbr_long"));
+        assertEquals(Long.valueOf(2), rs.getLongOrNull(2));
+        assertEquals(Long.valueOf(2), rs.getLongOrNull("nbr_long"));
         assertEquals(2, rs.getLongOrZero(2));
         assertEquals(2, rs.getLongOrZero("nbr_long"));
-        assertEquals(new Float(3.2f), rs.getFloatOrNull(3));
-        assertEquals(new Float(3.2f), rs.getFloatOrNull("nbr_float"));
+        assertEquals(Float.valueOf(3.2f), rs.getFloatOrNull(3));
+        assertEquals(Float.valueOf(3.2f), rs.getFloatOrNull("nbr_float"));
         assertEquals(3.2, rs.getFloatOrZero(3), 0.01);
         assertEquals(3.2, rs.getFloatOrZero("nbr_float"), 0.01);
-        assertEquals(new Double(4.2), rs.getDoubleOrNull(4));
-        assertEquals(new Double(4.2), rs.getDoubleOrNull("nbr_double"));
+        assertEquals(Double.valueOf(4.2), rs.getDoubleOrNull(4));
+        assertEquals(Double.valueOf(4.2), rs.getDoubleOrNull("nbr_double"));
         assertEquals(4.2, rs.getDoubleOrZero(4), 0.01);
         assertEquals(4.2, rs.getDoubleOrZero("nbr_double"), 0.01);
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull(5));
@@ -229,10 +229,10 @@ public abstract class CommonTest {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
-        assertEquals(new Integer(1), rs.getIntegerOrNull());
-        assertEquals(new Long(2), rs.getLongOrNull());
-        assertEquals(new Float(3.2f), rs.getFloatOrNull());
-        assertEquals(new Double(4.2), rs.getDoubleOrNull());
+        assertEquals(Integer.valueOf(1), rs.getIntegerOrNull());
+        assertEquals(Long.valueOf(2), rs.getLongOrNull());
+        assertEquals(Float.valueOf(3.2f), rs.getFloatOrNull());
+        assertEquals(Double.valueOf(4.2), rs.getDoubleOrNull());
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull());
         assertEquals("Hello", rs.getStringOrNull());
         assertEquals("T", rs.getStringOrNull());
@@ -317,7 +317,7 @@ public abstract class CommonTest {
       }
     });
 
-    assertEquals(new Long(1), db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
+    assertEquals(Long.valueOf(1), db.toSelect("select count(*) from dbtest where nbr_integer=:i and nbr_long=:l and "
         + "abs(nbr_float-:f)<0.01 and abs(nbr_double-:d)<0.01 and nbr_big_decimal=:bd and str_varchar=:s "
         + "and str_fixed=:sf and date_millis=:date and local_date=:local_date").argInteger("i", 1).argLong("l", 2L).argFloat("f", 3.2f)
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
@@ -328,7 +328,7 @@ public abstract class CommonTest {
         .argDouble("d", 4.2).argBigDecimal("bd", bigDecimal).argString("s", "Hello").argString("sf", "T")
         .argDate("date", now).argLocalDate("local_date", localDateNow).queryLongs();
     assertEquals(1, result.size());
-    assertEquals(new Long(1), result.get(0));
+    assertEquals(Long.valueOf(1), result.get(0));
   }
 
   @Test
@@ -408,14 +408,14 @@ public abstract class CommonTest {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
-        assertEquals(new Integer(1), rs.getIntegerOrNull(1));
-        assertEquals(new Integer(1), rs.getIntegerOrNull("nbr_integer"));
-        assertEquals(new Long(2), rs.getLongOrNull(2));
-        assertEquals(new Long(2), rs.getLongOrNull("nbr_long"));
-        assertEquals(new Float(3.2f), rs.getFloatOrNull(3));
-        assertEquals(new Float(3.2f), rs.getFloatOrNull("nbr_float"));
-        assertEquals(new Double(4.2), rs.getDoubleOrNull(4));
-        assertEquals(new Double(4.2), rs.getDoubleOrNull("nbr_double"));
+        assertEquals(Integer.valueOf(1), rs.getIntegerOrNull(1));
+        assertEquals(Integer.valueOf(1), rs.getIntegerOrNull("nbr_integer"));
+        assertEquals(Long.valueOf(2), rs.getLongOrNull(2));
+        assertEquals(Long.valueOf(2), rs.getLongOrNull("nbr_long"));
+        assertEquals(Float.valueOf(3.2f), rs.getFloatOrNull(3));
+        assertEquals(Float.valueOf(3.2f), rs.getFloatOrNull("nbr_float"));
+        assertEquals(Double.valueOf(4.2), rs.getDoubleOrNull(4));
+        assertEquals(Double.valueOf(4.2), rs.getDoubleOrNull("nbr_double"));
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull(5));
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull("nbr_big_decimal"));
         assertEquals("Hello", rs.getStringOrNull(6));
@@ -533,14 +533,14 @@ public abstract class CommonTest {
       @Override
       public Void process(Rows rs) throws Exception {
         assertTrue(rs.next());
-        assertEquals(new Integer(1), rs.getIntegerOrNull(1));
-        assertEquals(new Integer(1), rs.getIntegerOrNull("nbr_integer"));
-        assertEquals(new Long(2), rs.getLongOrNull(2));
-        assertEquals(new Long(2), rs.getLongOrNull("nbr_long"));
-        assertEquals(new Float(3.2f), rs.getFloatOrNull(3));
-        assertEquals(new Float(3.2f), rs.getFloatOrNull("nbr_float"));
-        assertEquals(new Double(4.2), rs.getDoubleOrNull(4));
-        assertEquals(new Double(4.2), rs.getDoubleOrNull("nbr_double"));
+        assertEquals(Integer.valueOf(1), rs.getIntegerOrNull(1));
+        assertEquals(Integer.valueOf(1), rs.getIntegerOrNull("nbr_integer"));
+        assertEquals(Long.valueOf(2), rs.getLongOrNull(2));
+        assertEquals(Long.valueOf(2), rs.getLongOrNull("nbr_long"));
+        assertEquals(Float.valueOf(3.2f), rs.getFloatOrNull(3));
+        assertEquals(Float.valueOf(3.2f), rs.getFloatOrNull("nbr_float"));
+        assertEquals(Double.valueOf(4.2), rs.getDoubleOrNull(4));
+        assertEquals(Double.valueOf(4.2), rs.getDoubleOrNull("nbr_double"));
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull(5));
         assertEquals(new BigDecimal("5.3"), rs.getBigDecimalOrNull("nbr_big_decimal"));
         assertEquals("Hello", rs.getStringOrNull(6));
@@ -1330,11 +1330,11 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asInteger().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argInteger(Integer.MIN_VALUE).insert(1);
-    assertEquals(new Integer(Integer.MIN_VALUE),
+    assertEquals(Integer.valueOf(Integer.MIN_VALUE),
         db.toSelect("select i from dbtest where i=?").argInteger(Integer.MIN_VALUE).queryIntegerOrNull());
 
     db.toInsert("insert into dbtest (i) values (?)").argInteger(Integer.MAX_VALUE).insert(1);
-    assertEquals(new Integer(Integer.MAX_VALUE),
+    assertEquals(Integer.valueOf(Integer.MAX_VALUE),
         db.toSelect("select i from dbtest where i=?").argInteger(Integer.MAX_VALUE).queryIntegerOrNull());
   }
 
@@ -1343,11 +1343,11 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asLong().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argLong(Long.MIN_VALUE).insert(1);
-    assertEquals(new Long(Long.MIN_VALUE),
+    assertEquals(Long.valueOf(Long.MIN_VALUE),
         db.toSelect("select i from dbtest where i=?").argLong(Long.MIN_VALUE).queryLongOrNull());
 
     db.toInsert("insert into dbtest (i) values (?)").argLong(Long.MAX_VALUE).insert(1);
-    assertEquals(new Long(Long.MAX_VALUE),
+    assertEquals(Long.valueOf(Long.MAX_VALUE),
         db.toSelect("select i from dbtest where i=?").argLong(Long.MAX_VALUE).queryLongOrNull());
   }
 
@@ -1356,11 +1356,11 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.MIN_VALUE).insert(1);
-    assertEquals(new Float(Float.MIN_VALUE),
+    assertEquals(Float.valueOf(Float.MIN_VALUE),
         db.toSelect("select i from dbtest where i=?").argFloat(Float.MIN_VALUE).queryFloatOrNull());
 
     db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.MAX_VALUE).insert(1);
-    assertEquals(new Float(Float.MAX_VALUE),
+    assertEquals(Float.valueOf(Float.MAX_VALUE),
         db.toSelect("select i from dbtest where i=?").argFloat(Float.MAX_VALUE).queryFloatOrNull());
   }
 
@@ -1369,7 +1369,7 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.NaN).insert(1);
-    assertEquals(new Float(Float.NaN),
+    assertEquals(Float.valueOf(Float.NaN),
         db.toSelect("select i from dbtest where i=?").argFloat(Float.NaN).queryFloatOrNull());
   }
 
@@ -1378,11 +1378,11 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.NEGATIVE_INFINITY).insert(1);
-    assertEquals(new Float(Float.NEGATIVE_INFINITY),
+    assertEquals(Float.valueOf(Float.NEGATIVE_INFINITY),
         db.toSelect("select i from dbtest where i=?").argFloat(Float.NEGATIVE_INFINITY).queryFloatOrNull());
 
     db.toInsert("insert into dbtest (i) values (?)").argFloat(Float.POSITIVE_INFINITY).insert(1);
-    assertEquals(new Float(Float.POSITIVE_INFINITY),
+    assertEquals(Float.valueOf(Float.POSITIVE_INFINITY),
         db.toSelect("select i from dbtest where i=?").argFloat(Float.POSITIVE_INFINITY).queryFloatOrNull());
   }
 
@@ -1391,7 +1391,7 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argFloat(0f).insert(1);
-    assertEquals(new Float(0f),
+    assertEquals(Float.valueOf(0f),
         db.toSelect("select i from dbtest where i=?").argFloat(0f).queryFloatOrNull());
   }
 
@@ -1400,7 +1400,7 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asFloat().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argFloat(-0f).insert(1);
-    assertEquals(new Float(-0f),
+    assertEquals(Float.valueOf(-0f),
         db.toSelect("select i from dbtest where i=?").argFloat(-0f).queryFloatOrNull());
   }
 
@@ -1409,11 +1409,11 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.MIN_VALUE).insert(1);
-    assertEquals(new Double(Double.MIN_VALUE),
+    assertEquals(Double.valueOf(Double.MIN_VALUE),
         db.toSelect("select i from dbtest where i=?").argDouble(Double.MIN_VALUE).queryDoubleOrNull());
 
     db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.MAX_VALUE).insert(1);
-    assertEquals(new Double(Double.MAX_VALUE),
+    assertEquals(Double.valueOf(Double.MAX_VALUE),
         db.toSelect("select i from dbtest where i=?").argDouble(Double.MAX_VALUE).queryDoubleOrNull());
   }
 
@@ -1422,7 +1422,7 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.NaN).insert(1);
-    assertEquals(new Double(Double.NaN),
+    assertEquals(Double.valueOf(Double.NaN),
         db.toSelect("select i from dbtest where i=?").argDouble(Double.NaN).queryDoubleOrNull());
   }
 
@@ -1431,11 +1431,11 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.NEGATIVE_INFINITY).insert(1);
-    assertEquals(new Double(Double.NEGATIVE_INFINITY),
+    assertEquals(Double.valueOf(Double.NEGATIVE_INFINITY),
         db.toSelect("select i from dbtest where i=?").argDouble(Double.NEGATIVE_INFINITY).queryDoubleOrNull());
 
     db.toInsert("insert into dbtest (i) values (?)").argDouble(Double.POSITIVE_INFINITY).insert(1);
-    assertEquals(new Double(Double.POSITIVE_INFINITY),
+    assertEquals(Double.valueOf(Double.POSITIVE_INFINITY),
         db.toSelect("select i from dbtest where i=?").argDouble(Double.POSITIVE_INFINITY).queryDoubleOrNull());
   }
 
@@ -1444,7 +1444,7 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argDouble(0d).insert(1);
-    assertEquals(new Double(0d),
+    assertEquals(Double.valueOf(0d),
         db.toSelect("select i from dbtest where i=?").argDouble(0d).queryDoubleOrNull());
   }
 
@@ -1453,7 +1453,7 @@ public abstract class CommonTest {
     new Schema().addTable("dbtest").addColumn("i").asDouble().schema().execute(db);
 
     db.toInsert("insert into dbtest (i) values (?)").argDouble(-0d).insert(1);
-    assertEquals(new Double(-0d),
+    assertEquals(Double.valueOf(-0d),
         db.toSelect("select i from dbtest where i=?").argDouble(-0d).queryDoubleOrNull());
   }
 
@@ -1522,9 +1522,9 @@ public abstract class CommonTest {
     db.ddl("create table dbtest (pk numeric)").execute();
     db.ddl("create sequence dbtest_seq start with 1").execute();
 
-    assertEquals(new Long(1L), db.toInsert("insert into dbtest (pk) values (:seq)")
+    assertEquals(Long.valueOf(1L), db.toInsert("insert into dbtest (pk) values (:seq)")
         .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
-    assertEquals(new Long(2L), db.toInsert("insert into dbtest (pk) values (:seq)")
+    assertEquals(Long.valueOf(2L), db.toInsert("insert into dbtest (pk) values (:seq)")
         .argPkSeq(":seq", "dbtest_seq").insertReturningPkSeq("pk"));
   }
 
@@ -1546,13 +1546,13 @@ public abstract class CommonTest {
           @Override
           public Object process(Rows rs) throws Exception {
             assertTrue(rs.next());
-            assertEquals(new Long(1L), rs.getLongOrNull(1));
+            assertEquals(Long.valueOf(1L), rs.getLongOrNull(1));
             assertThat(rs.getDateOrNull(2), equalTo(now));
             assertFalse(rs.next());
             return null;
           }
         }, "d");
-    assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d=?").argDate(now).queryLongOrNull());
+    assertEquals(Long.valueOf(1L), db.toSelect("select count(*) from dbtest where d=?").argDate(now).queryLongOrNull());
   }
 
   @Test
@@ -1572,7 +1572,7 @@ public abstract class CommonTest {
     db.toInsert("insert into dbtest (pk, d, d3, s) values (?,?,?,?)")
         .argLong(1L).argDateNowPerApp().argLocalDate(localDateNow).argString("foo").insert(1);
 
-    assertEquals(new Long(1L), db.toSelect("select pk from dbtest").queryLongOrNull());
+    assertEquals(Long.valueOf(1L), db.toSelect("select pk from dbtest").queryLongOrNull());
     assertNull(db.toSelect("select pk from dbtest where 1=0").queryLongOrNull());
     assertNull(db.toSelect("select i from dbtest").queryLongOrNull());
     assertEquals(1L, db.toSelect("select pk from dbtest").queryLongOrZero());
@@ -1582,7 +1582,7 @@ public abstract class CommonTest {
     assertTrue(db.toSelect("select pk from dbtest where 1=0").queryLongs().isEmpty());
     assertTrue(db.toSelect("select i from dbtest").queryLongs().isEmpty());
 
-    assertEquals(new Integer(1), db.toSelect("select pk from dbtest").queryIntegerOrNull());
+    assertEquals(Integer.valueOf(1), db.toSelect("select pk from dbtest").queryIntegerOrNull());
     assertNull(db.toSelect("select pk from dbtest where 1=0").queryIntegerOrNull());
     assertNull(db.toSelect("select i from dbtest").queryIntegerOrNull());
     assertEquals(1, db.toSelect("select pk from dbtest").queryIntegerOrZero());
@@ -1612,7 +1612,7 @@ public abstract class CommonTest {
     assertEquals(localDateNow, db.toSelect("select d3 from dbtest").queryLocalDateOrNull());
     assertNull(db.toSelect("select d3 from dbtest where 1=0").queryLocalDateOrNull());
     assertTrue(db.toSelect("select d3 from dbtest").queryLocalDates().get(0).equals(localDateNow));
-    assertEquals(new Long(1L),
+    assertEquals(Long.valueOf(1L),
         db.toSelect("select count(*) from dbtest where d3=?").argLocalDate(localDateNow).queryLongOrNull());
 
     assertNull(db.toSelect("select d4 from dbtest").queryLocalDateOrNull());
@@ -1640,7 +1640,7 @@ public abstract class CommonTest {
     List<Long> many = db.toSelect("select pk from dbtest").queryMany(rowHandler);
     assertEquals(2, many.size());
 
-    assertEquals(new Long(1), db.toSelect("select pk from dbtest where pk=1").queryOneOrNull(rowHandler));
+    assertEquals(Long.valueOf(1), db.toSelect("select pk from dbtest where pk=1").queryOneOrNull(rowHandler));
     assertNull(db.toSelect("select pk from dbtest where pk=9").queryOneOrNull(rowHandler));
     try {
       db.toSelect("select pk from dbtest").queryOneOrNull(rowHandler);
@@ -1655,8 +1655,8 @@ public abstract class CommonTest {
       assertEquals("Expected exactly one row to be returned but found none", e.getMessage());
     }
 
-    assertEquals(new Long(1), db.toSelect("select pk from dbtest where pk=1").queryFirstOrNull(rowHandler));
-    assertEquals(new Long(1), db.toSelect("select pk from dbtest order by 1").queryFirstOrNull(rowHandler));
+    assertEquals(Long.valueOf(1), db.toSelect("select pk from dbtest where pk=1").queryFirstOrNull(rowHandler));
+    assertEquals(Long.valueOf(1), db.toSelect("select pk from dbtest order by 1").queryFirstOrNull(rowHandler));
     assertNull(db.toSelect("select pk from dbtest where pk=9").queryFirstOrNull(rowHandler));
     try {
       db.toSelect("select pk from dbtest where pk=9").queryFirstOrThrow(rowHandler);
@@ -1674,7 +1674,7 @@ public abstract class CommonTest {
         .addSequence("dbtest_seq").schema()
         .execute(db);
 
-    assertEquals(new Long(1L), db.nextSequenceValue("dbtest_seq"));
+    assertEquals(Long.valueOf(1L), db.nextSequenceValue("dbtest_seq"));
   }
 
   @Test
@@ -1695,7 +1695,7 @@ public abstract class CommonTest {
           @Override
           public Date process(Rows rs) throws Exception {
             assertTrue(rs.next());
-            assertEquals(new Long(1L), rs.getLongOrNull(1));
+            assertEquals(Long.valueOf(1L), rs.getLongOrNull(1));
             Date dbDate = rs.getDateOrNull(2);
             assertFalse(rs.next());
             return dbDate;
@@ -1703,7 +1703,7 @@ public abstract class CommonTest {
         }, "d");
 //    System.err.println("***** d: " + db.select("select d from dbtest").queryString());
 //    System.err.println("***** n: " + dbNow.getTime());
-    assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d=?").argDate(dbNow).queryLongOrNull());
+    assertEquals(Long.valueOf(1L), db.toSelect("select count(*) from dbtest where d=?").argDate(dbNow).queryLongOrNull());
   }
 
   @Test
@@ -1755,7 +1755,7 @@ public abstract class CommonTest {
             .argLocalDate(queryRsDate)
             .update(1);
 
-    assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());
+    assertEquals(Long.valueOf(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());
   }
 
   /**
@@ -1815,7 +1815,7 @@ public abstract class CommonTest {
 //    System.err.println("***** d1: " + db.select("select to_char(d1) from dbtest").queryStringOrNull());
 //    System.err.println("***** d2: " + db.select("select to_char(d2) from dbtest").queryStringOrNull());
 
-    assertEquals(new Long(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());
+    assertEquals(Long.valueOf(1L), db.toSelect("select count(*) from dbtest where d1=d2").queryLongOrNull());
   }
 
   @Test

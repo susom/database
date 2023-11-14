@@ -8,7 +8,7 @@ class SqlInsert {
   <T> T insertReturning(@Untainted String tableName, @Untainted String primaryKeyColumnName, RowsHandler<T> rowsHandler,
                         @Untainted String...otherColumnNames);
 
-  SqlInsert argPkSeq(@Untainted @NotNull String sequenceName);
+  SqlInsert argPkSeq(@Untainted String sequenceName);
 
-  SqlInsert argPkSeq(@NotNull String argName, @Untainted @NotNull String sequenceName);
+  SqlInsert argPkSeq(String argName, @Untainted String sequenceName);
 }

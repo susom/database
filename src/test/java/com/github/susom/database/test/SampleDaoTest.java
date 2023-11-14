@@ -16,7 +16,6 @@ import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.RowStub;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -25,7 +24,7 @@ import static org.mockito.Mockito.*;
 public class SampleDaoTest {
   @Mock
   private DatabaseMock db;
-  private Date now = new Date();
+  private final Date now = new Date();
   private SampleDao sampleDao;
 
   @Before
@@ -55,9 +54,9 @@ public class SampleDaoTest {
     sampleDao.createSample(sample, 1L);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(1L), sample.getSampleId());
+    assertEquals(Long.valueOf(1L), sample.getSampleId());
     assertEquals("Foo", sample.getName());
-    assertEquals(new Integer(0), sample.getUpdateSequence());
+    assertEquals(Integer.valueOf(0), sample.getUpdateSequence());
     assertEquals(now, sample.getUpdateTime());
 
     // Verify SQL executed against golden copies
@@ -77,9 +76,9 @@ public class SampleDaoTest {
     Sample sample = sampleDao.findSampleById(15L, false);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(15L), sample.getSampleId());
+    assertEquals(Long.valueOf(15L), sample.getSampleId());
     assertEquals("Foo", sample.getName());
-    assertEquals(new Integer(3), sample.getUpdateSequence());
+    assertEquals(Integer.valueOf(3), sample.getUpdateSequence());
     assertEquals(now, sample.getUpdateTime());
 
     // Verify database queries against golden copies
@@ -98,9 +97,9 @@ public class SampleDaoTest {
     Sample sample = sampleDao.findSampleById(15L, true);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(15L), sample.getSampleId());
+    assertEquals(Long.valueOf(15L), sample.getSampleId());
     assertEquals("Foo", sample.getName());
-    assertEquals(new Integer(3), sample.getUpdateSequence());
+    assertEquals(Integer.valueOf(3), sample.getUpdateSequence());
     assertEquals(now, sample.getUpdateTime());
 
     // Verify database queries against golden copies
@@ -124,9 +123,9 @@ public class SampleDaoTest {
     sampleDao.updateSample(sample, 23L);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(100L), sample.getSampleId());
+    assertEquals(Long.valueOf(100L), sample.getSampleId());
     assertEquals("Foo", sample.getName());
-    assertEquals(new Integer(14), sample.getUpdateSequence());
+    assertEquals(Integer.valueOf(14), sample.getUpdateSequence());
     assertEquals(now, sample.getUpdateTime());
 
     // Verify database queries against golden copies
@@ -147,9 +146,9 @@ public class SampleDaoTest {
     sampleDao.deleteSample(sample, 23L);
 
     // Verify object in memory is updated properly
-    assertEquals(new Long(100L), sample.getSampleId());
+    assertEquals(Long.valueOf(100L), sample.getSampleId());
     assertEquals("Foo", sample.getName());
-    assertEquals(new Integer(14), sample.getUpdateSequence());
+    assertEquals(Integer.valueOf(14), sample.getUpdateSequence());
     assertEquals(now, sample.getUpdateTime());
 
     // Verify database queries against golden copies

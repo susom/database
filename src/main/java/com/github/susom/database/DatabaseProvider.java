@@ -645,7 +645,7 @@ public final class DatabaseProvider implements Supplier<Database> {
     }
     if (driver != null) {
       try {
-        Class.forName(driver).newInstance();
+        Class.forName(driver).getDeclaredConstructor().newInstance();
       } catch (Exception e) {
         throw new DatabaseException("Unable to load JDBC driver: " + driver, e);
       }

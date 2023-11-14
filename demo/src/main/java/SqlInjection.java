@@ -1,4 +1,5 @@
 import com.github.susom.database.Database;
+import com.github.susom.database.Flavor;
 import com.github.susom.database.Sql;
 
 /**
@@ -30,6 +31,9 @@ public class SqlInjection {
     db.toInsert("" + db.when()).insert(1);
     db.toInsert("" + db.when().derby("a")).insert(1);
     db.toInsert(db.when().derby("a").other("b")).insert(1);
+
+    // Should be ok, but flagged right now because checker doesn't understand enum stubs
+    db.toInsert("" + Flavor.postgresql.typeStringVar(1));
 
     // But this is another illegal use
     db.toInsert(db.when().derby(tainted).other("")).insert(1);

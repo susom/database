@@ -41,6 +41,7 @@
     <skipTests>false</skipTests>
     <skipITs>${skipTests}</skipITs>
     <skipUTs>${skipTests}</skipUTs>
+    <argLine> </argLine>
   </properties>
 
   <distributionManagement>
@@ -121,7 +122,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.1.2</version>
         <configuration>
-          <argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
+          <argLine>@{argLine} --add-opens java.base/java.util=ALL-UNNAMED</argLine>
           <skipTests>${skipUTs}</skipTests>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <includes>

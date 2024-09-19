@@ -15,96 +15,60 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_USER: postgres
-          POSTGRES_DB: test
-          POSTGRES_PASSWORD: test
+          POSTGRES_PASSWORD: postgres
         options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      TZ: "America/Los_Angeles"
-      HSQLDB_DATABASE_URL: "jdbc:hsqldb:file:target/hsqldb;shutdown=true"
-      HSQLDB_DATABASE_USER: SA
-      HSQLDB_DATABASE_PASSWORD: ""
-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'adopt'
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'adopt'
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+    - name: Cache Maven dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
 
-      - name: Copy Maven settings
-        run: cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
+    - name: Run Maven Tests
+      run: |
+        mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true \
+        "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" \
+        -Dhsqldb.database.user=SA -Dhsqldb.database.password= \
+        -Pcoverage,hsqldb verify
+        bash test-postgres.sh
+        bash test-sqlserver.sh
+        bash test-oracle.sh
+        mvn -e org.jacoco:jacoco-maven-plugin:report
 
-      - name: Set POM version with build number
-        run: sed -i "s/-SNAPSHOT/-build-${{ github.run_number }}/" pom.xml
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          echo "Waiting for PostgreSQL to be ready..."
-          docker exec $(docker ps -q -f "ancestor=postgres:9.6") sh -c 'until pg_isready; do sleep 2; done'
-
-      - name: Run Tests
-        run: |
-          mvn clean verify \
-          -Dfailsafe.rerunFailingTestsCount=3 \
-          -Dmaven.javadoc.skip=true \
-          -Dhsqldb.database.url=${{ env.HSQLDB_DATABASE_URL }} \
-          -Dhsqldb.database.user=${{ env.HSQLDB_DATABASE_USER }} \
-          -Dhsqldb.database.password=${{ env.HSQLDB_DATABASE_PASSWORD }} \
-          -Pcoverage,hsqldb &&
-          bash test-postgres.sh &&
-          bash test-sqlserver.sh &&
-          bash test-oracle.sh
-
-      - name: Print Surefire reports on failure
-        if: failure()
-        run: |
-          echo "\n=== SUREFIRE REPORTS ===\n"
-          for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
+    - name: Print Surefire reports on failure
+      if: failure()
+      run: |
+        echo "\n=== SUREFIRE REPORTS ===\n"
+        for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
 
   deploy_snapshots:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'adopt'
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'adopt'
 
-      - name: Cache Maven dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
-      - name: Copy Maven settings
-        run: cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
-
-      - name: Set POM version with build number
-        run: sed -i "s/-SNAPSHOT/-build-${{ github.run_number }}/" pom.xml
-
-      - name: Deploy Snapshots
-        run: |
-          mvn --batch-mode -e -DskipTests=true deploy
+    - name: Deploy Snapshots
+      run: |
+        mvn --batch-mode -e -DskipTests=true deploy

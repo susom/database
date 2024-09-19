@@ -11,12 +11,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      docker:
+      postgres:
         image: postgres:9.6
         ports:
           - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test
+          POSTGRES_PASSWORD: test
         options: >-
-          --health-cmd "pg_isready -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     env:
       TZ: "America/Los_Angeles"
@@ -48,17 +55,10 @@ jobs:
       - name: Set POM version with build number
         run: sed -i "s/-SNAPSHOT/-build-${{ github.run_number }}/" pom.xml
 
-      - name: Authenticate to Google Cloud using Workload Identity Federation
-        uses: google-github-actions/auth@v2
-        with:
-          project_id: 'som-rit-infrastructure-prod'
-          workload_identity_provider: 'projects/294515190965/locations/global/workloadIdentityPools/github/providers/susom-github'
-
-      - name: Configure Maven to use gcloud credentials for Artifact Registry
+      - name: Wait for PostgreSQL to be ready
         run: |
-          gcloud auth application-default login
-          gcloud auth application-default set-quota-project som-rit-infrastructure-prod
-          gcloud config set artifacts/repository public-maven
+          echo "Waiting for PostgreSQL to be ready..."
+          docker exec $(docker ps -q -f "ancestor=postgres:9.6") sh -c 'until pg_isready; do sleep 2; done'
 
       - name: Run Tests
         run: |

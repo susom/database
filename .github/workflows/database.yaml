@@ -62,11 +62,11 @@ jobs:
 
       - name: Run Tests
         run: |
-          mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true \
+          mvn clean verify -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true \
           -Dhsqldb.database.url=${{ env.HSQLDB_DATABASE_URL }} \
           -Dhsqldb.database.user=${{ env.HSQLDB_DATABASE_USER }} \
           -Dhsqldb.database.password=${{ env.HSQLDB_DATABASE_PASSWORD }} \
-          -Pcoverage,hsqldb verify &&
+          -Pcoverage,hsqldb &&
           bash test-postgres.sh &&
           bash test-sqlserver.sh &&
           bash test-oracle.sh

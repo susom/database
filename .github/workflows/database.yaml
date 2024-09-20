@@ -48,13 +48,16 @@ jobs:
           project_id: 'som-rit-infrastructure-prod'
           workload_identity_provider: 'projects/294515190965/locations/global/workloadIdentityPools/github/providers/susom-github'
 
+      - name: Configure Maven to use gcloud credentials for Artifact Registry
+        run: |
+          gcloud auth application-default login
+          gcloud auth application-default set-quota-project som-rit-infrastructure-prod
+          gcloud config set artifacts/repository public-maven
+
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           version: '>= 363.0.0'
-
-      - name: Configure Docker to use Google Artifact Registry
-        run: gcloud auth configure-docker us-west1-docker.pkg.dev
 
       - name: Run Maven Tests
         run: |

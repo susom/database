@@ -47,7 +47,8 @@ jobs:
 
       - name: Test and Build with Maven
         run: |
-          mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true \
+          mvn -e -Dmaven.javadoc.skip=true \
+          "-Duser.timezone=America/Los_Angeles" \
           "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" \
           -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Pcoverage,hsqldb verify &&
           bash test-postgres.sh &&

@@ -15,7 +15,7 @@ run_pg_tests() {
     sleep 1
 
     count=$((count + 1))
-    if [ $count -gt 240 ] ; then
+    if [ $count -gt 120 ] ; then
       echo "Database did not startup correctly ($1)"
       docker rm -f dbtest-pg
       exit 1

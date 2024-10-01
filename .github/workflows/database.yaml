@@ -47,7 +47,6 @@ jobs:
           "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" \
           -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Pcoverage,hsqldb verify &&
           bash test-postgres.sh
-
       - name: Display Surefire reports on failure
         if: failure()
         run: |

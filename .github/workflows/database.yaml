@@ -1,0 +1,86 @@
+name: database
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Test and Build
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:20.10.7
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven
+
+      - name: Set timezone
+        run: |
+          export TZ=America/Los_Angeles
+
+      - name: Setup Maven settings
+        run: |
+          cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
+          sed -i "s/-SNAPSHOT/-build-${{ github.run_number }}/" pom.xml
+
+      - name: Docker login to Artifact Registry
+        run: echo "${{ secrets.ARTIFACT_REGISTRY_KEY }}" | docker login -u _json_key_base64 --password-stdin https://us-west1-docker.pkg.dev
+
+      - name: Test and Build with Maven
+        run: |
+          mvn -e -Dmaven.javadoc.skip=true \
+          "-Duser.timezone=America/Los_Angeles" \
+          "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" \
+          -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Pcoverage,hsqldb verify &&
+          bash test-postgres.sh
+
+      - name: Display Surefire reports on failure
+        if: failure()
+        run: |
+          for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
+
+  deploy-snapshots:
+    name: Deploy Snapshots
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven
+
+      - name: Setup Maven settings
+        run: |
+          cp ./travis/maven-settings.xml $HOME/.m2/settings.xml
+          sed -i "s/-SNAPSHOT/-build-${{ github.run_number }}/" pom.xml
+
+      - name: Deploy to Maven
+        run: mvn --batch-mode -e -DskipTests=true deploy

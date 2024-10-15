@@ -884,8 +884,8 @@ public enum Flavor {
 
     @Override
     public String localDateAsSqlFunction(Date date) {
-      // Construct a datetime literal
-      return String.format("datetime '%s'", date.toString());
+      // Construct a date literal
+      return String.format("date '%s'", date.toString());
     }
 
     @Override

@@ -19,6 +19,7 @@ package com.github.susom.database;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -363,6 +364,18 @@ public class Sql implements SqlInsert.Apply, SqlUpdate.Apply, SqlSelect.Apply {
   @Nonnull
   public Sql argDate(@Nonnull String argName, @Nullable Date arg) {
     sqlArgs.argDate(argName, arg);
+    return this;
+  }
+
+  @Nonnull
+  public Sql argLocalDate(@Nullable LocalDate arg) {
+    sqlArgs.argLocalDate(arg);
+    return this;
+  }
+
+  @Nonnull
+  public Sql argLocalDate(@Nonnull String argName, @Nullable LocalDate arg) {
+    sqlArgs.argLocalDate(argName, arg);
     return this;
   }
 

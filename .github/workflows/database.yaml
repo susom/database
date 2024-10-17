@@ -78,7 +78,7 @@ jobs:
   deploy-snapshots:
     name: Deploy Snapshots
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

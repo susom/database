@@ -35,7 +35,7 @@ start_oracle() {
   done
 
   docker cp oracledb.sql dbtest-ora:/home/oracle/oracledb.sql
-  docker exec -it $ORACLE_NAME sqlplus / AS SYSDBA @/home/oracle/oracledb.sql
+  docker exec $ORACLE_NAME sqlplus / AS SYSDBA @/home/oracle/oracledb.sql
 }
 
 test_oracle() {

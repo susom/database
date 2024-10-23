@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PASSWORD=$(openssl rand -base64 18 | tr -d +/)
+PASSWORD=U.$(openssl rand -base64 18 | tr -d +/)
 #export TZ=Asia/Kolkata
 export TZ=America/Los_Angeles
 
@@ -40,4 +40,4 @@ run_ms_tests() {
 
 # The 2017 image seems to have a problem with daylight savings...
 #run_ms_tests 2017-latest
-run_ms_tests 2019-latest
+run_ms_tests 2019-CU26-ubuntu-20.04

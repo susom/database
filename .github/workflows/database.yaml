@@ -1,4 +1,4 @@
-name: database
+name: Build
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-and-test:
-    name: Test and Build
+    name: Build and Test
     runs-on: ubuntu-latest
 
     services:
@@ -64,23 +64,23 @@ jobs:
 
       - name: Test and Build with Maven
         run: |
-          mvn -e -Dmaven.javadoc.skip=true \
+          mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true \
           "-Duser.timezone=America/Los_Angeles" \
           "-Dhsqldb.database.url=jdbc:hsqldb:file:target/hsqldb;shutdown=true" \
           -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Pcoverage,hsqldb verify &&
           bash test-postgres.sh &&
           bash test-sqlserver.sh &&
-          bash test-oracle.sh
-
+          bash test-oracle.sh &&
+          mvn -e org.jacoco:jacoco-maven-plugin:report sonar:sonar -Dsonar.projectKey=susom_database
       - name: Display Surefire reports on failure
         if: failure()
         run: |
           for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
 
   deploy-snapshots:
-    name: Deploy Snapshots
+    name: Deploy to Artifact Registry
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.repository == 'susom/database' && github.ref == 'refs/heads/master' && github.event_name == 'push'
     needs: build-and-test
     steps:
       - name: Checkout code

@@ -42,6 +42,8 @@
     <skipITs>${skipTests}</skipITs>
     <skipUTs>${skipTests}</skipUTs>
     <argLine> </argLine>
+    <sonar.organization>susom</sonar.organization>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
 
   <distributionManagement>

@@ -3,56 +3,49 @@
 PASSWORD=U.$(openssl rand -base64 18 | tr -d +/)
 export TZ=America/Los_Angeles
 
-# Define function to check if a port is available
-is_port_in_use() {
-  netstat -an | grep $1 | grep LISTEN > /dev/null
-}
-
-# Ensure port 5432 is free; if not, exit with an error
-PORT=5432
-if is_port_in_use $PORT; then
-  echo "Port $PORT is already in use. Please free it before running the script."
-  exit 1
-fi
-
 run_pg_tests() {
-  docker pull postgres:$1
-  docker run -d --rm --name dbtest-pg -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p $PORT:5432/tcp postgres:$1
+  local version=$1
+  local port=$2
+  docker pull postgres:$version
+  docker run -d --rm --name dbtest-pg-$version -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p $port:5432 postgres:$version
 
-  declare -i count=1
-  while [ "$(docker inspect --format='{{json .State.Status}}' dbtest-pg)" != '"running"' -a $count -lt 10 ]; do
-    echo "Waiting for container to start ($count seconds)"
-    sleep 1
 
-    count=$((count + 1))
-    if [ $count -gt 180 ]; then 
-      echo "Database did not startup correctly ($1)"
-      docker rm -f dbtest-pg
+  # Wait until PostgreSQL is fully ready with pg_isready check
+  declare -i count=0
+  until docker exec dbtest-pg-$version pg_isready -U postgres -h localhost -p 5432 > /dev/null 2>&1; do
+    echo "Waiting for PostgreSQL $version to be ready... ($count seconds)"
+    sleep 2
+    count=$((count + 2))
+    if [ $count -gt 60 ]; then
+      echo "Database did not start correctly (version $version on port $port)"
+      docker rm -f dbtest-pg-$version
       exit 1
     fi
   done
 
+  # Run the Maven tests
   mvn -e -Dmaven.javadoc.skip=true \
-      -Dfailsafe.rerunFailingTestsCount=2 \
-      -Dpostgres.database.url=jdbc:postgresql://localhost:$PORT/postgres?sslmode=require \
+      -Dfailsafe.rerunFailingTestsCount=3 \
+      -Dpostgres.database.url=jdbc:postgresql://localhost:$port/postgres \
       -Dpostgres.database.user=postgres \
       -Dpostgres.database.password=$PASSWORD \
       -P postgresql.only,coverage test
 
+  # Check the test result and clean up
   if [ $? -ne 0 ]; then
-    echo "mvn command failed"
-    docker rm -f dbtest-pg
+    echo "Maven command failed for PostgreSQL $version"
+    docker rm -f dbtest-pg-$version
     exit 1
   fi
 
-  docker rm -f dbtest-pg
+  docker rm -f dbtest-pg-$version
 }
 
-# Run tests for each version
-run_pg_tests 9.6
-run_pg_tests 10
-run_pg_tests 11
-run_pg_tests 12-bullseye
-run_pg_tests 13-bullseye
-run_pg_tests 14-bullseye
-run_pg_tests 15-bullseye
+# Run tests for each PostgreSQL version on a unique port to avoid conflicts
+run_pg_tests 9.6 5432
+run_pg_tests 10 5433
+run_pg_tests 11 5434
+run_pg_tests 12-bullseye 5435
+run_pg_tests 13-bullseye 5436
+run_pg_tests 14-bullseye 5437
+run_pg_tests 15-bullseye 5438

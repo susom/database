@@ -34,7 +34,7 @@ run_pg_tests() {
 
   mvn -e -Dmaven.javadoc.skip=true \
       -Dfailsafe.rerunFailingTestsCount=2 \
-      -Dpostgres.database.url=jdbc:postgresql://localhost:$PORT/postgres \
+      -Dpostgres.database.url=jdbc:postgresql://localhost:$PORT/postgres?sslmode=require \
       -Dpostgres.database.user=postgres \
       -Dpostgres.database.password=$PASSWORD \
       -P postgresql.only,coverage test

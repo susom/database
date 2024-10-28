@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PASSWORD=$(openssl rand -base64 18 | tr -d +/)
+PASSWORD=U.$(openssl rand -base64 18 | tr -d +/)
 #export TZ=Asia/Kolkata
 export TZ=America/Los_Angeles
 

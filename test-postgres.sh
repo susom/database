@@ -9,13 +9,15 @@ run_pg_tests() {
   docker run -d --rm --name dbtest-pg -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p 5432:5432 postgres:$1
 
   # Wait until PostgreSQL is fully ready with pg_isready check
-  declare -i count=0
-  until docker exec dbtest-pg pg_isready -U postgres -h localhost -p 5432 > /dev/null 2>&1; do
-    echo "Waiting for PostgreSQL $1 to be ready... ($count seconds)"
-    sleep 2
-    count=$((count + 2))
-    if [ $count -gt 60 ]; then
-      echo "Database did not start correctly (version $1)"
+  declare -i count=1
+  until docker exec dbtest-pg pg_isready -U postgres -h localhost -p 5432 > /dev/null 2>&1;
+  do
+    echo "Waiting for container to start ($count seconds)"
+    sleep 1
+
+    count=$((count + 1))
+    if [ $count -gt 120 ] ; then
+      echo "Database did not startup correctly ($1)"
       docker rm -f dbtest-pg
       exit 1
     fi
@@ -28,8 +30,8 @@ run_pg_tests() {
       -Dpostgres.database.password=$PASSWORD \
       -P postgresql.only,coverage test
 
-  if [ $? -ne 0 ]; then
-    echo "Maven command failed for PostgreSQL $1"
+  if [ $? -ne 0 ] ; then
+    echo "mvn command failed"
     docker rm -f dbtest-pg
     exit 1
   fi

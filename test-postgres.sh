@@ -1,24 +1,22 @@
 #!/bin/bash
 
 PASSWORD=$(openssl rand -base64 18 | tr -d +/)
+#export TZ=Asia/Kolkata
 export TZ=America/Los_Angeles
 
 run_pg_tests() {
-  local version=$1
-  local container_name="dbtest-pg-$version"
-
-  docker pull postgres:$version
-  docker run -d --rm --name $container_name -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p 5432:5432 postgres:$version
+  docker pull postgres:$1
+  docker run -d --rm --name dbtest-pg -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p 5432:5432 postgres:$1
 
   # Wait until PostgreSQL is fully ready with pg_isready check
   declare -i count=0
-  until docker exec $container_name pg_isready -U postgres -h localhost -p 5432 > /dev/null 2>&1; do
-    echo "Waiting for PostgreSQL $version to be ready... ($count seconds)"
+  until docker exec dbtest-pg pg_isready -U postgres -h localhost -p 5432 > /dev/null 2>&1; do
+    echo "Waiting for PostgreSQL $1 to be ready... ($count seconds)"
     sleep 2
     count=$((count + 2))
     if [ $count -gt 60 ]; then
-      echo "Database did not start correctly (version $version)"
-      docker rm -f $container_name
+      echo "Database did not start correctly (version $1)"
+      docker rm -f dbtest-pg
       exit 1
     fi
   done
@@ -31,12 +29,12 @@ run_pg_tests() {
       -P postgresql.only,coverage test
 
   if [ $? -ne 0 ]; then
-    echo "Maven command failed for PostgreSQL $version"
-    docker rm -f $container_name
+    echo "Maven command failed for PostgreSQL $1"
+    docker rm -f dbtest-pg
     exit 1
   fi
 
-  docker rm -f $container_name
+  docker rm -f dbtest-pg
 }
 
 run_pg_tests 9.6

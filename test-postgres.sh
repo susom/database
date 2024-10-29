@@ -6,7 +6,7 @@ export TZ=America/Los_Angeles
 
 run_pg_tests() {
   docker pull postgres:$1
-  docker run -d --rm --name dbtest-pg -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p 5432:5432 postgres:$1
+  docker run -d --rm --name dbtest-pg -e TZ=$TZ -e POSTGRES_PASSWORD=$PASSWORD -p 5432:5432/tcp postgres:$1
 
   declare -i count=1
   until docker exec dbtest-pg pg_isready -U postgres -h localhost -p 5432 > /dev/null 2>&1;

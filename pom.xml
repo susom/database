@@ -35,7 +35,7 @@
   </scm>
 
   <properties>
-    <vertx.version>4.5.1</vertx.version>
+    <vertx.version>4.5.10</vertx.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipTests>false</skipTests>

@@ -41,9 +41,9 @@ run_pg_tests() {
 run_pg_tests 9.6
 run_pg_tests 10
 run_pg_tests 11
-run_pg_tests 12-bullseye
-run_pg_tests 13-bullseye
-run_pg_tests 14-bullseye
-run_pg_tests 15-bullseye
+run_pg_tests 12
+run_pg_tests 13
+run_pg_tests 14
+run_pg_tests 15
 run_pg_tests 16
 run_pg_tests 17

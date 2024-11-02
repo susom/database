@@ -35,7 +35,7 @@
   </scm>
 
   <properties>
-    <vertx.version>4.5.1</vertx.version>
+    <vertx.version>4.5.10</vertx.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipTests>false</skipTests>
@@ -277,7 +277,13 @@
     <dependency>
       <groupId>org.apache.derby</groupId>
       <artifactId>derby</artifactId>
-      <version>10.14.2.0</version>
+      <version>10.16.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.derby</groupId>
+      <artifactId>derbytools</artifactId>
+      <version>10.16.1.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -311,7 +317,7 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
-      <version>9.4.51.v20230217</version>
+      <version>9.4.56.v20240826</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -499,7 +505,7 @@
         <dependency>
           <groupId>org.postgresql</groupId>
           <artifactId>postgresql</artifactId>
-          <version>42.5.1</version>
+          <version>42.7.4</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

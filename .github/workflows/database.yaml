@@ -52,7 +52,7 @@ jobs:
 
       - name: Setup Maven settings
         run: |
-          cp ./travis/actions-maven-settings.xml $HOME/.m2/settings.xml
+          cp .github/maven-settings.xml $HOME/.m2/settings.xml
           sed -i "s/-SNAPSHOT/-github-build-${{ github.run_number }}/" pom.xml
 
       - name: Authenticate to Google Cloud
@@ -114,7 +114,7 @@ jobs:
 
       - name: Setup Maven settings
         run: |
-          cp ./travis/actions-maven-settings.xml $HOME/.m2/settings.xml
+          cp .github/maven-settings.xml $HOME/.m2/settings.xml
           sed -i "s/-SNAPSHOT/-github-build-${{ github.run_number }}/" pom.xml
 
       - name: Authenticate to Google Cloud

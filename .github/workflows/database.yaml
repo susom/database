@@ -55,22 +55,6 @@ jobs:
           cp .github/maven-settings.xml $HOME/.m2/settings.xml
           sed -i "s/-SNAPSHOT/-github-build-${{ github.run_number }}/" pom.xml
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          project_id: ${{ secrets.WORKLOAD_IDENTITY_PROJECT }}
-          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-          create_credentials_file: true
-          export_environment_variables: true
-          cleanup_credentials: true
-
-      - name: Set up OAuth2 access token for Docker
-        run: |
-          echo "ACCESS_TOKEN=$(gcloud auth print-access-token)" >> $GITHUB_ENV
-
-      - name: Docker login to Artifact Registry
-        run: echo "${{ env.ACCESS_TOKEN }}" | docker login -u oauth2accesstoken --password-stdin https://us-west1-docker.pkg.dev
-
       - name: Test and Build with Maven
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any

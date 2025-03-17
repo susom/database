@@ -90,6 +90,7 @@ jobs:
         run: |
           for F in target/surefire-reports/*.txt; do echo $F; cat $F; echo; done
 
+  # deploys into Artifact Registry when code is pushed to the master branch of the 'susom/database' repository.
   deploy-snapshots:
     name: Deploy to Artifact Registry
     runs-on: ubuntu-latest

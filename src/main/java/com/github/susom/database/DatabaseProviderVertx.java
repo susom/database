@@ -214,7 +214,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       } catch (Throwable t) {
         promise.fail(t);
       }
-    }, resultHandler);
+    }, false, resultHandler);
   }
 
   /**
@@ -289,7 +289,7 @@ public final class DatabaseProviderVertx implements Supplier<Database> {
       } catch (Throwable t) {
         promise.fail(t);
       }
-    }, resultHandler);
+    }, false, resultHandler);
   }
 
   /**

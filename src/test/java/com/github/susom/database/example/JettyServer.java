@@ -1,14 +1,13 @@
 package com.github.susom.database.example;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,19 +44,17 @@ public class JettyServer {
 
     // Start our server
     Server server = new Server(8080);
-    server.setHandler(new AbstractHandler() {
+    server.setHandler(new Handler.Abstract() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException, ServletException {
+      public boolean handle(Request request, Response response, Callback callback) throws Exception {
         Metric metric = new Metric(true);
         try {
           // Read the query parameter from the request
-          String pkParam = request.getParameter("pk");
+          String pkParam = Request.getParameters(request).getValue("pk");
           if (pkParam == null) {
             // Probably a favicon or similar request we ignore for now
-            response.setStatus(404);
-            baseRequest.setHandled(true);
-            return;
+            Response.writeError(request, response, callback, 404);
+            return true;
           }
           int pk = Integer.parseInt(pkParam);
 
@@ -69,17 +66,22 @@ public class JettyServer {
             metric.checkpoint("db");
             metric.checkpoint("result");
             metric.done("sent", s.length());
-            response.setContentType("text/plain");
+            
+            response.getHeaders().put("Content-Type", "text/plain");
             response.setStatus(200);
-            response.getOutputStream().print(s);
-            baseRequest.setHandled(true);
+            try {
+              ByteBuffer buffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8));
+              response.write(true, buffer, callback);
+            } catch (Exception e) {
+              callback.failed(e);
+            }
           });
         } catch (Exception e) {
           log.error("Returning 500 to client", e);
-          response.setStatus(500);
-          baseRequest.setHandled(true);
+          Response.writeError(request, response, callback, 500);
         }
         log.debug("Served request: " + metric.getMessage());
+        return true;
       }
     });
 

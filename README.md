@@ -1,8 +1,5 @@
 ## Easier, Safer Database Access
 
-[![Build Status](https://app.travis-ci.com/susom/database.svg?branch=master)](https://app.travis-ci.com/susom/database)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.susom/database)
-
 [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=susom_database&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=susom_database)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=susom_database&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=susom_database)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=susom_database&metric=coverage)](https://sonarcloud.io/summary/new_code?id=susom_database)
@@ -361,9 +358,9 @@ this having only one column in the result:
 
 ### Getting Started
 
-The library is available in the public Maven repository:
+Older versions of library are available in Maven central:
 
-```
+```xml
 <dependency>
   <groupId>com.github.susom</groupId>
   <artifactId>database</artifactId>
@@ -371,7 +368,32 @@ The library is available in the public Maven repository:
 </dependency>
 ```
 
-Just add that to your pom.xml, use one of the static builder methods on 
+More recent builds are available in Artifact Registry, which can be configured in your pom.xml.
+
+```xml
+  <repositories>
+    <repository>
+      <id>artifact-registry</id>
+      <url>https://us-west1-maven.pkg.dev/som-rit-infrastructure-prod/public-maven</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.github.susom</groupId>
+      <artifactId>database</artifactId>
+      <version>5.0-github-build-429</version>
+    </dependency>
+  </dependencies>
+```
+
+After adjusting your pom.xml, use one of the static builder methods on 
 `com.github.susom.database.DatabaseProvider` (see example above), and enjoy!
 
 To see more examples of how to use the library, take a look at

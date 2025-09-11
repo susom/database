@@ -63,19 +63,11 @@ public class DebugSql {
       batchSize = argsToPrint.length;
       argsToPrint = (Object[]) argsToPrint[0];
     }
-    String[] sqlParts = sql.split("\\?");
-    if (validateParameters && sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
-      buf.append("(wrong # args) query: ");
-      buf.append(sql);
-      if (args != null) {
-        buf.append(" args: ");
-        if (includeParameters) {
-          buf.append(Arrays.toString(argsToPrint));
-        } else {
-          buf.append(argsToPrint.length);
-        }
-      }
-    } else {
+
+    if (!validateParameters) {
+      // When validation is disabled (e.g., for logging post-processed SQL from MixedParameterSql),
+      // we can't safely do parameter substitution because the SQL may contain literal ? characters
+      // from escaped parameters. Just log the SQL as-is.
       if (includeExecSql) {
         buf.append(removeTabs(sql));
       }
@@ -83,51 +75,77 @@ public class DebugSql {
         if (includeExecSql) {
           buf.append(PARAM_SQL_SEPARATOR);
         }
-        for (int i = 0; i < argsToPrint.length; i++) {
-          buf.append(removeTabs(sqlParts[i]));
-          Object argToPrint = argsToPrint[i];
-          if (argToPrint instanceof String) {
-            String argToPrintString = (String) argToPrint;
-            int maxLength = options.maxStringLengthParam();
-            if (argToPrintString.length() > maxLength && maxLength > 0) {
-              buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
-            } else {
-              buf.append("'");
-              buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
-              buf.append("'");
-            }
-          } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
-            buf.append("null");
-          } else if (argToPrint instanceof java.sql.Timestamp) {
-            buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
-          } else if (argToPrint instanceof java.sql.Date) {
-              buf.append(options.flavor().localDateAsSqlFunction((Date) argToPrint));
-          } else if (argToPrint instanceof Number) {
-            buf.append(argToPrint);
-          } else if (argToPrint instanceof Boolean) {
-            buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
-          } else if (argToPrint instanceof SecretArg) {
-            buf.append("<secret>");
-          } else if (argToPrint instanceof InternalStringReader) {
-            String argToPrintString = ((InternalStringReader) argToPrint).getString();
-            int maxLength = options.maxStringLengthParam();
-            if (argToPrintString.length() > maxLength && maxLength > 0) {
-              buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
-            } else {
-              buf.append("'");
-              buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
-              buf.append("'");
-            }
-          } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
-            buf.append("<").append(argToPrint.getClass().getName()).append(">");
-          } else if (argToPrint instanceof byte[]) {
-            buf.append("<").append(((byte[]) argToPrint).length).append(" bytes>");
+        // Since this is post-processed SQL, the parameters have already been substituted by MixedParameterSql
+        // so we just show the SQL as-is, which should already have the parameter values embedded
+        buf.append(removeTabs(sql));
+      }
+    } else {
+      String[] sqlParts = sql.split("\\?");
+      if (sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
+        buf.append("(wrong # args) query: ");
+        buf.append(sql);
+        if (args != null) {
+          buf.append(" args: ");
+          if (includeParameters) {
+            buf.append(Arrays.toString(argsToPrint));
           } else {
-            buf.append("<unknown:").append(argToPrint.getClass().getName()).append(">");
+            buf.append(argsToPrint.length);
           }
         }
-        if (sqlParts.length > argsToPrint.length) {
-          buf.append(sqlParts[sqlParts.length - 1]);
+      } else {
+        if (includeExecSql) {
+          buf.append(removeTabs(sql));
+        }
+        if (includeParameters && argsToPrint.length > 0) {
+          if (includeExecSql) {
+            buf.append(PARAM_SQL_SEPARATOR);
+          }
+          for (int i = 0; i < argsToPrint.length; i++) {
+            buf.append(removeTabs(sqlParts[i]));
+            Object argToPrint = argsToPrint[i];
+            if (argToPrint instanceof String) {
+              String argToPrintString = (String) argToPrint;
+              int maxLength = options.maxStringLengthParam();
+              if (argToPrintString.length() > maxLength && maxLength > 0) {
+                buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
+              } else {
+                buf.append("'");
+                buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
+                buf.append("'");
+              }
+            } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
+              buf.append("null");
+            } else if (argToPrint instanceof java.sql.Timestamp) {
+              buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
+            } else if (argToPrint instanceof java.sql.Date) {
+                buf.append(options.flavor().localDateAsSqlFunction((Date) argToPrint));
+            } else if (argToPrint instanceof Number) {
+              buf.append(argToPrint);
+            } else if (argToPrint instanceof Boolean) {
+              buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
+            } else if (argToPrint instanceof SecretArg) {
+              buf.append("<secret>");
+            } else if (argToPrint instanceof InternalStringReader) {
+              String argToPrintString = ((InternalStringReader) argToPrint).getString();
+              int maxLength = options.maxStringLengthParam();
+              if (argToPrintString.length() > maxLength && maxLength > 0) {
+                buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
+              } else {
+                buf.append("'");
+                buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
+                buf.append("'");
+              }
+            } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
+              buf.append("<").append(argToPrint.getClass().getName()).append(">");
+            } else if (argToPrint instanceof byte[]) {
+              buf.append("<").append(((byte[]) argToPrint).length).append(" bytes>");
+            } else {
+              buf.append("<unknown:").append(argToPrint.getClass().getName()).append(">");
+            }
+          }
+          if (sqlParts.length > argsToPrint.length) {
+            buf.append(sqlParts[sqlParts.length - 1]);
+          }
         }
       }
     }

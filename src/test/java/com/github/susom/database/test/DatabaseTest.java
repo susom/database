@@ -1001,10 +1001,18 @@ public class DatabaseTest {
         .argString("param", "test")
         .queryFirstOrNull(r -> r.getStringOrNull("result"));
 
+    // Test with both types of escaped parameters
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'a??b::c' as result, a from b where c=? and d=:param union select 'd??e::f'")
+        .argString("hi")
+        .argString("param", "test")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
     // Verify the ParamSql was logged correctly for the cases above
     capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test?value' as result, a from b where c=?${sep}select 'test?value' as result, a from b where c='hi'");
     capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test:value' as result, a from b where c=?${sep}select 'test:value' as result, a from b where c='hi'");
     capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test?value:end' as result, a from b where c=? and d=?${sep}select 'test?value:end' as result, a from b where c='hi' and d='test'");
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'a?b:c' as result, a from b where c=? and d=? union select 'd?e:f'${sep}select 'a?b:c' as result, a from b where c='hi' and d='test' union select 'd?e:f'");
 
     control.verify();
   }

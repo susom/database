@@ -331,6 +331,15 @@ public class SqlInsertImpl implements SqlInsert {
   }
 
   @Override
+  public Long insertReturningPkDefault(String primaryKeyColumnName) {
+    if (hasPk()) {
+      throw new DatabaseException("Do not call argPk*() methods when using insertReturningPkDefault()");
+    }
+
+    return updateInternalWithGeneratedKeys(1, primaryKeyColumnName);
+  }
+
+  @Override
   public <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> handler,
                                String... otherColumnNames) {
     if (!hasPk()) {
@@ -701,6 +710,76 @@ public class SqlInsertImpl implements SqlInsert {
         metric.checkpoint("read");
         isSuccess = true;
         return result;
+      }
+    } catch (WrongNumberOfRowsException e) {
+      throw e;
+    } catch (Exception e) {
+      errorCode = options.generateErrorCode();
+      logEx = e;
+      throw DatabaseException.wrap(DebugSql.exceptionMessage(executeSql, parameters, errorCode, options), e);
+    } finally {
+      adaptor.closeQuietly(rs, log);
+      adaptor.closeQuietly(ps, log);
+      metric.done("close");
+      if (isSuccess) {
+        DebugSql.logSuccess("Insert", log, metric, executeSql, parameters, options);
+      } else {
+        DebugSql.logError("Insert", log, metric, errorCode, executeSql, parameters, options, logEx);
+      }
+    }
+  }
+
+  private Long updateInternalWithGeneratedKeys(int expectedNumAffectedRows, @Nonnull String pkColumnName) {
+    if (batched != null) {
+      throw new DatabaseException("Call insertBatch() if you are using the batch() feature");
+    }
+
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    Metric metric = new Metric(log.isDebugEnabled());
+
+    String executeSql = sql;
+    Object[] parameters = null;
+
+    boolean isSuccess = false;
+    String errorCode = null;
+    Exception logEx = null;
+    try {
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      executeSql = mpSql.getSqlToExecute();
+      parameters = mpSql.getArgs();
+
+      if (connection != null) {
+        ps = connection.prepareStatement(executeSql, Statement.RETURN_GENERATED_KEYS);
+
+        adaptor.addParameters(ps, parameters);
+        metric.checkpoint("prep");
+        int numAffectedRows = ps.executeUpdate();
+        metric.checkpoint("exec", numAffectedRows);
+        if (expectedNumAffectedRows > 0 && numAffectedRows != expectedNumAffectedRows) {
+          errorCode = options.generateErrorCode();
+          throw new WrongNumberOfRowsException("The number of affected rows was " + numAffectedRows + ", but "
+              + expectedNumAffectedRows + " were expected." + "\n"
+              + DebugSql.exceptionMessage(executeSql, parameters, errorCode, options));
+        }
+        rs = ps.getGeneratedKeys();
+        Long pk = null;
+        if (rs != null && rs.next()) {
+          pk = rs.getLong(1);
+        }
+        isSuccess = true;
+        return pk;
+      } else {
+        String debugSql = DebugSql.printDebugOnlySqlString(executeSql, parameters, options);
+        Long pk = mock.insertReturningPk(executeSql, debugSql);
+        if (pk == null) {
+          // No mock behavior provided, default to something that could conceivably work
+          log.debug("Setting pk to hash of debugSql");
+          pk = (long) debugSql.hashCode();
+        }
+        metric.checkpoint("stub");
+        isSuccess = true;
+        return pk;
       }
     } catch (WrongNumberOfRowsException e) {
       throw e;

@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import com.github.susom.database.Config;
 import com.github.susom.database.ConfigFrom;
+import com.github.susom.database.DatabaseException;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.Schema;
@@ -33,6 +34,9 @@ import com.github.susom.database.Sql;
 import com.github.susom.database.SqlArgs;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Exercise database functionality with a real HyperSQL database.
@@ -186,6 +190,55 @@ public class HsqldbTest extends CommonTest {
       db.toSelect("select nbr_integer, nbr_long, nbr_float, nbr_double, nbr_big_decimal,"
         + " str_varchar, str_fixed, str_lob, bin_blob, boolean_flag, date_millis, local_date from dbtest2 order by 1")
         .queryMany(SqlArgs::readRow));
+  }
+
+  @Test
+  public void identityColumn() {
+    // Clean up table in case it exists from previous test
+    db.dropTableQuietly("identity_test");
+    
+    // Test schema creation with identity column
+    new Schema()
+        .addTable("identity_test")
+        .addColumn("id").primaryKeyIdentity().table()
+        .addColumn("name").asString(50).table()
+        .schema()
+        .execute(db);
+
+    // Test insert with identity column - should not use any argPk* methods
+    Long generatedId1 = db.toInsert("insert into identity_test (name) values (?)")
+        .argString("Test Record 1")
+        .insertReturningPkDefault("id");
+
+    // Test another insert to verify incrementing
+    Long generatedId2 = db.toInsert("insert into identity_test (name) values (?)")
+        .argString("Test Record 2")
+        .insertReturningPkDefault("id");
+
+    // Verify the records were inserted with proper generated IDs
+    String name1 = db.toSelect("select name from identity_test where id = ?")
+        .argLong(generatedId1)
+        .queryStringOrNull();
+    String name2 = db.toSelect("select name from identity_test where id = ?")
+        .argLong(generatedId2)
+        .queryStringOrNull();
+
+    assertEquals("Test Record 1", name1);
+    assertEquals("Test Record 2", name2);
+    
+    // Verify IDs are different (one should be generated after the other)
+    assertNotEquals(generatedId1, generatedId2);
+    
+    // Verify we can't use argPk* methods with insertReturningPkDefault
+    try {
+      db.toInsert("insert into identity_test (id, name) values (?, ?)")
+          .argPkLong(999L)
+          .argString("Should fail")
+          .insertReturningPkDefault("id");
+      fail("Should have thrown DatabaseException");
+    } catch (DatabaseException e) {
+      assertTrue(e.getMessage().contains("Do not call argPk*() methods when using insertReturningPkDefault()"));
+    }
   }
 
 

@@ -69,8 +69,7 @@ public class DebugSql {
     if (!validateParameters && argsToPrint.length > 0) {
       // When validation is disabled (e.g., for logging post-processed SQL from MixedParameterSql),
       // we need to carefully substitute parameters. The SQL may contain literal ? characters
-      // from escaped parameters, so we only substitute the last N ? characters where N is the
-      // number of arguments.
+      // from escaped parameters, so we only substitute ? characters that are outside quoted strings.
       if (includeExecSql) {
         buf.append(removeTabs(sql));
       }
@@ -79,20 +78,29 @@ public class DebugSql {
           buf.append(PARAM_SQL_SEPARATOR);
         }
         
-        // Find all question mark positions
-        List<Integer> questionMarkPositions = new ArrayList<>();
+        // Find question mark positions that are outside quoted strings
+        List<Integer> parameterPositions = new ArrayList<>();
+        boolean inQuotes = false;
         for (int i = 0; i < sql.length(); i++) {
-          if (sql.charAt(i) == '?') {
-            questionMarkPositions.add(i);
+          char c = sql.charAt(i);
+          if (c == '\'') {
+            // Handle escaped quotes (single quote followed by single quote)
+            if (i + 1 < sql.length() && sql.charAt(i + 1) == '\'') {
+              i++; // Skip the next quote
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (c == '?' && !inQuotes) {
+            parameterPositions.add(i);
           }
         }
         
         // Only substitute the last N question marks, where N is the number of arguments
-        int numParamsToSubstitute = Math.min(argsToPrint.length, questionMarkPositions.size());
+        int numParamsToSubstitute = Math.min(argsToPrint.length, parameterPositions.size());
         List<Integer> paramPositions = new ArrayList<>();
         if (numParamsToSubstitute > 0) {
-          for (int i = questionMarkPositions.size() - numParamsToSubstitute; i < questionMarkPositions.size(); i++) {
-            paramPositions.add(questionMarkPositions.get(i));
+          for (int i = parameterPositions.size() - numParamsToSubstitute; i < parameterPositions.size(); i++) {
+            paramPositions.add(parameterPositions.get(i));
           }
         }
         

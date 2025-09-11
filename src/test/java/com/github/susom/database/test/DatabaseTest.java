@@ -52,7 +52,6 @@ import com.github.susom.database.RowStub;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.hamcrest.core.IsNot.not;
 
 /**
  * Unit tests for the Database and Sql implementation classes.
@@ -975,11 +974,7 @@ public class DatabaseTest {
   }
 
   @Test
-  public void escapedParametersInLoggingShouldNotCauseWrongArgsMessage() throws Exception {
-    LogCaptureAppender appender = new LogCaptureAppender();
-    LogManager.getLogger(Database.class).addAppender(appender);
-    LogManager.getLogger(Database.class).setLevel(Level.DEBUG);
-
+  public void escapedParametersInLoggingShouldNotCauseWrongArgsMessage() {
     IMocksControl control = createStrictControl();
 
     DatabaseMock mock = control.createMock(DatabaseMock.class);
@@ -1006,11 +1001,10 @@ public class DatabaseTest {
         .argString("param", "test")
         .queryFirstOrNull(r -> r.getStringOrNull("result"));
 
-    // Verify no "wrong # args" messages appear in the logs
-    List<String> messages = appender.messages();
-    for (String message : messages) {
-      assertThat("Should not contain 'wrong # args' message", message, not(containsString("wrong # args")));
-    }
+    // Verify the ParamSql was logged correctly for the cases above
+    capturedLog.assertMessage(Level.DEBUG, "ParamSql:\tselect 'test?value' as result, a from b where c='hi'");
+    capturedLog.assertMessage(Level.DEBUG, "ParamSql:\tselect 'test:value' as result, a from b where c='hi'");
+    capturedLog.assertMessage(Level.DEBUG, "ParamSql:\tselect 'test?value:end' as result, a from b where c='hi' and d='test'");
 
     control.verify();
   }

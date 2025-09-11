@@ -47,10 +47,12 @@ import com.github.susom.database.DebugSql;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.OptionsOverride;
+import com.github.susom.database.RowStub;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.hamcrest.core.IsNot.not;
 
 /**
  * Unit tests for the Database and Sql implementation classes.
@@ -968,6 +970,47 @@ public class DatabaseTest {
     new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db) -> {
       db.get();
     });
+
+    control.verify();
+  }
+
+  @Test
+  public void escapedParametersInLoggingShouldNotCauseWrongArgsMessage() throws Exception {
+    LogCaptureAppender appender = new LogCaptureAppender();
+    LogManager.getLogger(Database.class).addAppender(appender);
+    LogManager.getLogger(Database.class).setLevel(Level.DEBUG);
+
+    IMocksControl control = createStrictControl();
+
+    DatabaseMock mock = control.createMock(DatabaseMock.class);
+    expect(mock.query(anyString(), anyString())).andReturn(new RowStub()).anyTimes();
+
+    control.replay();
+
+    // Test with escaped question marks (??)
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'test??value' as result, a from b where c=?")
+        .argString("hi")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
+    // Test with escaped colons (::)
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'test::value' as result, a from b where c=?")
+        .argString("hi")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
+    // Test with both types of escaped parameters
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'test??value::end' as result, a from b where c=? and d=:param")
+        .argString("hi")
+        .argString("param", "test")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
+    // Verify no "wrong # args" messages appear in the logs
+    List<String> messages = appender.messages();
+    for (String message : messages) {
+      assertThat("Should not contain 'wrong # args' message", message, not(containsString("wrong # args")));
+    }
 
     control.verify();
   }

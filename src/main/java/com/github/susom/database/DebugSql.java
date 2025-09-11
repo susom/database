@@ -48,6 +48,11 @@ public class DebugSql {
 
   public static void printSql(StringBuilder buf, String sql, Object[] args, boolean includeExecSql,
                               boolean includeParameters, Options options) {
+    printSql(buf, sql, args, includeExecSql, includeParameters, true, options);
+  }
+
+  public static void printSql(StringBuilder buf, String sql, Object[] args, boolean includeExecSql,
+                              boolean includeParameters, boolean validateParameters, Options options) {
     Object[] argsToPrint = args;
     if (argsToPrint == null) {
       argsToPrint = new Object[0];
@@ -59,7 +64,7 @@ public class DebugSql {
       argsToPrint = (Object[]) argsToPrint[0];
     }
     String[] sqlParts = sql.split("\\?");
-    if (sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
+    if (validateParameters && sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
       buf.append("(wrong # args) query: ");
       buf.append(sql);
       if (args != null) {
@@ -185,7 +190,7 @@ public class DebugSql {
     buf.append(sqlType).append(": ");
     metric.printMessage(buf);
     buf.append(separator);
-    printSql(buf, sql, args, options);
+    printSql(buf, sql, args, true, options.isLogParameters(), false, options);
     return buf.toString();
   }
 }

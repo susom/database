@@ -1002,9 +1002,9 @@ public class DatabaseTest {
         .queryFirstOrNull(r -> r.getStringOrNull("result"));
 
     // Verify the ParamSql was logged correctly for the cases above
-    capturedLog.assertMessage(Level.DEBUG, "ParamSql:\tselect 'test?value' as result, a from b where c='hi'");
-    capturedLog.assertMessage(Level.DEBUG, "ParamSql:\tselect 'test:value' as result, a from b where c='hi'");
-    capturedLog.assertMessage(Level.DEBUG, "ParamSql:\tselect 'test?value:end' as result, a from b where c='hi' and d='test'");
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test?value' as result, a from b where c=?${sep}select 'test?value' as result, a from b where c='hi'");
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test:value' as result, a from b where c=?${sep}select 'test:value' as result, a from b where c='hi'");
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test?value:end' as result, a from b where c=? and d=?${sep}select 'test?value:end' as result, a from b where c='hi' and d='test'");
 
     control.verify();
   }

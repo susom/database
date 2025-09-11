@@ -18,8 +18,10 @@ package com.github.susom.database;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.slf4j.Logger;
 
@@ -64,24 +66,60 @@ public class DebugSql {
       argsToPrint = (Object[]) argsToPrint[0];
     }
 
-    if (!validateParameters) {
+    if (!validateParameters && argsToPrint.length > 0) {
       // When validation is disabled (e.g., for logging post-processed SQL from MixedParameterSql),
-      // we can't safely do parameter substitution because the SQL may contain literal ? characters
-      // from escaped parameters. Just log the SQL as-is.
+      // we need to carefully substitute parameters. The SQL may contain literal ? characters
+      // from escaped parameters, so we only substitute the last N ? characters where N is the
+      // number of arguments.
       if (includeExecSql) {
         buf.append(removeTabs(sql));
       }
-      if (includeParameters && argsToPrint.length > 0) {
+      if (includeParameters) {
         if (includeExecSql) {
           buf.append(PARAM_SQL_SEPARATOR);
         }
-        // Since this is post-processed SQL, the parameters have already been substituted by MixedParameterSql
-        // so we just show the SQL as-is, which should already have the parameter values embedded
-        buf.append(removeTabs(sql));
+        
+        // Find all question mark positions
+        List<Integer> questionMarkPositions = new ArrayList<>();
+        for (int i = 0; i < sql.length(); i++) {
+          if (sql.charAt(i) == '?') {
+            questionMarkPositions.add(i);
+          }
+        }
+        
+        // Only substitute the last N question marks, where N is the number of arguments
+        int numParamsToSubstitute = Math.min(argsToPrint.length, questionMarkPositions.size());
+        List<Integer> paramPositions = new ArrayList<>();
+        if (numParamsToSubstitute > 0) {
+          for (int i = questionMarkPositions.size() - numParamsToSubstitute; i < questionMarkPositions.size(); i++) {
+            paramPositions.add(questionMarkPositions.get(i));
+          }
+        }
+        
+        // Build the result by substituting at the identified positions
+        int lastPos = 0;
+        int argIndex = 0;
+        for (int pos : paramPositions) {
+          // Add SQL up to this parameter position
+          buf.append(removeTabs(sql.substring(lastPos, pos)));
+          
+          // Add the parameter value
+          if (argIndex < argsToPrint.length) {
+            appendParameterValue(buf, argsToPrint[argIndex], options);
+            argIndex++;
+          }
+          
+          lastPos = pos + 1; // Skip the ? character
+        }
+        
+        // Add remaining SQL after last parameter
+        if (lastPos < sql.length()) {
+          buf.append(removeTabs(sql.substring(lastPos)));
+        }
       }
     } else {
       String[] sqlParts = sql.split("\\?");
-      if (sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
+      if (validateParameters && sqlParts.length != argsToPrint.length + (sql.endsWith("?") ? 0 : 1)) {
         buf.append("(wrong # args) query: ");
         buf.append(sql);
         if (args != null) {
@@ -102,46 +140,7 @@ public class DebugSql {
           }
           for (int i = 0; i < argsToPrint.length; i++) {
             buf.append(removeTabs(sqlParts[i]));
-            Object argToPrint = argsToPrint[i];
-            if (argToPrint instanceof String) {
-              String argToPrintString = (String) argToPrint;
-              int maxLength = options.maxStringLengthParam();
-              if (argToPrintString.length() > maxLength && maxLength > 0) {
-                buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
-              } else {
-                buf.append("'");
-                buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
-                buf.append("'");
-              }
-            } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
-              buf.append("null");
-            } else if (argToPrint instanceof java.sql.Timestamp) {
-              buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
-            } else if (argToPrint instanceof java.sql.Date) {
-                buf.append(options.flavor().localDateAsSqlFunction((Date) argToPrint));
-            } else if (argToPrint instanceof Number) {
-              buf.append(argToPrint);
-            } else if (argToPrint instanceof Boolean) {
-              buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
-            } else if (argToPrint instanceof SecretArg) {
-              buf.append("<secret>");
-            } else if (argToPrint instanceof InternalStringReader) {
-              String argToPrintString = ((InternalStringReader) argToPrint).getString();
-              int maxLength = options.maxStringLengthParam();
-              if (argToPrintString.length() > maxLength && maxLength > 0) {
-                buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
-              } else {
-                buf.append("'");
-                buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
-                buf.append("'");
-              }
-            } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
-              buf.append("<").append(argToPrint.getClass().getName()).append(">");
-            } else if (argToPrint instanceof byte[]) {
-              buf.append("<").append(((byte[]) argToPrint).length).append(" bytes>");
-            } else {
-              buf.append("<unknown:").append(argToPrint.getClass().getName()).append(">");
-            }
+            appendParameterValue(buf, argsToPrint[i], options);
           }
           if (sqlParts.length > argsToPrint.length) {
             buf.append(sqlParts[sqlParts.length - 1]);
@@ -153,6 +152,48 @@ public class DebugSql {
       buf.append(" (first in batch of ");
       buf.append(batchSize);
       buf.append(')');
+    }
+  }
+
+  private static void appendParameterValue(StringBuilder buf, Object argToPrint, Options options) {
+    if (argToPrint instanceof String) {
+      String argToPrintString = (String) argToPrint;
+      int maxLength = options.maxStringLengthParam();
+      if (argToPrintString.length() > maxLength && maxLength > 0) {
+        buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
+      } else {
+        buf.append("'");
+        buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
+        buf.append("'");
+      }
+    } else if (argToPrint instanceof StatementAdaptor.SqlNull || argToPrint == null) {
+      buf.append("null");
+    } else if (argToPrint instanceof java.sql.Timestamp) {
+      buf.append(options.flavor().dateAsSqlFunction((Date) argToPrint, options.calendarForTimestamps()));
+    } else if (argToPrint instanceof java.sql.Date) {
+        buf.append(options.flavor().localDateAsSqlFunction((Date) argToPrint));
+    } else if (argToPrint instanceof Number) {
+      buf.append(argToPrint);
+    } else if (argToPrint instanceof Boolean) {
+      buf.append(((Boolean) argToPrint) ? "'Y'" : "'N'");
+    } else if (argToPrint instanceof SecretArg) {
+      buf.append("<secret>");
+    } else if (argToPrint instanceof InternalStringReader) {
+      String argToPrintString = ((InternalStringReader) argToPrint).getString();
+      int maxLength = options.maxStringLengthParam();
+      if (argToPrintString.length() > maxLength && maxLength > 0) {
+        buf.append("'").append(argToPrintString.substring(0, maxLength)).append("...'");
+      } else {
+        buf.append("'");
+        buf.append(removeTabs(escapeSingleQuoted(argToPrintString)));
+        buf.append("'");
+      }
+    } else if (argToPrint instanceof Reader || argToPrint instanceof InputStream) {
+      buf.append("<").append(argToPrint.getClass().getName()).append(">");
+    } else if (argToPrint instanceof byte[]) {
+      buf.append("<").append(((byte[]) argToPrint).length).append(" bytes>");
+    } else {
+      buf.append("<unknown:").append(argToPrint.getClass().getName()).append(">");
     }
   }
 

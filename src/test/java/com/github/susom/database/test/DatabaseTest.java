@@ -47,6 +47,7 @@ import com.github.susom.database.DebugSql;
 import com.github.susom.database.Flavor;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.OptionsOverride;
+import com.github.susom.database.RowStub;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
@@ -968,6 +969,50 @@ public class DatabaseTest {
     new DatabaseProvider(() -> c, new OptionsDefault(Flavor.postgresql)).transact((db) -> {
       db.get();
     });
+
+    control.verify();
+  }
+
+  @Test
+  public void escapedParametersInLoggingShouldNotCauseWrongArgsMessage() {
+    IMocksControl control = createStrictControl();
+
+    DatabaseMock mock = control.createMock(DatabaseMock.class);
+    expect(mock.query(anyString(), anyString())).andReturn(new RowStub()).anyTimes();
+
+    control.replay();
+
+    // Test with escaped question marks (??)
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'test??value' as result, a from b where c=?")
+        .argString("hi")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
+    // Test with escaped colons (::)
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'test::value' as result, a from b where c=?")
+        .argString("hi")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
+    // Test with both types of escaped parameters
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'test??value::end' as result, a from b where c=? and d=:param")
+        .argString("hi")
+        .argString("param", "test")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
+    // Test with both types of escaped parameters
+    new DatabaseImpl(mock, optionsFullLog)
+        .toSelect("select 'a??b::c' as result, a from b where c=? and d=:param union select 'd??e::f'")
+        .argString("hi")
+        .argString("param", "test")
+        .queryFirstOrNull(r -> r.getStringOrNull("result"));
+
+    // Verify the ParamSql was logged correctly for the cases above
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test?value' as result, a from b where c=?${sep}select 'test?value' as result, a from b where c='hi'");
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test:value' as result, a from b where c=?${sep}select 'test:value' as result, a from b where c='hi'");
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'test?value:end' as result, a from b where c=? and d=?${sep}select 'test?value:end' as result, a from b where c='hi' and d='test'");
+    capturedLog.assertMessage(Level.DEBUG, "Query: ${timing}\tselect 'a?b:c' as result, a from b where c=? and d=? union select 'd?e:f'${sep}select 'a?b:c' as result, a from b where c='hi' and d='test' union select 'd?e:f'");
 
     control.verify();
   }

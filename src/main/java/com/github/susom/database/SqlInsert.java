@@ -204,16 +204,30 @@ public interface SqlInsert {
   int[] insertBatchUnchecked();
 
   /**
-   * Use this method in conjunction with argPkSeq() to optimize inserts where the
-   * primary key is being populated from a database sequence at insert time. If the
-   * database can't support this feature it will be simulated with a select and then
-   * the insert.
+   * Use this method in conjunction with an identity/auto-increment primary key column
+   * to insert and return the generated primary key value. This method should NOT be
+   * used with argPk*() methods since the database will automatically generate the key.
    *
    * <p>This version of insert expects exactly one row to be inserted, and will throw
    * a DatabaseException if that isn't the case.</p>
    */
   @CheckReturnValue
   Long insertReturningPkSeq(String primaryKeyColumnName);
+
+  /**
+   * Use this method with identity/auto-increment primary key columns to insert a row
+   * and return the generated primary key value. Unlike insertReturningPkSeq(), this
+   * method does not require any argPk*() calls - the database automatically generates
+   * the primary key value.
+   *
+   * <p>This version of insert expects exactly one row to be inserted, and will throw
+   * a DatabaseException if that isn't the case.</p>
+   * 
+   * @param primaryKeyColumnName the name of the identity primary key column
+   * @return the generated primary key value
+   */
+  @CheckReturnValue
+  Long insertReturningPkDefault(String primaryKeyColumnName);
 
   <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> rowsHandler,
                         String...otherColumnNames);

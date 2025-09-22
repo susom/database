@@ -595,6 +595,7 @@ public class Schema {
       private int precision;
       private boolean notNull;
       private String comment;
+      private boolean identity;
 
       public Column(String name) {
         this.name = toName(name);
@@ -712,6 +713,26 @@ public class Schema {
         return this;
       }
 
+      /**
+       * Mark this column as a primary key with identity (auto-increment) behavior.
+       * The column will be automatically populated by the database on insert.
+       * Only works with Long type columns.
+       */
+      public Column primaryKeyIdentity() {
+        if (type == null) {
+          asLong();
+        } else if (type != ColumnType.Long) {
+          throw new RuntimeException("Identity primary keys must be Long type");
+        }
+        if (comment == null) {
+          comment = "Internally generated identity primary key";
+        }
+        identity = true;
+        notNull();
+        Table.this.addPrimaryKey(Table.this.name + "_pk", name);
+        return this;
+      }
+
       public Column unique(String constraintName) {
         notNull();
         Table.this.addUnique(constraintName, name);
@@ -765,7 +786,11 @@ public class Schema {
             sql.append(flavor.typeInteger());
             break;
           case Long:
-            sql.append(flavor.typeLong());
+            if (column.identity) {
+              sql.append(flavor.typeLongIdentity());
+            } else {
+              sql.append(flavor.typeLong());
+            }
             break;
           case Float:
             sql.append(flavor.typeFloat());

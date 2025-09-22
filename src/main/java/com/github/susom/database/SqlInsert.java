@@ -215,6 +215,21 @@ public interface SqlInsert {
   @CheckReturnValue
   Long insertReturningPkSeq(String primaryKeyColumnName);
 
+  /**
+   * Use this method with identity/auto-increment primary key columns to insert a row
+   * and return the generated primary key value. Unlike insertReturningPkSeq(), this
+   * method does not require any argPk*() calls - the database automatically generates
+   * the primary key value.
+   *
+   * <p>This version of insert expects exactly one row to be inserted, and will throw
+   * a DatabaseException if that isn't the case.</p>
+   * 
+   * @param primaryKeyColumnName the name of the identity primary key column
+   * @return the generated primary key value
+   */
+  @CheckReturnValue
+  Long insertReturningPkDefault(String primaryKeyColumnName);
+
   <T> T insertReturning(String tableName, String primaryKeyColumnName, RowsHandler<T> rowsHandler,
                         String...otherColumnNames);
 

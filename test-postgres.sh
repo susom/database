@@ -47,3 +47,4 @@ run_pg_tests 14
 run_pg_tests 15
 run_pg_tests 16
 run_pg_tests 17
+run_pg_tests 18

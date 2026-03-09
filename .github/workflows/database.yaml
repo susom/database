@@ -32,12 +32,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+      # - name: Cache SonarCloud packages
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ~/.sonar/cache
+      #     key: ${{ runner.os }}-sonar
+      #     restore-keys: ${{ runner.os }}-sonar
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4  
@@ -74,7 +74,7 @@ jobs:
       - name: Test and Build with Maven
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn -e -Dfailsafe.rerunFailingTestsCount=3 -Dmaven.javadoc.skip=true \
           "-Duser.timezone=America/Los_Angeles" \
@@ -82,8 +82,8 @@ jobs:
           -Dhsqldb.database.user=SA -Dhsqldb.database.password= -Pcoverage,hsqldb verify &&
           bash test-postgres.sh &&
           bash test-sqlserver.sh &&
-          bash test-oracle.sh &&
-          mvn -e org.jacoco:jacoco-maven-plugin:report org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=susom_database
+          bash test-oracle.sh
+          # mvn -e org.jacoco:jacoco-maven-plugin:report org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=susom_database
 
       - name: Display Surefire reports on failure
         if: failure()

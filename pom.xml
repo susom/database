@@ -98,15 +98,8 @@
               <artifactSet>
                 <includes>
                   <include>com.github.susom:database</include>
-                  <include>com.zaxxer:HikariCP</include>
                 </includes>
               </artifactSet>
-              <relocations>
-                <relocation>
-                  <pattern>com.zaxxer.hikari</pattern>
-                  <shadedPattern>shaded.com.github.susom.database.shaded.com.zaxxer.hikari</shadedPattern>
-                </relocation>
-              </relocations>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -253,7 +246,6 @@
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
       <version>7.0.2</version>
-      <optional>true</optional>
     </dependency>
 
     <dependency>

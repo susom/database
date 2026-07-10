@@ -465,7 +465,8 @@ public class SqlInsertImpl implements SqlInsert {
     Exception logEx = null;
     try {
       for (Batch batch : batched) {
-        MixedParameterSql mpSql = new MixedParameterSql(sql, batch.parameterList, batch.parameterMap);
+        MixedParameterSql mpSql = new MixedParameterSql(sql, batch.parameterList, batch.parameterMap,
+            options.useSmartSqlParameterParsing());
         if (firstRowParameters == null) {
           executeSql = mpSql.getSqlToExecute();
           firstRowParameters = mpSql.getArgs();
@@ -539,7 +540,8 @@ public class SqlInsertImpl implements SqlInsert {
     String errorCode = null;
     Exception logEx = null;
     try {
-      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap,
+          options.useSmartSqlParameterParsing());
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 
@@ -602,7 +604,8 @@ public class SqlInsertImpl implements SqlInsert {
     String errorCode = null;
     Exception logEx = null;
     try {
-      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap,
+          options.useSmartSqlParameterParsing());
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 
@@ -673,7 +676,8 @@ public class SqlInsertImpl implements SqlInsert {
     String errorCode = null;
     Exception logEx = null;
     try {
-      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap,
+          options.useSmartSqlParameterParsing());
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 
@@ -745,7 +749,8 @@ public class SqlInsertImpl implements SqlInsert {
     String errorCode = null;
     Exception logEx = null;
     try {
-      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap,
+          options.useSmartSqlParameterParsing());
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 

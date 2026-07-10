@@ -25,10 +25,20 @@ import java.util.Set;
 
 /**
  * Convenience class to allow use of (:mylabel) for SQL parameters in addition to
- * positional (?) parameters. This doesn't do any smart parsing of the SQL, it is just
- * looking for ':' and '?' characters. If the SQL needs to include an actual ':' or '?'
- * character, use two of them ('::' or '??'), and they will be replaced with a
- * single ':' or '?'.
+ * positional (?) parameters.
+ *
+ * <p>By default this uses "smart" parsing, which is aware of ordinary SQL syntax. A
+ * ':' or '?' character that appears inside a single-quoted string literal ('...'),
+ * a double-quoted identifier ("..."), a line comment (-- ...) or a block comment
+ * (/* ... *&#47;) is treated as regular SQL text and does not need to be escaped.
+ * PostgreSQL-style casts (::type) are recognized and left untouched. Only a '?' or
+ * ':name' occurring in ordinary SQL is treated as a bind variable.</p>
+ *
+ * <p>The legacy behavior can be requested by passing {@code useSmartParsing=false}
+ * to the constructor. In that mode no smart parsing is done, and the SQL is simply
+ * scanned for ':' and '?' characters. If the SQL needs to include an actual ':' or
+ * '?' character in that mode, use two of them ('::' or '??'), and they will be
+ * replaced with a single ':' or '?'.</p>
  *
  * @author garricko
  */
@@ -36,7 +46,22 @@ public class MixedParameterSql {
   private final String sqlToExecute;
   private final Object[] args;
 
+  /**
+   * Parse the SQL using the default "smart" parsing. Equivalent to calling
+   * {@link #MixedParameterSql(String, List, Map, boolean)} with {@code true}.
+   */
   public MixedParameterSql(String sql, List<Object> positionalArgs, Map<String, Object> nameToArg) {
+    this(sql, positionalArgs, nameToArg, true);
+  }
+
+  /**
+   * @param useSmartParsing if true, ':' and '?' inside string literals, quoted
+   *                        identifiers and comments are ignored (and do not need to
+   *                        be escaped); if false, the legacy escape-by-doubling
+   *                        behavior is used
+   */
+  public MixedParameterSql(String sql, List<Object> positionalArgs, Map<String, Object> nameToArg,
+                           boolean useSmartParsing) {
     if (positionalArgs == null) {
       positionalArgs = new ArrayList<>();
     }
@@ -48,6 +73,108 @@ public class MixedParameterSql {
     List<String> argNamesList = new ArrayList<>();
     List<String> rewrittenArgs = new ArrayList<>();
     List<Object> argsList = new ArrayList<>();
+    int currentPositionalArg = useSmartParsing
+        ? parseSmart(sql, positionalArgs, nameToArg, newSql, argsList, argNamesList, rewrittenArgs)
+        : parseLegacy(sql, positionalArgs, nameToArg, newSql, argsList, argNamesList, rewrittenArgs);
+
+    this.sqlToExecute = newSql.toString();
+    args = argsList.toArray(new Object[argsList.size()]);
+
+    // Sanity check number of arguments to provide a better error message
+    if (currentPositionalArg != positionalArgs.size()) {
+      throw new DatabaseException("Wrong number of positional parameters were provided (expected: "
+          + currentPositionalArg + ", actual: " + positionalArgs.size() + ")");
+    }
+    if (nameToArg.size() > args.length - Math.max(0, positionalArgs.size() - 1) + rewrittenArgs.size()) {
+      Set<String> unusedNames = new HashSet<>(nameToArg.keySet());
+      unusedNames.removeAll(argNamesList);
+      unusedNames.removeAll(rewrittenArgs);
+      if (!unusedNames.isEmpty()) {
+        throw new DatabaseException("These named parameters do not exist in the query: " + unusedNames);
+      }
+    }
+  }
+
+  /**
+   * Context-aware parsing that skips over string literals, quoted identifiers and
+   * comments so ':' and '?' characters within them are left untouched.
+   *
+   * @return the number of positional parameters consumed
+   */
+  private int parseSmart(String sql, List<Object> positionalArgs, Map<String, Object> nameToArg,
+                         StringBuilder newSql, List<Object> argsList, List<String> argNamesList,
+                         List<String> rewrittenArgs) {
+    int currentPositionalArg = 0;
+    int length = sql.length();
+    int i = 0;
+    while (i < length) {
+      char c = sql.charAt(i);
+      switch (c) {
+      case '\'':
+        // Single-quoted string literal (with '' as an embedded quote)
+        i = appendQuoted(sql, i, '\'', newSql);
+        break;
+      case '"':
+        // Double-quoted identifier (with "" as an embedded quote)
+        i = appendQuoted(sql, i, '"', newSql);
+        break;
+      case '-':
+        if (i + 1 < length && sql.charAt(i + 1) == '-') {
+          i = appendLineComment(sql, i, newSql);
+        } else {
+          newSql.append(c);
+          i++;
+        }
+        break;
+      case '/':
+        if (i + 1 < length && sql.charAt(i + 1) == '*') {
+          i = appendBlockComment(sql, i, newSql);
+        } else {
+          newSql.append(c);
+          i++;
+        }
+        break;
+      case '?':
+        currentPositionalArg = appendPositionalParam(newSql, currentPositionalArg, positionalArgs, argsList);
+        i++;
+        break;
+      case ':':
+        if (i + 1 < length && sql.charAt(i + 1) == ':') {
+          // PostgreSQL cast operator (::) - leave it untouched
+          newSql.append("::");
+          i += 2;
+        } else if (i + 1 < length && Character.isJavaIdentifierPart(sql.charAt(i + 1))) {
+          // Named parameter (":foo")
+          int endOfNameIndex = i + 1;
+          while (endOfNameIndex < length && Character.isJavaIdentifierPart(sql.charAt(endOfNameIndex))) {
+            endOfNameIndex++;
+          }
+          appendNamedParam(newSql, sql.substring(i + 1, endOfNameIndex), nameToArg, argsList, argNamesList,
+              rewrittenArgs);
+          i = endOfNameIndex;
+        } else {
+          // A lone ':' that is not a parameter (e.g. an operator) - leave it as-is
+          newSql.append(c);
+          i++;
+        }
+        break;
+      default:
+        newSql.append(c);
+        i++;
+      }
+    }
+    return currentPositionalArg;
+  }
+
+  /**
+   * Legacy parsing that treats every ':' and '?' as a parameter marker, and relies
+   * on doubling ('::' or '??') to escape a literal ':' or '?'.
+   *
+   * @return the number of positional parameters consumed
+   */
+  private int parseLegacy(String sql, List<Object> positionalArgs, Map<String, Object> nameToArg,
+                          StringBuilder newSql, List<Object> argsList, List<String> argNamesList,
+                          List<String> rewrittenArgs) {
     int searchIndex = 0;
     int currentPositionalArg = 0;
     while (searchIndex < sql.length()) {
@@ -78,21 +205,8 @@ public class MixedParameterSql {
           endOfNameIndex++;
         }
         newSql.append(sql.substring(searchIndex, nextColonIndex));
-        String paramName = sql.substring(nextColonIndex + 1, endOfNameIndex);
-        boolean secretParam = paramName.startsWith("secret");
-        Object arg = nameToArg.get(paramName);
-        if (arg instanceof RewriteArg) {
-          newSql.append(((RewriteArg) arg).sql);
-          rewrittenArgs.add(paramName);
-        } else {
-          newSql.append('?');
-          if (nameToArg.containsKey(paramName)) {
-            argsList.add(secretParam ? new SecretArg(arg): arg);
-          } else {
-            throw new DatabaseException("The SQL requires parameter ':" + paramName + "' but no value was provided");
-          }
-          argNamesList.add(paramName);
-        }
+        appendNamedParam(newSql, sql.substring(nextColonIndex + 1, endOfNameIndex), nameToArg, argsList,
+            argNamesList, rewrittenArgs);
         searchIndex = endOfNameIndex;
       } else {
         // The next parameter we found is a positional parameter ("?")
@@ -105,36 +219,133 @@ public class MixedParameterSql {
         }
 
         newSql.append(sql.substring(searchIndex, nextQmIndex));
-        if (currentPositionalArg >= positionalArgs.size()) {
-          throw new DatabaseException("Not enough positional parameters (" + positionalArgs.size() + ") were provided");
-        }
-        if (positionalArgs.get(currentPositionalArg) instanceof RewriteArg) {
-          newSql.append(((RewriteArg) positionalArgs.get(currentPositionalArg)).sql);
-        } else {
-          newSql.append('?');
-          argsList.add(positionalArgs.get(currentPositionalArg));
-        }
-        currentPositionalArg++;
+        currentPositionalArg = appendPositionalParam(newSql, currentPositionalArg, positionalArgs, argsList);
         searchIndex = nextQmIndex + 1;
       }
     }
+    return currentPositionalArg;
+  }
 
-    this.sqlToExecute = newSql.toString();
-    args = argsList.toArray(new Object[argsList.size()]);
-
-    // Sanity check number of arguments to provide a better error message
-    if (currentPositionalArg != positionalArgs.size()) {
-      throw new DatabaseException("Wrong number of positional parameters were provided (expected: "
-          + currentPositionalArg + ", actual: " + positionalArgs.size() + ")");
+  /**
+   * Emit a named parameter as a '?' placeholder (or its rewritten SQL) and record
+   * its value/name for binding.
+   */
+  private void appendNamedParam(StringBuilder newSql, String paramName, Map<String, Object> nameToArg,
+                                List<Object> argsList, List<String> argNamesList, List<String> rewrittenArgs) {
+    boolean secretParam = paramName.startsWith("secret");
+    Object arg = nameToArg.get(paramName);
+    if (arg instanceof RewriteArg) {
+      newSql.append(((RewriteArg) arg).sql);
+      rewrittenArgs.add(paramName);
+    } else {
+      newSql.append('?');
+      if (nameToArg.containsKey(paramName)) {
+        argsList.add(secretParam ? new SecretArg(arg): arg);
+      } else {
+        throw new DatabaseException("The SQL requires parameter ':" + paramName + "' but no value was provided");
+      }
+      argNamesList.add(paramName);
     }
-    if (nameToArg.size() > args.length - Math.max(0, positionalArgs.size() - 1) + rewrittenArgs.size()) {
-      Set<String> unusedNames = new HashSet<>(nameToArg.keySet());
-      unusedNames.removeAll(argNamesList);
-      unusedNames.removeAll(rewrittenArgs);
-      if (!unusedNames.isEmpty()) {
-        throw new DatabaseException("These named parameters do not exist in the query: " + unusedNames);
+  }
+
+  /**
+   * Emit a positional parameter as a '?' placeholder (or its rewritten SQL) and
+   * record its value for binding.
+   *
+   * @return the index of the next positional parameter to consume
+   */
+  private int appendPositionalParam(StringBuilder newSql, int currentPositionalArg,
+                                    List<Object> positionalArgs, List<Object> argsList) {
+    if (currentPositionalArg >= positionalArgs.size()) {
+      throw new DatabaseException("Not enough positional parameters (" + positionalArgs.size() + ") were provided");
+    }
+    if (positionalArgs.get(currentPositionalArg) instanceof RewriteArg) {
+      newSql.append(((RewriteArg) positionalArgs.get(currentPositionalArg)).sql);
+    } else {
+      newSql.append('?');
+      argsList.add(positionalArgs.get(currentPositionalArg));
+    }
+    return currentPositionalArg + 1;
+  }
+
+  /**
+   * Copy a quoted region (string literal or quoted identifier), including the
+   * surrounding quote characters, verbatim into the output. A doubled quote
+   * ({@code ''} or {@code ""}) is treated as an embedded quote, not a terminator.
+   *
+   * @param start index of the opening quote
+   * @return the index immediately after the closing quote (or the end of the SQL if
+   *         the quote is not terminated)
+   */
+  private static int appendQuoted(String sql, int start, char quote, StringBuilder newSql) {
+    int length = sql.length();
+    newSql.append(quote);
+    int i = start + 1;
+    while (i < length) {
+      char c = sql.charAt(i);
+      if (c == quote) {
+        if (i + 1 < length && sql.charAt(i + 1) == quote) {
+          // Embedded (doubled) quote - part of the quoted text
+          newSql.append(quote).append(quote);
+          i += 2;
+          continue;
+        }
+        // Closing quote
+        newSql.append(quote);
+        return i + 1;
+      }
+      newSql.append(c);
+      i++;
+    }
+    // Unterminated quote - everything remaining has already been copied
+    return i;
+  }
+
+  /**
+   * Copy a line comment ({@code -- ...}) verbatim into the output, up to but not
+   * including the terminating newline.
+   *
+   * @param start index of the first '-'
+   * @return the index of the newline that ends the comment (or the end of the SQL)
+   */
+  private static int appendLineComment(String sql, int start, StringBuilder newSql) {
+    int length = sql.length();
+    int i = start;
+    while (i < length && sql.charAt(i) != '\n') {
+      newSql.append(sql.charAt(i));
+      i++;
+    }
+    return i;
+  }
+
+  /**
+   * Copy a block comment ({@code /}{@code * ... *}{@code /}) verbatim into the
+   * output. Nested block comments (as supported by PostgreSQL) are handled.
+   *
+   * @param start index of the opening '/'
+   * @return the index immediately after the closing "*&#47;" (or the end of the SQL
+   *         if the comment is not terminated)
+   */
+  private static int appendBlockComment(String sql, int start, StringBuilder newSql) {
+    int length = sql.length();
+    newSql.append("/*");
+    int i = start + 2;
+    int depth = 1;
+    while (i < length && depth > 0) {
+      if (i + 1 < length && sql.charAt(i) == '/' && sql.charAt(i + 1) == '*') {
+        newSql.append("/*");
+        i += 2;
+        depth++;
+      } else if (i + 1 < length && sql.charAt(i) == '*' && sql.charAt(i + 1) == '/') {
+        newSql.append("*/");
+        i += 2;
+        depth--;
+      } else {
+        newSql.append(sql.charAt(i));
+        i++;
       }
     }
+    return i;
   }
 
   public String getSqlToExecute() {

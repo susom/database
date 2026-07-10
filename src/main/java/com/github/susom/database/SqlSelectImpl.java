@@ -711,7 +711,8 @@ public class SqlSelectImpl implements SqlSelect {
     String errorCode = null;
     Exception logEx = null;
     try {
-      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap);
+      MixedParameterSql mpSql = new MixedParameterSql(sql, parameterList, parameterMap,
+          options.useSmartSqlParameterParsing());
       executeSql = mpSql.getSqlToExecute();
       parameters = mpSql.getArgs();
 

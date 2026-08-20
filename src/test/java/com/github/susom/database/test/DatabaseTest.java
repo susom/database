@@ -480,6 +480,78 @@ public class DatabaseTest {
   }
 
   @Test
+  public void smartParsingIgnoresCharsInDollarQuotedStrings() throws Exception {
+    // Plain $$ dollar quoting: '?' and ':' inside are not bind variables
+    assertParsedSqlNoArgs(options, "select $$?:missing$$ from dual", "select $$?:missing$$ from dual");
+    // Tagged dollar quoting: $tag$...$tag$
+    assertParsedSqlNoArgs(options, "select $body$? and :x$body$ from dual", "select $body$? and :x$body$ from dual");
+    // Content after the dollar-quoted string is still parsed normally
+    assertParsedSqlNoArgs(options, "select $$?$$ from dual", "select $$?$$ from dual");
+    // Unterminated dollar-quoted string is copied through verbatim
+    assertParsedSqlNoArgs(options, "select $$?:missing from dual", "select $$?:missing from dual");
+  }
+
+  @Test
+  public void smartParsingFindsParameterAfterDollarQuotedString() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // A real parameter after a dollar-quoted string is still found
+    expect(c.prepareStatement("select $$?$$ from b where c=?")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(42)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, options)
+        .toSelect("select $$?$$ from b where c=:id")
+        .argLong("id", 42L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void smartParsingIgnoresCharsInBracketedIdentifiers() throws Exception {
+    // SQL Server bracketed identifier: '?' and ':' inside are not bind variables
+    assertParsedSqlNoArgs(options, "select [?:missing] from t", "select [?:missing] from t");
+    // Escaped ]] inside a bracketed identifier does not prematurely close it
+    assertParsedSqlNoArgs(options, "select [a]]b?:c] from t", "select [a]]b?:c] from t");
+    // Unterminated bracketed identifier is copied through verbatim
+    assertParsedSqlNoArgs(options, "select [?:missing from t", "select [?:missing from t");
+  }
+
+  @Test
+  public void smartParsingFindsParameterAfterBracketedIdentifier() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // A real parameter following a bracketed identifier column reference is still bound
+    expect(c.prepareStatement("select [col?] from t where id=?")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(7)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, options)
+        .toSelect("select [col?] from t where id=:id")
+        .argLong("id", 7L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
   public void legacyParsingCollapsesEscapedCharacters() throws Exception {
     // In legacy mode, '??' and '::' are treated as escapes and collapse to a single character
     assertParsedSqlNoArgs(optionsLegacyParsing, "select 'a??b::c' from dual", "select 'a?b:c' from dual");

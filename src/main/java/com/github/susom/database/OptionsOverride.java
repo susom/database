@@ -122,4 +122,9 @@ public class OptionsOverride implements Options {
   public int maxStringLengthParam() {
     return parent.maxStringLengthParam();
   }
+
+  @Override
+  public boolean useSmartSqlParameterParsing() {
+    return parent.useSmartSqlParameterParsing();
+  }
 }

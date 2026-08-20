@@ -45,6 +45,7 @@ import com.github.susom.database.DatabaseMock;
 import com.github.susom.database.DatabaseProvider;
 import com.github.susom.database.DebugSql;
 import com.github.susom.database.Flavor;
+import com.github.susom.database.Options;
 import com.github.susom.database.OptionsDefault;
 import com.github.susom.database.OptionsOverride;
 import com.github.susom.database.RowStub;
@@ -82,6 +83,12 @@ public class DatabaseTest {
     @Override
     public boolean isLogParameters() {
       return true;
+    }
+  };
+  private OptionsOverride optionsLegacyParsing = new OptionsOverride(options) {
+    @Override
+    public boolean useSmartSqlParameterParsing() {
+      return false;
     }
   };
   private LogCaptureAppender capturedLog;
@@ -336,9 +343,306 @@ public class DatabaseTest {
 
     control.replay();
 
-    assertNull(new DatabaseImpl(c, options).toSelect("select '::a' from b where c=:c").argLong("c", 1L).queryLongOrNull());
+    // With smart parsing, a ':' inside a string literal is left alone and does not need escaping
+    assertNull(new DatabaseImpl(c, options).toSelect("select ':a' from b where c=:c").argLong("c", 1L).queryLongOrNull());
 
     control.verify();
+  }
+
+  /**
+   * Assert that {@code inputSql} (which uses no bind parameters) is rewritten to
+   * {@code expectedSql} when parsed with the given options.
+   */
+  private void assertParsedSqlNoArgs(Options opts, String inputSql, String expectedSql) throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    expect(c.prepareStatement(expectedSql)).andReturn(ps);
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, opts).toSelect(inputSql).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void smartParsingIgnoresCharsInStringLiterals() throws Exception {
+    // A '?' or ':' inside a string literal is not a bind variable and needs no escaping
+    assertParsedSqlNoArgs(options, "select 'a?b:c' from dual", "select 'a?b:c' from dual");
+    // A doubled quote inside the literal does not prematurely end it
+    assertParsedSqlNoArgs(options, "select 'it''s a ? and :x' from dual", "select 'it''s a ? and :x' from dual");
+    // An unterminated literal is copied through verbatim (no parameters found)
+    assertParsedSqlNoArgs(options, "select 'a?b:c from dual", "select 'a?b:c from dual");
+  }
+
+  @Test
+  public void smartParsingPreservesPostgresCast() throws Exception {
+    // The PostgreSQL cast operator (::type) is left untouched, not collapsed or treated as a parameter
+    assertParsedSqlNoArgs(options, "select a::text from b", "select a::text from b");
+  }
+
+  @Test
+  public void smartParsingLeavesLoneColonAlone() throws Exception {
+    // A ':' that is not followed by an identifier character is not a named parameter
+    assertParsedSqlNoArgs(options, "select a : b from dual", "select a : b from dual");
+    // ...including a ':' at the very end of the SQL (boundary condition)
+    assertParsedSqlNoArgs(options, "select a from dual :", "select a from dual :");
+  }
+
+  @Test
+  public void smartParsingDoesNotTreatOperatorsAsComments() throws Exception {
+    // A single '-' (subtraction) or '/' (division) is not the start of a comment
+    assertParsedSqlNoArgs(options, "select a-b, c/d from e", "select a-b, c/d from e");
+  }
+
+  @Test
+  public void smartParsingIgnoresCharsInQuotedIdentifier() throws Exception {
+    // A '?' or ':' inside a double-quoted identifier is not a bind variable
+    assertParsedSqlNoArgs(options, "select x as \"a:b?c\" from b", "select x as \"a:b?c\" from b");
+    // A doubled double-quote inside the identifier does not prematurely end it
+    assertParsedSqlNoArgs(options, "select x as \"a\"\"b?:c\" from b", "select x as \"a\"\"b?:c\" from b");
+  }
+
+  @Test
+  public void smartParsingIgnoresCharsInComments() throws Exception {
+    // A '?' or ':' inside a line comment or block comment is not a bind variable
+    assertParsedSqlNoArgs(options, "select a -- comment with ? and :x\nfrom b",
+        "select a -- comment with ? and :x\nfrom b");
+    // A line comment that runs to the end of the SQL (no trailing newline)
+    assertParsedSqlNoArgs(options, "select a from b -- trailing ? and :x",
+        "select a from b -- trailing ? and :x");
+    assertParsedSqlNoArgs(options, "select a /* ? and :x */ from b", "select a /* ? and :x */ from b");
+    // Nested block comments (as supported by PostgreSQL) are handled
+    assertParsedSqlNoArgs(options, "select a /* outer ? /* inner :x */ still ? */ from b",
+        "select a /* outer ? /* inner :x */ still ? */ from b");
+    // An unterminated block comment is copied through verbatim
+    assertParsedSqlNoArgs(options, "select a /* ? and :x from b", "select a /* ? and :x from b");
+  }
+
+  @Test
+  public void smartParsingFindsParameterAfterComment() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // Parsing resumes after a comment, so a real parameter that follows it is still found
+    expect(c.prepareStatement("select a -- pick one: ? or :x\nfrom b where c=?")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(1)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, options)
+        .toSelect("select a -- pick one: ? or :x\nfrom b where c=:id")
+        .argLong("id", 1L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void smartParsingMixesLiteralsAndRealParameters() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // The '?' inside the literal and the '::text' cast are preserved; only the real
+    // positional (?) and named (:x) parameters become bind placeholders
+    expect(c.prepareStatement("select 'a?b' as r, c::text from b where d=? and e=?")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(1)));
+    ps.setObject(eq(2), eq(Long.valueOf(2)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, options)
+        .toSelect("select 'a?b' as r, c::text from b where d=? and e=:x")
+        .argLong(1L).argLong("x", 2L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void smartParsingIgnoresCharsInDollarQuotedStrings() throws Exception {
+    // Plain $$ dollar quoting: '?' and ':' inside are not bind variables
+    assertParsedSqlNoArgs(options, "select $$?:missing$$ from dual", "select $$?:missing$$ from dual");
+    // Tagged dollar quoting: $tag$...$tag$
+    assertParsedSqlNoArgs(options, "select $body$? and :x$body$ from dual", "select $body$? and :x$body$ from dual");
+    // Content after the dollar-quoted string is still parsed normally
+    assertParsedSqlNoArgs(options, "select $$?$$ from dual", "select $$?$$ from dual");
+    // Unterminated dollar-quoted string is copied through verbatim
+    assertParsedSqlNoArgs(options, "select $$?:missing from dual", "select $$?:missing from dual");
+  }
+
+  @Test
+  public void smartParsingFindsParameterAfterDollarQuotedString() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // A real parameter after a dollar-quoted string is still found
+    expect(c.prepareStatement("select $$?$$ from b where c=?")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(42)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, options)
+        .toSelect("select $$?$$ from b where c=:id")
+        .argLong("id", 42L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void smartParsingIgnoresCharsInBracketedIdentifiers() throws Exception {
+    // SQL Server bracketed identifier: '?' and ':' inside are not bind variables
+    assertParsedSqlNoArgs(options, "select [?:missing] from t", "select [?:missing] from t");
+    // Escaped ]] inside a bracketed identifier does not prematurely close it
+    assertParsedSqlNoArgs(options, "select [a]]b?:c] from t", "select [a]]b?:c] from t");
+    // Unterminated bracketed identifier is copied through verbatim
+    assertParsedSqlNoArgs(options, "select [?:missing from t", "select [?:missing from t");
+  }
+
+  @Test
+  public void smartParsingFindsParameterAfterBracketedIdentifier() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // A real parameter following a bracketed identifier column reference is still bound
+    expect(c.prepareStatement("select [col?] from t where id=?")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(7)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, options)
+        .toSelect("select [col?] from t where id=:id")
+        .argLong("id", 7L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void legacyParsingCollapsesEscapedCharacters() throws Exception {
+    // In legacy mode, '??' and '::' are treated as escapes and collapse to a single character
+    assertParsedSqlNoArgs(optionsLegacyParsing, "select 'a??b::c' from dual", "select 'a?b:c' from dual");
+  }
+
+  @Test
+  public void legacyParsingTreatsCastAsEscape() throws Exception {
+    // In legacy mode, the PostgreSQL cast '::' is (incorrectly) collapsed to a single ':'
+    assertParsedSqlNoArgs(optionsLegacyParsing, "select a::text from b", "select a:text from b");
+  }
+
+  @Test
+  public void legacyParsingTreatsCharsInLiteralsAsParameters() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // In legacy mode, a '?' inside a string literal IS treated as a positional parameter
+    expect(c.prepareStatement("select 'a?b' from dual")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(1)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, optionsLegacyParsing)
+        .toSelect("select 'a?b' from dual").argLong(1L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void legacyParsingMixesPositionalAndNamedParameters() throws Exception {
+    IMocksControl control = createStrictControl();
+
+    Connection c = control.createMock(Connection.class);
+    PreparedStatement ps = control.createMock(PreparedStatement.class);
+    ResultSet rs = control.createMock(ResultSet.class);
+
+    // In legacy mode, real positional (?) and named (:x) parameters still resolve correctly
+    expect(c.prepareStatement("select a from b where c=? and d=? and e=1")).andReturn(ps);
+    ps.setObject(eq(1), eq(Long.valueOf(1)));
+    ps.setObject(eq(2), eq(Long.valueOf(2)));
+    expect(ps.executeQuery()).andReturn(rs);
+    expect(rs.next()).andReturn(false);
+    rs.close();
+    ps.close();
+
+    control.replay();
+
+    assertNull(new DatabaseImpl(c, optionsLegacyParsing)
+        .toSelect("select a from b where c=? and d=:x and e=1")
+        .argLong(1L).argLong("x", 2L).queryLongOrNull());
+
+    control.verify();
+  }
+
+  @Test
+  public void parsingMissingNamedParameterThrows() {
+    DatabaseException ex = assertThrows(DatabaseException.class, () ->
+        new DatabaseImpl(createNiceMock(Connection.class), options)
+            .toSelect("select a from b where c=:missing").queryLongOrNull());
+    assertThat(ex.getCause().getMessage(), containsString("requires parameter ':missing'"));
+  }
+
+  @Test
+  public void parsingTooFewPositionalParametersThrows() {
+    DatabaseException ex = assertThrows(DatabaseException.class, () ->
+        new DatabaseImpl(createNiceMock(Connection.class), options)
+            .toSelect("select a from b where c=? and d=?").argLong(1L).queryLongOrNull());
+    assertThat(ex.getCause().getMessage(), containsString("Not enough positional parameters"));
+  }
+
+  @Test
+  public void parsingTooManyPositionalParametersThrows() {
+    DatabaseException ex = assertThrows(DatabaseException.class, () ->
+        new DatabaseImpl(createNiceMock(Connection.class), options)
+            .toSelect("select a from b where c=?").argLong(1L).argLong(2L).queryLongOrNull());
+    assertThat(ex.getCause().getMessage(), containsString("Wrong number of positional parameters"));
+  }
+
+  @Test
+  public void parsingUnusedNamedParameterThrows() {
+    DatabaseException ex = assertThrows(DatabaseException.class, () ->
+        new DatabaseImpl(createNiceMock(Connection.class), options)
+            .toSelect("select a from b").argLong("unused", 2L).queryLongOrNull());
+    assertThat(ex.getCause().getMessage(), containsString("do not exist in the query"));
   }
 
   @Test @Retry
@@ -982,28 +1286,28 @@ public class DatabaseTest {
 
     control.replay();
 
-    // Test with escaped question marks (??)
+    // With smart parsing (the default) a '?' inside a string literal is not a parameter
     new DatabaseImpl(mock, optionsFullLog)
-        .toSelect("select 'test??value' as result, a from b where c=?")
+        .toSelect("select 'test?value' as result, a from b where c=?")
         .argString("hi")
         .queryFirstOrNull(r -> r.getStringOrNull("result"));
 
-    // Test with escaped colons (::)
+    // ...and neither is a ':' inside a string literal
     new DatabaseImpl(mock, optionsFullLog)
-        .toSelect("select 'test::value' as result, a from b where c=?")
+        .toSelect("select 'test:value' as result, a from b where c=?")
         .argString("hi")
         .queryFirstOrNull(r -> r.getStringOrNull("result"));
 
-    // Test with both types of escaped parameters
+    // Both kinds of character together inside a literal, alongside real bind variables
     new DatabaseImpl(mock, optionsFullLog)
-        .toSelect("select 'test??value::end' as result, a from b where c=? and d=:param")
+        .toSelect("select 'test?value:end' as result, a from b where c=? and d=:param")
         .argString("hi")
         .argString("param", "test")
         .queryFirstOrNull(r -> r.getStringOrNull("result"));
 
-    // Test with both types of escaped parameters
+    // Multiple literals in the same statement, none of them treated as parameters
     new DatabaseImpl(mock, optionsFullLog)
-        .toSelect("select 'a??b::c' as result, a from b where c=? and d=:param union select 'd??e::f'")
+        .toSelect("select 'a?b:c' as result, a from b where c=? and d=:param union select 'd?e:f'")
         .argString("hi")
         .argString("param", "test")
         .queryFirstOrNull(r -> r.getStringOrNull("result"));

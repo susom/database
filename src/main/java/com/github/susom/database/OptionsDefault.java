@@ -98,4 +98,9 @@ public class OptionsDefault implements Options {
   public int maxStringLengthParam() {
     return 4000;
   }
+
+  @Override
+  public boolean useSmartSqlParameterParsing() {
+    return true;
+  }
 }

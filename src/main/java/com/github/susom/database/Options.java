@@ -145,4 +145,29 @@ public interface Options {
    * both {@code argString()} and {@code argClobString()} methods.
    */
   int maxStringLengthParam();
+
+  /**
+   * Control how bind variables ({@code ?} and {@code :name}) are located within the
+   * SQL text before it is handed to the JDBC driver.
+   *
+   * <p>When this returns true (the default), "smart" parsing is used. The parser is
+   * aware of ordinary SQL syntax, so {@code ?} and {@code :} characters that appear
+   * inside single-quoted string literals ({@code '...'}), double-quoted identifiers
+   * ({@code "..."}), line comments ({@code -- ...}) and block comments
+   * ({@code /* ... *}{@code /}) are treated as regular SQL text and do <em>not</em>
+   * need to be escaped. PostgreSQL-style casts ({@code ::type}) are also recognized
+   * and left untouched. Only a {@code ?} or {@code :name} occurring in ordinary SQL
+   * is treated as a bind variable.</p>
+   *
+   * <p>When this returns false, the legacy behavior is used: every {@code ?} and
+   * {@code :} in the SQL is treated as a parameter marker regardless of where it
+   * appears, and a literal {@code ?} or {@code :} must be escaped by doubling it
+   * ({@code ??} or {@code ::}).</p>
+   *
+   * @return true to use context-aware ("smart") parsing, false to use the legacy
+   *         escape-by-doubling behavior
+   */
+  default boolean useSmartSqlParameterParsing() {
+    return true;
+  }
 }

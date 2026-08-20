@@ -1871,7 +1871,7 @@ public abstract class CommonTest {
           .addColumn("d").asDate().schema().execute(db);
 
       db.toInsert("insert into dbtest (d) values ("
-          + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()).replace(":", "::") + ")")
+          + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()) + ")")
           .insert(1);
 
       assertEquals("1970-01-02 18:17:36.789000-0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
@@ -1884,7 +1884,7 @@ public abstract class CommonTest {
       db.toDelete("delete from dbtest where d=?").argDate(date).update(1);
 
       db.toInsert("insert into dbtest (d) values ("
-          + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()).replace(":", "::") + ")")
+          + db.flavor().dateAsSqlFunction(date, db.options().calendarForTimestamps()) + ")")
           .insert(1);
 
       assertEquals("1970-01-03 02:17:36.789000+0400", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS000Z").format(
@@ -1892,7 +1892,7 @@ public abstract class CommonTest {
 
       // Verify the function maps correctly for equals operations as well
       db.toDelete("delete from dbtest where d=" + db.flavor().dateAsSqlFunction(date,
-          db.options().calendarForTimestamps()).replace(":", "::")).update(1);
+          db.options().calendarForTimestamps())).update(1);
     } finally {
       TimeZone.setDefault(defaultTZ);
     }

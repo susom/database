@@ -167,5 +167,7 @@ public interface Options {
    * @return true to use context-aware ("smart") parsing, false to use the legacy
    *         escape-by-doubling behavior
    */
-  boolean useSmartSqlParameterParsing();
+  default boolean useSmartSqlParameterParsing() {
+    return true;
+  }
 }

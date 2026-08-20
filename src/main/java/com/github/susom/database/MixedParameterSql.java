@@ -110,6 +110,38 @@ public class MixedParameterSql {
     while (i < length) {
       char c = sql.charAt(i);
       switch (c) {
+      case '$':
+        // PostgreSQL dollar-quoting: $$...$$ or $tag$...$tag$
+        if (i + 1 < length && (sql.charAt(i + 1) == '$' || Character.isLetter(sql.charAt(i + 1)) || sql.charAt(i + 1) == '_')) {
+          int tagEnd = i + 1;
+          while (tagEnd < length && sql.charAt(tagEnd) != '$') {
+            tagEnd++;
+          }
+          if (tagEnd < length) {
+            String tag = sql.substring(i, tagEnd + 1); // e.g. "$$" or "$tag$"
+            int bodyStart = tagEnd + 1;
+            int closeIndex = sql.indexOf(tag, bodyStart);
+            if (closeIndex >= 0) {
+              newSql.append(sql, i, closeIndex + tag.length());
+              i = closeIndex + tag.length();
+            } else {
+              // Unterminated dollar-quoted string - copy to end
+              newSql.append(sql, i, length);
+              i = length;
+            }
+          } else {
+            newSql.append(c);
+            i++;
+          }
+        } else {
+          newSql.append(c);
+          i++;
+        }
+        break;
+      case '[':
+        // SQL Server bracketed identifier: [...] (] is escaped as ]])
+        i = appendBracketedIdentifier(sql, i, newSql);
+        break;
       case '\'':
         // Single-quoted string literal (with '' as an embedded quote)
         i = appendQuoted(sql, i, '\'', newSql);
@@ -266,6 +298,39 @@ public class MixedParameterSql {
       argsList.add(positionalArgs.get(currentPositionalArg));
     }
     return currentPositionalArg + 1;
+  }
+
+  /**
+   * Copy a SQL Server bracketed identifier ({@code [...]}), including the surrounding
+   * brackets, verbatim into the output. A {@code ]]} inside the identifier is treated
+   * as an escaped {@code ]}, not a terminator.
+   *
+   * @param start index of the opening '['
+   * @return the index immediately after the closing ']' (or the end of the SQL if
+   *         the identifier is not terminated)
+   */
+  private static int appendBracketedIdentifier(String sql, int start, StringBuilder newSql) {
+    int length = sql.length();
+    newSql.append('[');
+    int i = start + 1;
+    while (i < length) {
+      char c = sql.charAt(i);
+      if (c == ']') {
+        if (i + 1 < length && sql.charAt(i + 1) == ']') {
+          // Escaped ]] - part of the identifier
+          newSql.append("]]");
+          i += 2;
+          continue;
+        }
+        // Closing bracket
+        newSql.append(']');
+        return i + 1;
+      }
+      newSql.append(c);
+      i++;
+    }
+    // Unterminated - everything remaining has already been copied
+    return i;
   }
 
   /**

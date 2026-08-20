@@ -35,8 +35,11 @@ public interface Database extends Supplier<Database> {
    * Note this call does not actually execute the SQL.
    *
    * @param sql the SQL to execute, optionally containing indexed ("?") or
-   *            named (":foo") parameters. To include the characters '?' or ':'
-   *            in the SQL you must escape them with two ("??" or "::"). You
+   *            named (":foo") parameters. By default, "smart" parsing is used:
+   *            '?' and ':' characters inside string literals, quoted identifiers,
+   *            and comments are treated as regular SQL text and do not need to be
+   *            escaped. When {@link Options#useSmartSqlParameterParsing()} returns {@code false} (legacy mode), literal '?' or ':'
+   *            characters must be escaped by doubling them ("??" or "::"). You
    *            MUST be careful not to pass untrusted strings in as SQL, since
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
@@ -54,8 +57,11 @@ public interface Database extends Supplier<Database> {
    * Note this call does not actually execute the SQL.
    *
    * @param sql the SQL to execute, optionally containing indexed ("?") or
-   *            named (":foo") parameters. To include the characters '?' or ':'
-   *            in the SQL you must escape them with two ("??" or "::"). You
+   *            named (":foo") parameters. By default, "smart" parsing is used:
+   *            '?' and ':' characters inside string literals, quoted identifiers,
+   *            and comments are treated as regular SQL text and do not need to be
+   *            escaped. When {@link Options#useSmartSqlParameterParsing()} returns {@code false} (legacy mode), literal '?' or ':'
+   *            characters must be escaped by doubling them ("??" or "::"). You
    *            MUST be careful not to pass untrusted strings in as SQL, since
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
@@ -73,8 +79,11 @@ public interface Database extends Supplier<Database> {
    * Note this call does not actually execute the SQL.
    *
    * @param sql the SQL to execute, optionally containing indexed ("?") or
-   *            named (":foo") parameters. To include the characters '?' or ':'
-   *            in the SQL you must escape them with two ("??" or "::"). You
+   *            named (":foo") parameters. By default, "smart" parsing is used:
+   *            '?' and ':' characters inside string literals, quoted identifiers,
+   *            and comments are treated as regular SQL text and do not need to be
+   *            escaped. When {@link Options#useSmartSqlParameterParsing()} returns {@code false} (legacy mode), literal '?' or ':'
+   *            characters must be escaped by doubling them ("??" or "::"). You
    *            MUST be careful not to pass untrusted strings in as SQL, since
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
@@ -92,8 +101,11 @@ public interface Database extends Supplier<Database> {
    * Note this call does not actually execute the SQL.
    *
    * @param sql the SQL to execute, optionally containing indexed ("?") or
-   *            named (":foo") parameters. To include the characters '?' or ':'
-   *            in the SQL you must escape them with two ("??" or "::"). You
+   *            named (":foo") parameters. By default, "smart" parsing is used:
+   *            '?' and ':' characters inside string literals, quoted identifiers,
+   *            and comments are treated as regular SQL text and do not need to be
+   *            escaped. When {@link Options#useSmartSqlParameterParsing()} returns {@code false} (legacy mode), literal '?' or ':'
+   *            characters must be escaped by doubling them ("??" or "::"). You
    *            MUST be careful not to pass untrusted strings in as SQL, since
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
@@ -111,8 +123,11 @@ public interface Database extends Supplier<Database> {
    * Note this call does not actually execute the SQL.
    *
    * @param sql the SQL to execute, optionally containing indexed ("?") or
-   *            named (":foo") parameters. To include the characters '?' or ':'
-   *            in the SQL you must escape them with two ("??" or "::"). You
+   *            named (":foo") parameters. By default, "smart" parsing is used:
+   *            '?' and ':' characters inside string literals, quoted identifiers,
+   *            and comments are treated as regular SQL text and do not need to be
+   *            escaped. When {@link Options#useSmartSqlParameterParsing()} returns {@code false} (legacy mode), literal '?' or ':'
+   *            characters must be escaped by doubling them ("??" or "::"). You
    *            MUST be careful not to pass untrusted strings in as SQL, since
    *            this will be executed in the database.
    * @return an interface for further manipulating the statement; never null
